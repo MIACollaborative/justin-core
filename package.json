@@ -4,21 +4,20 @@
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
     "docs": "typedoc",
     "start": "node dist/index.js",
-    "test:unit": "jest --config=jest.unit.config.js -i --verbose  --passWithNoTests",
-    "test:integration": "jest --config=jest.integration.config.js --verbose  --passWithNoTests",
+    "test:unit": "jest --config=jest.unit.config.js -i --verbose",
+    "test:integration": "jest --config=jest.integration.config.js --verbose",
     "test": "yarn test:unit && yarn test:integration",
     "test:coverage": "yarn test:unit && yarn test:integration --coverage"
   },
-  "workspaces": [
-    "justin-core",
-    "justin-ext",
-    "justin-demos/*"
-  ],
   "devDependencies": {
     "@eslint/js": "^9.13.0",
     "@types/jest": "^29.5.14",
