@@ -1,0 +1,47 @@
+{
+  "name": "justin-core",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "docs": "typedoc",
+    "start": "node dist/index.js",
+    "test:unit": "jest --config=jest.unit.config.js -i --verbose  --passWithNoTests",
+    "test:integration": "jest --config=jest.integration.config.js --verbose  --passWithNoTests",
+    "test": "yarn test:unit && yarn test:integration",
+    "test:coverage": "yarn test:unit && yarn test:integration --coverage"
+  },
+  "workspaces": [
+    "justin-core",
+    "justin-ext",
+    "justin-demos/*"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.9.0",
+    "@types/sinon": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^15.11.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.3",
+    "sinon": "^19.0.2",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.26.10",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.11.0"
+  },
+  "dependencies": {
+    "mongodb": "^6.10.0",
+    "uuid": "^11.0.3",
+    "zod": "^3.23.8"
+  }
+}
