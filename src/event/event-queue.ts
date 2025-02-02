@@ -117,6 +117,10 @@ export const processEventQueue = async (): Promise<void> => {
       for (const event of events) {
         Log.info(`Processing event "${event.eventType}" with ID: ${event.id}.`);
 
+        for (const procedure of event.procedures) {
+          await processExecutionLifecycle(procedure, event, "beforeExecution")
+        }
+
         for (const user of users) {
           try {
             await processAssignments(event, user);
@@ -125,6 +129,10 @@ export const processEventQueue = async (): Promise<void> => {
               `Error processing event "${event.eventType}" with ID: ${event.id} for user ${user.id}: ${error}`
             );
           }
+        }
+
+        for (const procedure of event.procedures) {
+          await processExecutionLifecycle(procedure, event, "afterExecution")
         }
 
         try {
@@ -187,6 +195,33 @@ const processAssignments = async (event: JEvent, user: JUser): Promise<void> => 
         `Error processing assignment "${assignmentName}" for event "${event.eventType}" and user "${user.id}": ${error}`
       );
     }
+  }
+};
+
+const processExecutionLifecycle = async (
+  procedureName: string,
+  event: JEvent,
+  functionName: "beforeExecution" | "afterExecution"
+): Promise<void> => {
+  try {
+    const task = getTaskByName(procedureName);
+    if (task && typeof task[functionName] === "function") {
+      await task[functionName](event);
+      return;
+    }
+
+    const decisionRule = getDecisionRuleByName(procedureName);
+    if (decisionRule && typeof decisionRule[functionName] === "function") {
+      await decisionRule[functionName](event);
+      return;
+    }
+
+    // Log warning if function is not found
+    Log.warn(`"${functionName}" not found for assignment "${procedureName}".`);
+  } catch (error) {
+    Log.error(
+      `Error executing "${functionName}" for assignment "${procedureName}" and event "${event.eventType}": ${error}`
+    );
   }
 };
 

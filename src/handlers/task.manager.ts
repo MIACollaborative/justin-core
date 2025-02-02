@@ -25,7 +25,6 @@ export const getTaskByName = (name: string): Task | undefined => {
   return tasks.get(name);
 };
 
-
 /**
  * Executes a Task for a specific user and event.
  *
@@ -36,26 +35,31 @@ export const getTaskByName = (name: string): Task | undefined => {
 export async function executeTask(
   task: Task,
   event: JEvent,
-  user: JUser,
+  user: JUser
 ): Promise<void> {
   const results = [];
 
   try {
-    Log.info(`Executing task "${task.name}" for user "${user.id}" in event "${event.eventType}".`);
+    Log.info(
+      `Executing task "${task.name}" for user "${user.id}" in event "${event.eventType}".`
+    );
 
-    const shouldDecideResult = await executeStep(TaskStep.SHOULD_DECIDE, () =>
-      task.shouldDecide(user, event),
+    const shouldDecideResult = await executeStep(
+      TaskStep.SHOULD_DECIDE,
+      async () => Promise.resolve(task.shouldDecide(user, event))
     );
     results.push(shouldDecideResult);
 
     if (shouldDecideResult.result.status === 'success') {
-      const actionResult = await executeStep(TaskStep.DO_ACTION, () =>
-        task.doAction(user, event, shouldDecideResult.result),
+      const actionResult = await executeStep(TaskStep.DO_ACTION, async () =>
+        Promise.resolve(task.doAction(user, event, shouldDecideResult.result))
       );
       results.push(actionResult);
     }
   } catch (error) {
-    Log.error(`Error executing task "${task.name}" for user "${user.id}": ${error}`);
+    Log.error(
+      `Error executing task "${task.name}" for user "${user.id}": ${error}`
+    );
   } finally {
     recordResult({
       event: event.eventType,
@@ -64,6 +68,8 @@ export async function executeTask(
       steps: results,
       userId: user.id,
     });
-    Log.info(`Completed execution of task "${task.name}" for user "${user.id}".`);
+    Log.info(
+      `Completed execution of task "${task.name}" for user "${user.id}".`
+    );
   }
 }

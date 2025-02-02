@@ -67,19 +67,23 @@ export async function executeDecisionRule(
 
     const shouldDecideResult = await executeStep(
       DecisionRuleStep.SHOULD_DECIDE,
-      () => rule.shouldDecide(user, event)
+      async () => Promise.resolve(rule.shouldDecide(user, event))
     );
     results.push(shouldDecideResult);
 
     if (shouldDecideResult.result.status === 'success') {
-      const decisionResult = await executeStep(DecisionRuleStep.DECIDE, () =>
-        rule.decide(user, event, shouldDecideResult.result)
+      const decisionResult = await executeStep(
+        DecisionRuleStep.DECIDE,
+        async () =>
+          Promise.resolve(rule.decide(user, event, shouldDecideResult.result))
       );
       results.push(decisionResult);
 
       if (decisionResult.result.status === 'success') {
-        const actionResult = await executeStep(DecisionRuleStep.DO_ACTION, () =>
-          rule.doAction(user, event, decisionResult.result)
+        const actionResult = await executeStep(
+          DecisionRuleStep.DO_ACTION,
+          async () =>
+            Promise.resolve(rule.doAction(user, event, decisionResult.result))
         );
         results.push(actionResult);
       }

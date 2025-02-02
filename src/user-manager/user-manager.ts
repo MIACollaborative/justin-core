@@ -91,7 +91,7 @@ export const addUsersToDatabase = async (
     const dataManager = DataManager.getInstance();
     let addedUsers = [];
     for (const user of users) {
-      const addedUser = await dm.addItemToCollection(USERS, users);
+      const addedUser = await dm.addItemToCollection(USERS, user);
       console.log(`Users added: ${JSON.stringify(addedUser)}`);
       addedUsers.push(addedUser);
     }

@@ -23,32 +23,27 @@ export enum TaskStep {
   DO_ACTION = 'doAction',
 }
 
-export type DecisionRule = {
+/**
+ * Base type for shared properties between DecisionRule and Task.
+ */
+export type BaseHandler = {
   name: string;
   type: HandlerType;
-  shouldDecide: ( user: JUser, event: JEvent, ) => Promise<StepReturnResult>;
+  beforeExecution?: (event: JEvent) => Promise<void> | void;
+  shouldDecide: (user: JUser, event: JEvent) => Promise<StepReturnResult> | StepReturnResult;
+  doAction: (user: JUser, event: JEvent, previousResult: StepReturnResult) => Promise<StepReturnResult> | StepReturnResult;
+  afterExecution?: (event: JEvent) => Promise<void> | void;
+};
+
+export type DecisionRule = BaseHandler & {
   decide: (
     user: JUser,
     event: JEvent,
-    previousResult: StepReturnResult,
-  ) => Promise<StepReturnResult>;
-  doAction: (
-    user: JUser,
-    event: JEvent,
-    previousResult: StepReturnResult,
-  ) => Promise<StepReturnResult>;
+    previousResult: StepReturnResult
+  ) => Promise<StepReturnResult> | StepReturnResult;
 };
 
-export type Task = {
-  name: string;
-  type: HandlerType;
-  shouldDecide: (user: JUser, event: JEvent) => Promise<StepReturnResult>;
-  doAction: (
-    user: JUser,
-    event: JEvent,
-    previousResult: StepReturnResult,
-  ) => Promise<StepReturnResult>;
-};
+export type Task = BaseHandler;
 
 export type TaskRegistration = Omit<Task, 'type'>;
 export type DecisionRuleRegistration = Omit<DecisionRule, 'type'>;
