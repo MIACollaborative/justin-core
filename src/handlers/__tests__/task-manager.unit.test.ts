@@ -22,7 +22,7 @@ describe('Task Manager', () => {
   const mockTask: Task = {
     name: 'mockTask',
     type: HandlerType.TASK,
-    shouldDecide: jest.fn(),
+    shouldActivate: jest.fn(),
     doAction: jest.fn(),
   };
 
@@ -51,7 +51,7 @@ describe('Task Manager', () => {
   it('should register a task successfully and log info', () => {
     const task: TaskRegistration = {
       name: 'testTask',
-      shouldDecide: jest.fn(),
+      shouldActivate: jest.fn(),
       doAction: jest.fn(),
     };
 
@@ -73,7 +73,7 @@ describe('Task Manager', () => {
     const taskName = 'mockTask';
     registerTask({
       name: taskName,
-      shouldDecide: jest.fn(),
+      shouldActivate: jest.fn(),
       doAction: jest.fn(),
     });
 
@@ -91,7 +91,7 @@ describe('Task Manager', () => {
   describe('executeTask', () => {
     it('should execute a task successfully when all steps succeed and log info', async () => {
       (executeStep as jest.Mock).mockResolvedValueOnce({
-        step: TaskStep.SHOULD_DECIDE,
+        step: TaskStep.SHOULD_ACTIVATE,
         result: { status: 'success' },
       });
       (executeStep as jest.Mock).mockResolvedValueOnce({
@@ -116,7 +116,7 @@ describe('Task Manager', () => {
         eventName: mockEvent.name,
         name: mockTask.name,
         steps: [
-          { step: TaskStep.SHOULD_DECIDE, result: { status: 'success' } },
+          { step: TaskStep.SHOULD_ACTIVATE, result: { status: 'success' } },
           { step: TaskStep.DO_ACTION, result: { status: 'success' } },
         ],
         userId: mockUser.id,
@@ -125,7 +125,7 @@ describe('Task Manager', () => {
 
     it('should not execute doAction if shouldDecide fails and log info', async () => {
       (executeStep as jest.Mock).mockResolvedValueOnce({
-        step: TaskStep.SHOULD_DECIDE,
+        step: TaskStep.SHOULD_ACTIVATE,
         result: { status: 'failure' },
       });
 
@@ -146,7 +146,7 @@ describe('Task Manager', () => {
         eventName: mockEvent.name,
         name: mockTask.name,
         steps: [
-          { step: TaskStep.SHOULD_DECIDE, result: { status: 'failure' } },
+          { step: TaskStep.SHOULD_ACTIVATE, result: { status: 'failure' } },
         ],
         userId: mockUser.id,
       });

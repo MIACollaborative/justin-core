@@ -44,15 +44,15 @@ export async function executeTask(
       `Executing task "${task.name}" for user "${user.id}" in event "${event.eventType}".`
     );
 
-    const shouldDecideResult = await executeStep(
-      TaskStep.SHOULD_DECIDE,
-      async () => Promise.resolve(task.shouldDecide(user, event))
+    const shouldActivateResult = await executeStep(
+      TaskStep.SHOULD_ACTIVATE,
+      async () => Promise.resolve(task.shouldActivate(user, event))
     );
-    results.push(shouldDecideResult);
+    results.push(shouldActivateResult);
 
-    if (shouldDecideResult.result.status === 'success') {
+    if (shouldActivateResult.result.status === 'success') {
       const actionResult = await executeStep(TaskStep.DO_ACTION, async () =>
-        Promise.resolve(task.doAction(user, event, shouldDecideResult.result))
+        Promise.resolve(task.doAction(user, event, shouldActivateResult.result))
       );
       results.push(actionResult);
     }

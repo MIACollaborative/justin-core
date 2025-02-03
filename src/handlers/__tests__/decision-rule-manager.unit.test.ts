@@ -37,8 +37,8 @@ describe('DecisionRuleManager', () => {
     it('should register a decision rule and log success', () => {
       const mockRule: DecisionRuleRegistration = {
         name: 'mockRule',
-        shouldDecide: jest.fn(),
-        decide: jest.fn(),
+        shouldActivate: jest.fn(),
+        selectAction: jest.fn(),
         doAction: jest.fn(),
       };
 
@@ -64,8 +64,8 @@ describe('DecisionRuleManager', () => {
     it('should retrieve a registered rule', () => {
       const mockRule: DecisionRuleRegistration = {
         name: 'existingRule',
-        shouldDecide: jest.fn(),
-        decide: jest.fn(),
+        shouldActivate: jest.fn(),
+        selectAction: jest.fn(),
         doAction: jest.fn(),
       };
 
@@ -81,8 +81,8 @@ describe('DecisionRuleManager', () => {
     const mockRule: DecisionRule = {
       name: 'testRule',
       type: HandlerType.DECISION_RULE,
-      shouldDecide: jest.fn(),
-      decide: jest.fn(),
+      shouldActivate: jest.fn(),
+      selectAction: jest.fn(),
       doAction: jest.fn(),
     };
 
@@ -101,11 +101,11 @@ describe('DecisionRuleManager', () => {
 
     it('should log success and record results when all steps succeed', async () => {
       (executeStep as jest.Mock).mockResolvedValueOnce({
-        step: DecisionRuleStep.SHOULD_DECIDE,
+        step: DecisionRuleStep.SHOULD_ACTIVATE,
         result: { status: 'success' },
       });
       (executeStep as jest.Mock).mockResolvedValueOnce({
-        step: DecisionRuleStep.DECIDE,
+        step: DecisionRuleStep.SELECT_ACTION,
         result: { status: 'success' },
       });
       (executeStep as jest.Mock).mockResolvedValueOnce({
@@ -131,8 +131,8 @@ describe('DecisionRuleManager', () => {
         eventName: mockEvent.name,
         name: mockRule.name,
         steps: [
-          { step: DecisionRuleStep.SHOULD_DECIDE, result: { status: 'success' } },
-          { step: DecisionRuleStep.DECIDE, result: { status: 'success' } },
+          { step: DecisionRuleStep.SHOULD_ACTIVATE, result: { status: 'success' } },
+          { step: DecisionRuleStep.SELECT_ACTION, result: { status: 'success' } },
           { step: DecisionRuleStep.DO_ACTION, result: { status: 'success' } },
         ],
         userId: mockUser.id,
@@ -142,7 +142,7 @@ describe('DecisionRuleManager', () => {
 
     it('should skip further steps if a step fails', async () => {
       (executeStep as jest.Mock).mockResolvedValueOnce({
-        step: DecisionRuleStep.SHOULD_DECIDE,
+        step: DecisionRuleStep.SHOULD_ACTIVATE,
         result: { status: 'failure' },
       });
 

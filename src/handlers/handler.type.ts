@@ -13,13 +13,13 @@ export enum HandlerType {
 }
 
 export enum DecisionRuleStep {
-  SHOULD_DECIDE = 'shouldDecide',
-  DECIDE = 'decide',
+  SHOULD_ACTIVATE = 'shouldActivate',
+  SELECT_ACTION = 'selectAction',
   DO_ACTION = 'doAction',
 }
 
 export enum TaskStep {
-  SHOULD_DECIDE = 'shouldDecide',
+  SHOULD_ACTIVATE = 'shouldActivate',
   DO_ACTION = 'doAction',
 }
 
@@ -30,13 +30,13 @@ export type BaseHandler = {
   name: string;
   type: HandlerType;
   beforeExecution?: (event: JEvent) => Promise<void> | void;
-  shouldDecide: (user: JUser, event: JEvent) => Promise<StepReturnResult> | StepReturnResult;
+  shouldActivate: (user: JUser, event: JEvent) => Promise<StepReturnResult> | StepReturnResult;
   doAction: (user: JUser, event: JEvent, previousResult: StepReturnResult) => Promise<StepReturnResult> | StepReturnResult;
   afterExecution?: (event: JEvent) => Promise<void> | void;
 };
 
 export type DecisionRule = BaseHandler & {
-  decide: (
+  selectAction: (
     user: JUser,
     event: JEvent,
     previousResult: StepReturnResult

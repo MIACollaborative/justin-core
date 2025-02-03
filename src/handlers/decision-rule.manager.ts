@@ -65,25 +65,25 @@ export async function executeDecisionRule(
       `Starting decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" with ID: ${event.id}.`
     );
 
-    const shouldDecideResult = await executeStep(
-      DecisionRuleStep.SHOULD_DECIDE,
-      async () => Promise.resolve(rule.shouldDecide(user, event))
+    const shouldActivateResult = await executeStep(
+      DecisionRuleStep.SHOULD_ACTIVATE,
+      async () => Promise.resolve(rule.shouldActivate(user, event))
     );
-    results.push(shouldDecideResult);
+    results.push(shouldActivateResult);
 
-    if (shouldDecideResult.result.status === 'success') {
-      const decisionResult = await executeStep(
-        DecisionRuleStep.DECIDE,
+    if (shouldActivateResult.result.status === 'success') {
+      const selectionActionResult = await executeStep(
+        DecisionRuleStep.SELECT_ACTION,
         async () =>
-          Promise.resolve(rule.decide(user, event, shouldDecideResult.result))
+          Promise.resolve(rule.selectAction(user, event, shouldActivateResult.result))
       );
-      results.push(decisionResult);
+      results.push(selectionActionResult);
 
-      if (decisionResult.result.status === 'success') {
+      if (selectionActionResult.result.status === 'success') {
         const actionResult = await executeStep(
           DecisionRuleStep.DO_ACTION,
           async () =>
-            Promise.resolve(rule.doAction(user, event, decisionResult.result))
+            Promise.resolve(rule.doAction(user, event, selectionActionResult.result))
         );
         results.push(actionResult);
       }
