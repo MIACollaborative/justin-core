@@ -99,13 +99,15 @@ class JustInWrapper {
   public unregisterEventHandlers(name: string): void {
     EventManager.unregisterEventHandler(name);
   }
-
   /**
    * Triggers a registered event by name, adding it to the processing queue.
-   * @param {string} eventType - The name/type of the event to trigger.
+   * @param {string} eventName - The name of the event to trigger.
+   * @param {object} eventDetails - The details of the event instance.
+   *      NOTE: publishEventDetails expects a Record,
+   *      but I don't think we want to expose this to 3PDs
    */
-  public async publishEvent(eventType: string): Promise<void> {
-    await publishEventInstance(eventType);
+  public async publishEvent(eventName: string, eventDetails?: object): Promise<void> {
+    await publishEventInstance(eventName, eventDetails);
   }
 
   /**
