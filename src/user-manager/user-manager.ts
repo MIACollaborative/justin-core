@@ -202,6 +202,12 @@ const deleteAllUsers = async (): Promise<void> => {
   _users.clear();
 };
 
+const stopUserManager = () =>{
+  clm.removeChangeListener(USERS, CollectionChangeType.INSERT);
+  clm.removeChangeListener(USERS, CollectionChangeType.UPDATE);
+  clm.removeChangeListener(USERS, CollectionChangeType.DELETE);
+}
+
 /**
  * UserManager provides methods for managing users.
  *
@@ -218,6 +224,7 @@ export const UserManager = {
   getUser,
   updateUser,
   deleteAllUsers,
+  stopUserManager
 };
 
 /**

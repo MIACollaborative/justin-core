@@ -20,6 +20,7 @@ import { CollectionChangeType } from '../data-manager/data-manager.type';
 const dataManager = DataManager.getInstance();
 const clm = ChangeListenerManager.getInstance();
 let isProcessingQueue = false;
+let shouldProcessQueue = true;
 
 /**
  * Registers an event in the `EVENTS` collection.
@@ -103,7 +104,7 @@ export const processEventQueue = async (): Promise<void> => {
   try {
     Log.info('Starting event queue processing.');
 
-    while (true) {
+    while (shouldProcessQueue) {
       const users = UserManager.getAllUsers();
       const events = (await dataManager.getAllInCollection(
         EVENTS_QUEUE
@@ -158,8 +159,10 @@ export const processEventQueue = async (): Promise<void> => {
  */
 export const setupEventQueueListener = (): void => {
   clm.addChangeListener(EVENTS_QUEUE, CollectionChangeType.INSERT, async () => {
-    Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
-    await processEventQueue();
+    if (shouldProcessQueue) {
+      Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
+      await processEventQueue();
+    }
   });
 
   processEventQueue().catch((error) =>
@@ -254,3 +257,12 @@ const validateEvent = (event: RegisterJEvent): boolean => {
     event.procedures.every((p) => typeof p === 'string')
   );
 };
+
+/**
+ * Stops the event queue processing.
+ */
+export const stopEventQueueProcessing = (): void => {
+  shouldProcessQueue = false;
+  clm.removeChangeListener(EVENTS_QUEUE, CollectionChangeType.INSERT);
+  Log.info('Event queue processing stopped.');
+};  

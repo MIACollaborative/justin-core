@@ -4,6 +4,7 @@ import {
   publishEventInstance,
   processEventQueue,
   setupEventQueueListener,
+  stopEventQueueProcessing,
 } from './event/event-queue';
 import { registerTask } from './handlers/task.manager';
 import { registerDecisionRule } from './handlers/decision-rule.manager';
@@ -159,12 +160,16 @@ class JustInWrapper {
   /**
    * Stops the engine, halts event processing, and unregisters all clock events.
    */
-  public stopEngine(): void {
+  public async stopEngine(): Promise<void> {
     clockIntervals.forEach((interval, name) => {
       clearInterval(interval);
       clockIntervals.delete(name);
       Log.info(`Clock event "${name}" stopped.`);
     });
+
+    stopEventQueueProcessing();
+    UserManager.stopUserManager();
+    await DataManager.getInstance().close();
     Log.info('Engine stopped and cleared of all events.');
   }
 }
