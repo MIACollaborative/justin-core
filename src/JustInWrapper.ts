@@ -160,7 +160,7 @@ class JustInWrapper {
   /**
    * Stops the engine, halts event processing, and unregisters all clock events.
    */
-  public async stopEngine(): Promise<void> {
+  public async shutdown(): Promise<void> {
     clockIntervals.forEach((interval, name) => {
       clearInterval(interval);
       clockIntervals.delete(name);
