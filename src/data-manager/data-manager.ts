@@ -10,7 +10,7 @@ import { Readable } from 'stream';
  * Manages database operations and collection change listeners.
  */
 class DataManager extends EventEmitter {
-  private static instance: DataManager;
+  private static instance: DataManager | undefined = undefined;
   private db = MongoDBManager;
   private changeListenerManager = ChangeListenerManager.getInstance();
   private isInitialized = false;

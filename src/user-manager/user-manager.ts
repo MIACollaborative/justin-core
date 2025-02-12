@@ -85,10 +85,9 @@ export const addUsersToDatabase = async (
 ): Promise<(object | null)[]> => {
   if (!Array.isArray(users) || users.length === 0) {
     throw new Error('No users provided for insertion.');
-  }
-
+  }  
   try {
-    const dataManager = DataManager.getInstance();
+    const dataManager = dm;
     let addedUsers = [];
     for (const user of users) {
       const addedUser = await dm.addItemToCollection(USERS, user);

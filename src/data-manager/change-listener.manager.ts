@@ -12,7 +12,7 @@ import { Log } from '../logger/logger-manager';
  * to ensure a database-agnostic implementation.
  */
 export class ChangeListenerManager extends EventEmitter {
-  private static instance: ChangeListenerManager;
+  private static instance: ChangeListenerManager | undefined = undefined;
   private changeListeners: Map<
     string,
     {

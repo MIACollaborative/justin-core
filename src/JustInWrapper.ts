@@ -29,7 +29,7 @@ const clockIntervals: Map<string, NodeJS.Timeout> = new Map();
  * event registrations, data manager initialization, and orchestrating the event queue for processing.
  */
 class JustInWrapper {
-  private static instance: JustInWrapper;
+  private static instance: JustInWrapper | undefined = undefined;
   private dataManager: DataManager = DataManager.getInstance();
   private isInitialized: boolean = false;
 
