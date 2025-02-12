@@ -1,3 +1,4 @@
+import { Log } from '../logger/logger-manager';
 
 /**
  * Records the results of task or decision rule processing, logging each result.
@@ -15,8 +16,5 @@ export const recordResult = (resultData: {
   steps: any[];
   userId: string;
 }): void => {
-  const {event, eventName, name, steps, userId} = resultData
-  console.log(
-    `Event: "${event} - ${eventName}", Name: "${name}", User id:${userId} Result steps: ${JSON.stringify(steps)}`
-  );
+  Log.handlerResult(resultData);
 }

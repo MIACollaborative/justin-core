@@ -3,6 +3,7 @@ import { ChangeListenerManager } from '../data-manager/change-listener.manager';
 import { USERS } from '../data-manager/data-manager.constants';
 import { JUser } from './user.type';
 import { CollectionChangeType } from '../data-manager/data-manager.type';
+import { Log } from '../logger/logger-manager';
 
 /**
  * @type {Map<string, JUser>} _users - In-memory cache for user data.
@@ -57,7 +58,6 @@ const transformUserDocument = (doc: any): JUser => {
 const setupChangeListeners = (): void => {
   clm.addChangeListener(USERS, CollectionChangeType.INSERT, (user: JUser) => {
     const transformedUser = transformUserDocument(user);
-    console.log('User added:', transformedUser);
     _users.set(transformedUser.id, transformedUser);
   });
 
@@ -85,18 +85,17 @@ export const addUsersToDatabase = async (
 ): Promise<(object | null)[]> => {
   if (!Array.isArray(users) || users.length === 0) {
     throw new Error('No users provided for insertion.');
-  }  
+  }
   try {
     const dataManager = dm;
     let addedUsers = [];
     for (const user of users) {
       const addedUser = await dm.addItemToCollection(USERS, user);
-      console.log(`Users added: ${JSON.stringify(addedUser)}`);
       addedUsers.push(addedUser);
     }
     return addedUsers;
   } catch (error) {
-    console.error('Failed to add users:', error);
+    Log.error('Failed to add users:', error);
     throw error;
   }
 };
