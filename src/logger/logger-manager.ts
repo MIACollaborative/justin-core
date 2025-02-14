@@ -15,10 +15,16 @@ export const logLevels = {
 
 /**
  * Sets a custom logger to replace the default ConsoleLogger.
- * @param {Logger} logger - The custom logger implementation to use.
+ * If no method is provided by the custom logger, the default ConsoleLogger method will be used.
+ * @param {Partial<Logger>} logger - The custom logger implementation to use.
  */
-export function setLogger(logger: Logger): void {
-  activeLogger = logger;
+export function setLogger(logger: Partial<Logger>): void {
+  activeLogger = {
+    info: logger.info || ConsoleLogger.info,
+    warn: logger.warn || ConsoleLogger.warn,
+    error: logger.error || ConsoleLogger.error,
+    handlerResults: logger.handlerResults || ConsoleLogger.handlerResults,
+  };
 }
 
 /**
@@ -72,8 +78,8 @@ export const Log = {
   },
 
   /**
-   * Logs a result for a handler
-   * @param handlerResults - Data on the event, the handler and the results of its steps.
+   * Logs a result for a handler if `handlerResults` logging is enabled.
+   * @param handlerResults - Data on the event, the handler, and the results of its steps.
    */
   handlerResult(handlerResults: RecordResult): void {
     if (logLevels.handlerResults && activeLogger.handlerResults) {

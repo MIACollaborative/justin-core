@@ -1,33 +1,30 @@
 import { RecordResult } from '../handlers/handler.type';
 
 /**
- * Interface defining methods for logging at various levels.
+ * Interface defining methods for logging at various levels, with optional custom functions.
  */
 export interface Logger {
   /**
    * Logs an informational message.
-   * @param message - The message to log.
-   * @param optionalParams - Additional parameters for the log.
+   * @param args - The arguments to log (can be any type of data like strings, objects, etc.).
    */
-  info(message: string, ...optionalParams: any[]): void;
+  info?: (...args: any[]) => void;
 
   /**
    * Logs a warning message.
-   * @param message - The message to log.
-   * @param optionalParams - Additional parameters for the log.
+   * @param args - The arguments to log (can be any type of data like strings, objects, etc.).
    */
-  warn(message: string, ...optionalParams: any[]): void;
+  warn?: (...args: any[]) => void;
 
   /**
    * Logs an error message.
-   * @param message - The message to log.
-   * @param optionalParams - Additional parameters for the log.
+   * @param args - The arguments to log (can be any type of data like strings, objects, etc.).
    */
-  error(message: string, ...optionalParams: any[]): void;
+  error?: (...args: any[]) => void;
 
   /**
-   * Logs a results of running a task or decision rule.
-   * @param handlerResults - Data on the event, the handler and the results of its steps.
+   * Logs a result of running a task or decision rule.
+   * @param handlerResults - Data on the event, the handler, and the results of its steps.
    */
-  handlerResults(handlerResults: RecordResult): void;
+  handlerResults?: (handlerResults: RecordResult) => void;
 }
