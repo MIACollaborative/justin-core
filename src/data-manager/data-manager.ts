@@ -5,18 +5,22 @@ import { CollectionChangeType } from './data-manager.type';
 import { DBType } from './data-manager.constants';
 import { handleDbError } from './data-manager.helpers';
 import { Readable } from 'stream';
+import { Log } from '../logger/logger-manager';
 
 /**
  * Manages database operations and collection change listeners.
  */
 class DataManager extends EventEmitter {
-  private static instance: DataManager | undefined = undefined;
+  private static instance: DataManager | null = null;
   private db = MongoDBManager;
   private changeListenerManager = ChangeListenerManager.getInstance();
   private isInitialized = false;
+  private initializedAt: Date | null = null;
 
   private constructor() {
     super();
+    this.isInitialized = false;
+    this.initializedAt = new Date();
   }
 
   /**
@@ -24,10 +28,21 @@ class DataManager extends EventEmitter {
    * @returns {DataManager} The singleton instance.
    */
   public static getInstance(): DataManager {
+    Log.info('Entering DM.getInstance, instance:', DataManager.instance ? DataManager.instance.initializedAt : 'not initialized');
     if (!DataManager.instance) {
       DataManager.instance = new DataManager();
+      Log.info('In DM.getInstance, new DataManager instance created at:', DataManager.instance.initializedAt);
     }
     return DataManager.instance;
+  }
+  
+  /**
+   * Deletes the singleton instance of DataManager.
+   */
+  public static killInstance(): void {
+    if (DataManager.instance) {
+      DataManager.instance = null;
+    }
   }
 
   /**
@@ -37,19 +52,24 @@ class DataManager extends EventEmitter {
    * @returns {Promise<void>} Resolves when initialization is complete.
    */
   public async init(dbType: DBType = DBType.MONGO): Promise<void> {
+    Log.info('Entering DM.init, isInitialized:', this.isInitialized);
     try {
       if (this.isInitialized && dbType === DBType.MONGO) return;
       if (dbType !== DBType.MONGO) {
         throw new Error('MongoDB is the only supported DB type');
       }
+      Log.info('In DM.init, about to init db');
       await this.db.init();
+      Log.info('In DM.init, about to set isInitialized to true');
       this.isInitialized = true;
-
+      Log.info('In DM.init, isInitialized:', this.isInitialized);
+      Log.info('In DM.init, about to add change listener');
       this.changeListenerManager.addChangeListener(
         'EVENTS_QUEUE',
         CollectionChangeType.INSERT,
         this.handleEventsQueueInsert.bind(this)
       );
+      console.log('In DM.init, about to exit');
     } catch (error) {
       handleDbError('Failed to initialize DataManager', error);
     }

@@ -29,23 +29,37 @@ const clockIntervals: Map<string, NodeJS.Timeout> = new Map();
  * event registrations, data manager initialization, and orchestrating the event queue for processing.
  */
 class JustInWrapper {
-  private static instance: JustInWrapper | undefined = undefined;
+  private static instance: JustInWrapper | null = null;
   private dataManager: DataManager = DataManager.getInstance();
   private isInitialized: boolean = false;
-
-  private constructor() {}
+  private initializedAt: Date | null = null;
+  private constructor() {
+    this.isInitialized = false;
+    this.initializedAt = new Date();
+  }
 
   /**
    * Retrieves the singleton instance of JustInWrapper.
    * @returns {JustInWrapper} The singleton instance.
    */
   public static getInstance(): JustInWrapper {
+    Log.info('Entering JW.getInstance, instance?', JustInWrapper.instance ? JustInWrapper.instance.initializedAt : 'not initialized');
     if (!JustInWrapper.instance) {
       JustInWrapper.instance = new JustInWrapper();
+      Log.info('In JW.getInstance, new JustInWrapper instance created at:', JustInWrapper.instance.initializedAt);
     }
     return JustInWrapper.instance;
   }
 
+  /**
+   * Deletes the singleton instance of JustInWrapper.
+   */
+  public static killInstance(): void {
+    if (JustInWrapper.instance) {
+      JustInWrapper.instance = null;
+    }
+  }
+  
   /**
    * Initializes the DataManager, setting up the database connection.
    * This should be called before any operations that depend on the database.
@@ -53,11 +67,14 @@ class JustInWrapper {
    * @returns {Promise<void>}
    */
   public async initializeDB(dbType: DBType = DBType.MONGO): Promise<void> {
+    Log.info('Entering JW.initializeDB, isInitialized:', this.isInitialized);
     if (this.isInitialized) {
       Log.warn('DataManager is already initialized.');
       return;
-    }
+      }
+    Log.info('In JW.initializeDB, about to init dataManager');
     await this.dataManager.init(dbType);
+    Log.info('In JW.initializeDB, about to init UserManager');
     await UserManager.init();
     this.isInitialized = true;
     Log.info('DataManager initialized successfully.');
@@ -174,4 +191,13 @@ class JustInWrapper {
   }
 }
 
-export const JustIn = JustInWrapper.getInstance();
+export const resetJustIn = () => {
+  JustInWrapper.killInstance();
+  DataManager.killInstance();
+};
+
+//export const JustIn = JustInWrapper.getInstance();
+export const JustIn = () => {
+  Log.info('Entering JustIn, returning JustInWrapper.getInstance()');
+  return JustInWrapper.getInstance();
+};

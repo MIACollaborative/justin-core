@@ -36,9 +36,13 @@ export const _checkInitialization = (): void => {
  * @returns {Promise<void>} Resolves when initialization is complete.
  */
 const init = async (): Promise<void> => {
+  Log.info('Entering UserManager.init, about to init dm');
   await dm.init();
+  Log.info('In UserManager.init, after dm.init');
   await loadUsers();
+  Log.info('In UserManager.init, after loadUsers');
   setupChangeListeners();
+  Log.info('In UserManager.init, after setupChangeListeners');
 };
 
 /**
