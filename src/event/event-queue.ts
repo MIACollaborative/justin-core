@@ -82,10 +82,10 @@ export const publishEventInstance = async (name: string, eventDetails?: Record<s
 
     await dataManager.addItemToCollection(EVENTS_QUEUE, eventInstance);
     Log.info(
-      `Triggered event "${eventInstance.eventType} - ${eventInstance.name}" with ID: ${eventInstance.id}.`
+      `Published event "${eventInstance.eventType} - ${eventInstance.name}" with ID: ${eventInstance.id}.`
     );
   } catch (error) {
-    Log.error(`Failed to trigger event "${name}": ${error}`);
+    Log.error(`Failed to publish event "${name}": ${error}`);
     throw error;
   }
 };
@@ -158,6 +158,7 @@ export const processEventQueue = async (): Promise<void> => {
  * Sets up a listener for the `EVENTS_QUEUE` collection.
  */
 export const setupEventQueueListener = (): void => {
+  Log.info('Setting up event queue listener.');
   clm.addChangeListener(EVENTS_QUEUE, CollectionChangeType.INSERT, async () => {
     if (shouldProcessQueue) {
       Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');

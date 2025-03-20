@@ -38,6 +38,12 @@ export class ChangeListenerManager extends EventEmitter {
     return ChangeListenerManager.instance;
   }
 
+  public static killInstance(): void {
+    if (ChangeListenerManager.instance) {
+      ChangeListenerManager.instance = undefined;
+    }
+  }
+
   /**
    * Registers a change listener for a specific collection and change type.
    *

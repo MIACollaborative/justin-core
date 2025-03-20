@@ -82,6 +82,7 @@ class DataManager extends EventEmitter {
    * @private
    */
   private async handleEventsQueueInsert(data: any): Promise<void> {
+    Log.info('In DM.handleEventsQueueInsert, about to emit eventAdded', data);
     this.emit('eventAdded', data);
   }
 

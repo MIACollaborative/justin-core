@@ -19,7 +19,9 @@ const registerCustomEventHandlers = async (
   validateEventHandlerParams(name, procedures);
   const customEventHandler = createEventObject(eventType, name, procedures);
   await registerEvent(customEventHandler);
-  Log.info(`Custom event "${name}" registered and added to the queue.`);
+  Log.info(`Custom event "${name}" registered and added to the event registry.`);
+  const eventRegistry = await dataManager.getAllInCollection<JEvent>(EVENTS);
+  Log.info(`Event registry: ${JSON.stringify(eventRegistry)}`);
 };
 
 /**
