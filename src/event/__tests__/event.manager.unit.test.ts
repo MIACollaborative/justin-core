@@ -57,6 +57,39 @@ describe('EventManager', () => {
         `Clock event "${name}" is already registered.`
       );
     });
+
+    it('should throw an error for invalid interval', async () => {
+      await expect(EventManager.registerClockEventHandlers('testEvent', -1000, ['procedure']))
+        .rejects.toThrow('Interval must be a positive number.');
+
+      sinon.assert.calledWith(
+        loggerMocks.mockLogError,
+        `Invalid interval for clock event "testEvent": -1000`
+      );
+    });
+  });
+
+  describe('registerCustomEventHandlers', () => {
+    it('should register a custom event successfully', async () => {
+      const name = 'customEvent';
+      const eventType = 'CUSTOM_EVENT';
+      const procedures = ['procedure1'];
+
+      await EventManager.registerCustomEventHandlers(name, eventType, procedures);
+
+      sinon.assert.calledWith(
+        loggerMocks.mockLogInfo,
+        `Custom event "${name}" registered and added to the queue.`
+      );
+    });
+
+    it('should throw an error for invalid event parameters', async () => {
+      await expect(EventManager.registerCustomEventHandlers('', 'CUSTOM_EVENT', ['procedure']))
+        .rejects.toThrow('Event name must be a non-empty string.');
+
+      await expect(EventManager.registerCustomEventHandlers('customEvent', 'CUSTOM_EVENT', []))
+        .rejects.toThrow('Procedures must be a non-empty array of strings.');
+    });
   });
 
   describe('initializeClockEvents', () => {
@@ -75,10 +108,6 @@ describe('EventManager', () => {
 
       sinon.assert.calledWith(
         loggerMocks.mockLogInfo,
-        `Clock event "clockEvent" trigger set with interval 1000ms.`
-      );
-      sinon.assert.calledWith(
-        loggerMocks.mockLogInfo,
         `Clock event "clockEvent" initialized with interval 1000ms.`
       );
     });
@@ -93,5 +122,69 @@ describe('EventManager', () => {
         'No clock events found to initialize.'
       );
     });
+
+    it('should skip initialization if metadata is incomplete', async () => {
+      const incompleteEvent = {
+        id: 'event2',
+        eventType: 'CLOCK_EVENT',
+        name: 'incompleteEvent',
+      };
+
+      dataManagerMocks.mockGetAllInCollection.resolves([incompleteEvent]);
+
+      await EventManager.initializeClockEvents();
+
+      sinon.assert.calledWith(
+        loggerMocks.mockLogWarn,
+        `Incomplete metadata for clock event "incompleteEvent". Skipping initialization.`
+      );
+    });
   });
-});
+
+  describe('startClockEventInterval', () => {
+    it('should schedule an event at the correct aligned interval', () => {
+      const name = 'intervalTest';
+      const interval = 120000; // 2 minutes
+      const procedures = ['procedure1'];
+
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+      EventManager.startClockEventInterval(name, interval, procedures);
+
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+      expect(setIntervalSpy).not.toHaveBeenCalled();
+
+      jest.runAllTimers();
+
+      expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+      expect(loggerMocks.mockLogInfo).toHaveBeenCalledWith(
+        expect.stringContaining(`Clock event "${name}" started`)
+      );
+    });
+  });
+
+    describe('unregisterEventHandlers', () => {
+      it('should unregister an existing clock event', () => {
+        const name = 'unregisterTest';
+        const intervalId = setInterval(() => {}, 1000);
+        const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+
+        EventManager.unregisterEventHandler(name);
+
+        expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
+        expect(clearIntervalSpy).toHaveBeenCalledWith(intervalId);
+        expect(loggerMocks.mockLogInfo).toHaveBeenCalledWith(
+          `Clock event "${name}" unregistered and stopped.`
+        );
+      });
+
+      it('should log when trying to unregister a non-existent event', () => {
+        EventManager.unregisterEventHandler('nonExistentEvent');
+
+        expect(loggerMocks.mockLogInfo).toHaveBeenCalledWith(
+          `Custom event "nonExistentEvent" unregistered.`
+        );
+      });
+    });
+  });
