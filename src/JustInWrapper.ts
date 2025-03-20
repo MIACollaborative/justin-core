@@ -59,7 +59,7 @@ class JustInWrapper {
       JustInWrapper.instance = null;
     }
   }
-  
+
   /**
    * Initializes the DataManager, setting up the database connection.
    * This should be called before any operations that depend on the database.
@@ -191,13 +191,10 @@ class JustInWrapper {
   }
 }
 
+// TODO: Revisit kill instance for Justin-Lite
 export const resetJustIn = () => {
   JustInWrapper.killInstance();
   DataManager.killInstance();
 };
 
-//export const JustIn = JustInWrapper.getInstance();
-export const JustIn = () => {
-  Log.info('Entering JustIn, returning JustInWrapper.getInstance()');
-  return JustInWrapper.getInstance();
-};
+export const JustIn = JustInWrapper.getInstance();
