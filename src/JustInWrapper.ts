@@ -29,12 +29,12 @@ const clockIntervals: Map<string, NodeJS.Timeout> = new Map();
  * JustInWrapper class provides a unified interface for managing application-level configurations,
  * event registrations, data manager initialization, and orchestrating the event queue for processing.
  */
-class JustInWrapper {
-  private static instance: JustInWrapper | null = null;
+export class JustInWrapper {
+  protected static instance: JustInWrapper | null = null;
   private dataManager: DataManager = DataManager.getInstance();
   private isInitialized: boolean = false;
   private initializedAt: Date | null = null;
-  private constructor() {
+  protected constructor() {
     this.isInitialized = false;
     this.initializedAt = new Date();
   }
@@ -55,12 +55,12 @@ class JustInWrapper {
   /**
    * Deletes the singleton instance of JustInWrapper.
    */
-  public static killInstance(): void {
+  protected static killInstance(): void {
     if (JustInWrapper.instance) {
       JustInWrapper.instance = null;
     }
   }
-  
+
   /**
    * Initializes the DataManager, setting up the database connection.
    * This should be called before any operations that depend on the database.
@@ -191,12 +191,6 @@ class JustInWrapper {
     Log.info('Engine stopped and cleared of all events.');
   }
 }
-
-export const resetJustIn = () => {
-  JustInWrapper.killInstance();
-  DataManager.killInstance();
-  ChangeListenerManager.killInstance();
-};
 
 //export const JustIn = JustInWrapper.getInstance();
 export const JustIn = () => {

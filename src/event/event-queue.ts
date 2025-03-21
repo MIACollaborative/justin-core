@@ -266,4 +266,14 @@ export const stopEventQueueProcessing = (): void => {
   shouldProcessQueue = false;
   clm.removeChangeListener(EVENTS_QUEUE, CollectionChangeType.INSERT);
   Log.info('Event queue processing stopped.');
-};  
+};
+
+
+export function isRunning(): boolean {
+  return shouldProcessQueue;
+}
+
+export async function queueIsEmpty(): Promise<boolean> {
+  const events = await dataManager.getAllInCollection(EVENTS_QUEUE);
+  return !events || events.length === 0;
+}

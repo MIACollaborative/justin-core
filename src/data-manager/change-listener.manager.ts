@@ -38,7 +38,7 @@ export class ChangeListenerManager extends EventEmitter {
     return ChangeListenerManager.instance;
   }
 
-  public static killInstance(): void {
+  protected static killInstance(): void {
     if (ChangeListenerManager.instance) {
       ChangeListenerManager.instance = undefined;
     }
