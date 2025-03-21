@@ -28,12 +28,15 @@ let _isConnected = false;
 const init = async (): Promise<void> => {
   if (_isConnected) return;
 
+  Log.info(`In mongo-data-manager.ts, MONGO_URI: ${process.env.MONGO_URI}`);
   const uri = process.env.MONGO_URI || DEFAULT_MONGO_URI;
   const dbName = process.env.DB_NAME || DEFAULT_DB_NAME;
   _client = new mongoDB.MongoClient(uri);
 
   try {
     await _client.connect();
+    Log.info(`MongoDBManager connected to ${uri}`);
+    Log.info(`MongoDBManager timeoutMS: ${_client.timeoutMS}`);
     _isConnected = true;
     _db = _client.db(dbName);
     Log.info(`MongoDBManager initialized with database ${dbName}`);

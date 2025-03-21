@@ -143,6 +143,10 @@ class JustInWrapper {
     Log.info('Engine started and processing events.');
   }
 
+  public setupEventQueueListener(): void {
+    setupEventQueueListener();
+  }
+
   /**
    * Registers a new task within the framework.
    * @param {TaskRegistration} task - The task to register.
