@@ -11,7 +11,7 @@ import { Log } from '../logger/logger-manager';
  * Manages database operations and collection change listeners.
  */
 class DataManager extends EventEmitter {
-  private static instance: DataManager | null = null;
+  protected static instance: DataManager | null = null;
   private db = MongoDBManager;
   private changeListenerManager = ChangeListenerManager.getInstance();
   private isInitialized = false;
@@ -35,11 +35,11 @@ class DataManager extends EventEmitter {
     }
     return DataManager.instance;
   }
-  
+
   /**
    * Deletes the singleton instance of DataManager.
    */
-  public static killInstance(): void {
+  protected static killInstance(): void {
     if (DataManager.instance) {
       DataManager.instance = null;
     }

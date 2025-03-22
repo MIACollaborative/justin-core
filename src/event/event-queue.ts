@@ -266,4 +266,27 @@ export const stopEventQueueProcessing = (): void => {
   shouldProcessQueue = false;
   clm.removeChangeListener(EVENTS_QUEUE, CollectionChangeType.INSERT);
   Log.info('Event queue processing stopped.');
-};  
+};
+
+/**
+ * Starts the event queue processing.
+ */
+export const startEventQueueProcessing = (): void => {
+  shouldProcessQueue = true;
+  Log.info('Event queue processing started.');
+};
+
+/**
+ * Returns true if the event queue is running.
+ */
+export function isRunning(): boolean {
+  return shouldProcessQueue;
+}
+
+/**
+ * Returns true if the event queue is empty.
+ */
+export async function queueIsEmpty(): Promise<boolean> {
+  const events = await dataManager.getAllInCollection(EVENTS_QUEUE);
+  return !events || events.length === 0;
+}
