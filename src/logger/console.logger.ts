@@ -16,6 +16,12 @@ export const ConsoleLogger: Logger = {
     console.error('ERROR:', ...args);
   },
 
+  dev(...args: any[]): void {
+    if (process.env.NODE_ENV !== 'PROD') {
+      console.log('DEV:', ...args);
+    }
+  },
+
   handlerResults(...args: any[]): void {
     console.log('Step Result:', ...args);
   },
