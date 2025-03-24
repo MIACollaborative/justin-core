@@ -1,9 +1,9 @@
-import { JustIn, JustInWrapper } from './JustInWrapper';
+import { JustInWrapper } from './JustInWrapper';
 import DataManager from './data-manager/data-manager';
 import { ChangeListenerManager } from './data-manager/change-listener.manager';
 import { Log } from './logger/logger-manager';
 import { isRunning, queueIsEmpty } from './event/event-queue';
-import { EVENTS_QUEUE, USERS } from './data-manager/data-manager.constants';
+import { EVENTS_QUEUE, USERS, EVENTS } from './data-manager/data-manager.constants';
 
 /**
  * JustinLite is a lightweight version of the core JustInWrapper singleton,
@@ -46,8 +46,16 @@ class JustinLiteWrapper extends JustInWrapper {
     JustinLiteWrapper.instance = null;
   }
 
+  /**
+   * Cleanses the database by clearing the EVENTS_QUEUE, EVENTS, and USERS collections.
+   * This is useful for ensuring a clean state before starting a new execution.
+   * 
+   * @returns {Promise<void>} A promise that resolves when the database is cleansed.
+   */
+  
   public async cleanseDB(): Promise<void> {
     await DataManager.getInstance().clearCollection(EVENTS_QUEUE);
+    await DataManager.getInstance().clearCollection(EVENTS);
     await DataManager.getInstance().clearCollection(USERS);
     Log.info('DB cleansed');
   }
