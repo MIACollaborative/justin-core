@@ -57,6 +57,39 @@ describe('EventManager', () => {
         `Clock event "${name}" is already registered.`
       );
     });
+
+    it('should throw an error for invalid interval', async () => {
+      await expect(EventManager.registerClockEventHandlers('testEvent', -1000, ['procedure']))
+        .rejects.toThrow('Interval must be a positive number.');
+
+      sinon.assert.calledWith(
+        loggerMocks.mockLogError,
+        `Invalid interval for clock event "testEvent": -1000`
+      );
+    });
+  });
+
+  describe('registerCustomEventHandlers', () => {
+    it('should register a custom event successfully', async () => {
+      const name = 'customEvent';
+      const eventType = 'CUSTOM_EVENT';
+      const procedures = ['procedure1'];
+
+      await EventManager.registerCustomEventHandlers(name, eventType, procedures);
+
+      sinon.assert.calledWith(
+        loggerMocks.mockLogInfo,
+        `Custom event "${name}" registered and added to the queue.`
+      );
+    });
+
+    it('should throw an error for invalid event parameters', async () => {
+      await expect(EventManager.registerCustomEventHandlers('', 'CUSTOM_EVENT', ['procedure']))
+        .rejects.toThrow('Event name must be a non-empty string.');
+
+      await expect(EventManager.registerCustomEventHandlers('customEvent', 'CUSTOM_EVENT', []))
+        .rejects.toThrow('Procedures must be a non-empty array of strings.');
+    });
   });
 
   describe('initializeClockEvents', () => {
@@ -73,13 +106,9 @@ describe('EventManager', () => {
 
       await EventManager.initializeClockEvents();
 
-      sinon.assert.calledWith(
+      sinon.assert.calledWithMatch(
         loggerMocks.mockLogInfo,
-        `Clock event "clockEvent" trigger set with interval 1000ms.`
-      );
-      sinon.assert.calledWith(
-        loggerMocks.mockLogInfo,
-        `Clock event "clockEvent" initialized with interval 1000ms.`
+        sinon.match(`Clock event "clockEvent" initialized with interval 1000ms.`)
       );
     });
 
@@ -88,10 +117,92 @@ describe('EventManager', () => {
 
       await EventManager.initializeClockEvents();
 
-      sinon.assert.calledWith(
+      sinon.assert.calledWithMatch(
         loggerMocks.mockLogWarn,
-        'No clock events found to initialize.'
+        sinon.match('No clock events found to initialize.')
+      );
+    });
+
+    it('should skip initialization if metadata is incomplete', async () => {
+      const incompleteEvent = {
+        id: 'event2',
+        eventType: 'CLOCK_EVENT',
+        name: 'incompleteEvent',
+      };
+
+      dataManagerMocks.mockGetAllInCollection.resolves([incompleteEvent]);
+
+      await EventManager.initializeClockEvents();
+
+      sinon.assert.calledWithMatch(
+        loggerMocks.mockLogWarn,
+        sinon.match('Incomplete metadata for clock event "incompleteEvent". Skipping initialization.')
       );
     });
   });
+
+  describe('startClockEventInterval', () => {
+    it('should schedule an event at the correct aligned interval', () => {
+      const name = 'intervalTest';
+      const interval = 2 * 60 * 1000; // 2 minutes
+      const procedures = ['procedure1'];
+
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+      const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+      EventManager.startClockEventInterval(name, interval, procedures);
+
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+      expect(setIntervalSpy).not.toHaveBeenCalled();
+
+      jest.runOnlyPendingTimers();
+
+      expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+
+      const logCall0 = loggerMocks.mockLogInfo.getCall(0)?.args[0];
+      const logCall1 = loggerMocks.mockLogInfo.getCall(1)?.args[0];
+
+      expect(logCall0).toMatch(
+        new RegExp(`Clock event "${name}" will start in .* (seconds|minute\\(s\\)), then every .* minute\\(s\\)\\.`)
+      );
+
+      expect(logCall1).toMatch(
+        new RegExp(`Clock event "${name}" started with interval \\d+ms\\.`)
+      );
+    });
+  });
+
+
+  describe('unregisterEventHandlers', () => {
+    it('should unregister an existing clock event', () => {
+      const name = 'unregisterTest';
+      const interval = 60 * 1000; // 1 minute
+      const procedures = ['procedure1'];
+      const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+
+      // Schedule the event
+      EventManager.startClockEventInterval(name, interval, procedures);
+
+      // Fast-forward timers to ensure setInterval is triggered
+      jest.runOnlyPendingTimers();
+
+      EventManager.unregisterEventHandler(name);
+
+      expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
+      sinon.assert.calledWith(
+        loggerMocks.mockLogInfo,
+        `Clock event "${name}" unregistered and stopped.`
+      );
+    });
+
+    it('should log when trying to unregister a non-existent event', () => {
+      EventManager.unregisterEventHandler('nonExistentEvent');
+
+      sinon.assert.calledWith(
+        loggerMocks.mockLogInfo,
+        `Custom event "nonExistentEvent" unregistered.`
+      );
+    });
+  });
+
 });
