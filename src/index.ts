@@ -6,4 +6,4 @@ import { JEvent } from './event/event.type';
 import { JustInLite } from './JustInLite'
 
 export { Log, JUser, JEvent, StepReturnResult, JustInLite };
-
+export default JustIn;
