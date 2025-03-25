@@ -9,7 +9,7 @@ import * as EventQueue from '../event-queue';
 import DataManager from '../../data-manager/data-manager';
 import { UserManager } from '../../user-manager/user-manager';
 
-xdescribe('Event Manager Integration Test', () => {
+describe('Event Manager Integration Test', () => {
 
   let mongoServer: MongoMemoryReplSet;
   let dataManager: DataManager;
@@ -38,11 +38,11 @@ xdescribe('Event Manager Integration Test', () => {
         status: 'success',
         result: true
       };
-      
+
       const decisionRule = {
         name: decisionRuleName,
         shouldActivate: async (user: JUser, event: JEvent) => {
-          setTimeout(() => done(), 1000); // let EQ finish its works          
+          setTimeout(() => done(), 1000); // let EQ finish its works
           return SuccessResult;
         },
         selectAction: async () => SuccessResult,

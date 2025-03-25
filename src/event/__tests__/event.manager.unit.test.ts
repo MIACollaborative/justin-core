@@ -79,7 +79,7 @@ describe('EventManager', () => {
 
       sinon.assert.calledWith(
         loggerMocks.mockLogInfo,
-        `Custom event "${name}" registered and added to the queue.`
+        `Custom event "${name}" registered and added to the event registry.`
       );
     });
 
