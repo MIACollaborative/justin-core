@@ -34,7 +34,7 @@ export const registerEvent = async (event: RegisterJEvent): Promise<void> => {
   }
 
   try {
-    Log.info(`Registering event type "${event.name}".`);
+    Log.dev(`Registering event type "${event.name}".`);
     const existingEvents = await dataManager.getAllInCollection<JEvent>(EVENTS);
     const isAlreadyRegistered = existingEvents?.some(
       (e) => e.name === event.name
@@ -46,7 +46,7 @@ export const registerEvent = async (event: RegisterJEvent): Promise<void> => {
       return;
     }
     await dataManager.addItemToCollection(EVENTS, event);
-    Log.info(
+    Log.dev(
       `Event "${event.eventType} - ${event.name}" registered successfully.`
     );
   } catch (error) {
@@ -158,7 +158,7 @@ export const processEventQueue = async (): Promise<void> => {
  * Sets up a listener for the `EVENTS_QUEUE` collection.
  */
 export const setupEventQueueListener = (): void => {
-  Log.info('Setting up event queue listener.');
+  Log.dev('Setting up event queue listener.');
   clm.addChangeListener(EVENTS_QUEUE, CollectionChangeType.INSERT, async () => {
     if (shouldProcessQueue) {
       Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
@@ -234,7 +234,7 @@ const processExecutionLifecycle = async (
  */
 const archiveEvent = async (event: JEvent): Promise<void> => {
   try {
-    Log.info(`Archiving event "${event.eventType}" with ID: ${event.id}.`);
+    Log.dev(`Archiving event "${event.eventType}" with ID: ${event.id}.`);
     await dataManager.addItemToCollection(ARCHIVED_EVENTS, event);
     await dataManager.removeItemFromCollection(EVENTS_QUEUE, event.id);
     Log.info(
