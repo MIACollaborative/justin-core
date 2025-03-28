@@ -198,6 +198,7 @@ export class JustInWrapper {
   }
 }
 
-
-
-export const JustIn = JustInWrapper.getInstance();
+export const JustIn = () => {
+  Log.info('Entering JustIn, returning JustInWrapper.getInstance()');
+  return JustInWrapper.getInstance();
+};

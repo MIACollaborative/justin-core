@@ -23,6 +23,12 @@ export interface Logger {
   error?: (...args: any[]) => void;
 
   /**
+   * Logs an development message in env var NODE_ENV === 'dev'.
+   * @param args - The arguments to log (can be any type of data like strings, objects, etc.).
+   */
+  dev?: (...args: any[]) => void;
+
+  /**
    * Logs a result of running a task or decision rule.
    * @param handlerResults - Data on the event, the handler, and the results of its steps.
    */

@@ -10,6 +10,7 @@ export const logLevels = {
   info: true,
   warn: true,
   error: true,
+  dev: true,
   handlerResults: true,
 };
 
@@ -23,6 +24,7 @@ export function setLogger(logger: Partial<Logger>): void {
     info: logger.info || ConsoleLogger.info,
     warn: logger.warn || ConsoleLogger.warn,
     error: logger.error || ConsoleLogger.error,
+    dev: logger.dev || ConsoleLogger.dev,
     handlerResults: logger.handlerResults || ConsoleLogger.handlerResults,
   };
 }
@@ -74,6 +76,17 @@ export const Log = {
   error(message: string, ...optionalParams: any[]): void {
     if (logLevels.error && activeLogger.error) {
       activeLogger.error(message, ...optionalParams);
+    }
+  },
+
+  /**
+   * Logs a message if `dev` logging is enabled and env var NODE_ENV === 'dev'.
+   * @param {string} message - The message to log.
+   * @param {...any[]} optionalParams - Additional parameters for the log.
+   */
+  dev(message: string, ...optionalParams: any[]): void {
+    if (logLevels.dev && activeLogger.dev) {
+      activeLogger.dev(message, ...optionalParams);
     }
   },
 

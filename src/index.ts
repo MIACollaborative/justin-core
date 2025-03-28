@@ -5,5 +5,5 @@ import { JUser } from './user-manager/user.type';
 import { JEvent } from './event/event.type';
 import { JustInLite } from './JustInLite'
 
-export default JustIn;
 export { Log, JUser, JEvent, StepReturnResult, JustInLite };
+export default JustIn;
