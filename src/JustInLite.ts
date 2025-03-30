@@ -56,7 +56,6 @@ class JustinLiteWrapper extends JustInWrapper {
   public async cleanseDB(): Promise<void> {
     await DataManager.getInstance().clearCollection(EVENTS_QUEUE);
     await DataManager.getInstance().clearCollection(EVENTS);
-    await DataManager.getInstance().clearCollection(EVENTS);
     await DataManager.getInstance().clearCollection(USERS);
     Log.info('DB cleansed');
   }
