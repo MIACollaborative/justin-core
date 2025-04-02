@@ -55,9 +55,8 @@ export type ExecuteStepReturn<T = any> = {
 };
 
 export type RecordResult = {
-  event: string,
-  eventName: string,
+  event: JEvent
   name: string,
   steps: ExecuteStepReturn[],
-  userId: string,
+  user: JUser,
 }

@@ -48,26 +48,35 @@ export async function executeTask(
       TaskStep.SHOULD_ACTIVATE,
       async () => Promise.resolve(task.shouldActivate(user, event))
     );
-    results.push(shouldActivateResult);
+
+    Log.dev('in executeTask, shouldActivateResult', shouldActivateResult);
 
     if (shouldActivateResult.result.status === 'success') {
+      results.push(shouldActivateResult);
       const actionResult = await executeStep(TaskStep.DO_ACTION, async () =>
         Promise.resolve(task.doAction(user, event, shouldActivateResult.result))
       );
       results.push(actionResult);
+    } else if (process.env.ALWAYS_RECORD_SHOULD_ACTIVATE === 'true') {
+      Log.dev('recording shouldActivate result even though it failed, cuz ALWAYS_RECORD_SHOULD_ACTIVATE is true');
+      results.push(shouldActivateResult); 
+    } else {
+      Log.info(`Task "${task.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
+      return; 
     }
   } catch (error) {
     Log.error(
       `Error executing task "${task.name}" for user "${user.id}": ${error}`
     );
   } finally {
-    recordResult({
-      event: event.eventType,
-      eventName: event.name,
-      name: task.name,
-      steps: results,
-      userId: user.id,
-    });
+    if (results.length > 0) {
+      recordResult({
+        event,
+        name: task.name,
+        steps: results,
+        user,
+      });
+    }
     Log.info(
       `Completed execution of task "${task.name}" for user "${user.id}".`
     );

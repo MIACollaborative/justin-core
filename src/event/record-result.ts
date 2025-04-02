@@ -1,20 +1,19 @@
 import { Log } from '../logger/logger-manager';
-
+import { JUser } from '../user-manager/user.type';
+import { JEvent } from './event.type';
 /**
  * Records the results of task or decision rule processing, logging each result.
  * @param {object} resultData - Data about the result to be recorded.
- * @param {string} resultData.event - The event type.
- * @param {string} resultData.eventName - The event name.
+ * @param {JEvent} resultData.event - The event type.
  * @param {string} resultData.name - The name of the task or decision rule.
  * @param {Array} resultData.steps - Steps executed in the task or decision rule.
- * @param {string} resultData.userId - The ID of the user for whom the result is recorded.
+ * @param {JUser} resultData.user - The user for whom the result is recorded.
  */
 export const recordResult = (resultData: {
-  event: string;
-  eventName: string;
+  event: JEvent;
   name: string;
   steps: any[];
-  userId: string;
+  user: JUser;
 }): void => {
   Log.handlerResult(resultData);
 }

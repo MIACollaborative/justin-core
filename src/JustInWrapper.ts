@@ -22,7 +22,6 @@ import {
 import { DBType } from './data-manager/data-manager.constants';
 import { Logger } from './logger/logger.interface';
 import { UserManager } from './user-manager/user-manager';
-import { ChangeListenerManager } from './data-manager/change-listener.manager';
 
 const clockIntervals: Map<string, NodeJS.Timeout> = new Map();
 

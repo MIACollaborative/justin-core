@@ -69,9 +69,9 @@ export async function executeDecisionRule(
       DecisionRuleStep.SHOULD_ACTIVATE,
       async () => Promise.resolve(rule.shouldActivate(user, event))
     );
-    results.push(shouldActivateResult);
 
     if (shouldActivateResult.result.status === 'success') {
+      results.push(shouldActivateResult);
       const selectionActionResult = await executeStep(
         DecisionRuleStep.SELECT_ACTION,
         async () =>
@@ -87,19 +87,26 @@ export async function executeDecisionRule(
         );
         results.push(actionResult);
       }
+    } else if (process.env.ALWAYS_RECORD_SHOULD_ACTIVATE === 'true') {
+      Log.dev('recording should activate result, cuz true');
+      results.push(shouldActivateResult);
+    } else {
+      Log.info(`Decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
+      return; // do not record results if it did not activate
     }
   } catch (error) {
     Log.error(
       `Error processing decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}": ${error}`
     );
   } finally {
-    recordResult({
-      event: event.eventType,
-      eventName: event.name,
-      name: rule.name,
-      steps: results,
-      userId: user.id,
-    });
+    if (results.length > 0) {
+      recordResult({
+        event,
+        name: rule.name,
+        steps: results,
+        user,
+      });
+    }
     Log.info(
       `Decision rule "${rule.name}" completed for user "${user.id}" in event "${event.eventType}".`
     );

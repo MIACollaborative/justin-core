@@ -46,6 +46,8 @@ describe('Task Manager', () => {
   afterEach(() => {
     loggerMocks.resetLoggerMocks();
     loggerMocks.restoreLoggerMocks();
+    (mockTask.shouldActivate as jest.Mock).mockClear();
+    (mockTask.doAction as jest.Mock).mockClear();
   });
 
   it('should register a task successfully and log info', () => {
@@ -112,23 +114,26 @@ describe('Task Manager', () => {
       );
 
       expect(recordResult).toHaveBeenCalledWith({
-        event: mockEvent.eventType,
-        eventName: mockEvent.name,
+        event: mockEvent,
         name: mockTask.name,
         steps: [
           { step: TaskStep.SHOULD_ACTIVATE, result: { status: 'success' } },
           { step: TaskStep.DO_ACTION, result: { status: 'success' } },
         ],
-        userId: mockUser.id,
+        user: mockUser,
       });
     });
 
-    it('should not execute doAction if shouldDecide fails and log info', async () => {
-      (executeStep as jest.Mock).mockResolvedValueOnce({
+    it('should not execute doAction if shouldDecide fails and log info if ALWAYS_RECORD_SHOULD_ACTIVATE is true', async () => {
+      
+      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'true';
+
+      (mockTask.shouldActivate as jest.Mock).mockResolvedValue({
         step: TaskStep.SHOULD_ACTIVATE,
         result: { status: 'failure' },
       });
 
+      console.log('mockTask.shouldActivate', await mockTask.shouldActivate(mockUser, mockEvent));
       await executeTask(mockTask, mockEvent, mockUser);
 
       sinon.assert.calledWithExactly(
@@ -142,13 +147,12 @@ describe('Task Manager', () => {
       );
 
       expect(recordResult).toHaveBeenCalledWith({
-        event: mockEvent.eventType,
-        eventName: mockEvent.name,
+        event: mockEvent,
         name: mockTask.name,
         steps: [
           { step: TaskStep.SHOULD_ACTIVATE, result: { status: 'failure' } },
         ],
-        userId: mockUser.id,
+        user: mockUser,
       });
     });
 

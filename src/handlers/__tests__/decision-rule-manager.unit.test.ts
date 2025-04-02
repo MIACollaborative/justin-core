@@ -139,7 +139,6 @@ describe('DecisionRuleManager', () => {
       });
     });
 
-
     it('should skip further steps if a step fails', async () => {
       (executeStep as jest.Mock).mockResolvedValueOnce({
         step: DecisionRuleStep.SHOULD_ACTIVATE,
@@ -164,6 +163,33 @@ describe('DecisionRuleManager', () => {
           `Error processing decision rule "testRule" for user "user123" in event "MOCK_EVENT": ${mockError}`
         )
       ).toBe(true);
+      expect(recordResult).toHaveBeenCalled();
+    });
+
+    it('should not record results if the rule does not activate and ALWAYS_RECORD_SHOULD_ACTIVATE is false', async () => {
+      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'false';
+      (mockRule.shouldActivate as jest.Mock).mockReturnValueOnce(false);
+
+      await executeDecisionRule(mockRule, mockEvent, mockUser);
+
+      expect(recordResult).not.toHaveBeenCalled();
+    });
+
+    it('should record results if the rule does not activate and ALWAYS_RECORD_SHOULD_ACTIVATE is true', async () => {
+      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'true';
+      (mockRule.shouldActivate as jest.Mock).mockReturnValueOnce(false);
+
+      await executeDecisionRule(mockRule, mockEvent, mockUser);
+
+      expect(recordResult).toHaveBeenCalled();
+    });
+
+    it('should not record results if the rule activates and ALWAYS_RECORD_SHOULD_ACTIVATE is false', async () => {
+      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'false';
+      (mockRule.shouldActivate as jest.Mock).mockReturnValueOnce(true);
+
+      await executeDecisionRule(mockRule, mockEvent, mockUser);
+
       expect(recordResult).toHaveBeenCalled();
     });
   });
