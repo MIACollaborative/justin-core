@@ -46,8 +46,8 @@ describe('Task Manager', () => {
   afterEach(() => {
     loggerMocks.resetLoggerMocks();
     loggerMocks.restoreLoggerMocks();
-    (mockTask.shouldActivate as jest.Mock).mockClear();
-    (mockTask.doAction as jest.Mock).mockClear();
+    (executeStep as jest.Mock).mockClear();
+    (recordResult as jest.Mock).mockClear();
   });
 
   it('should register a task successfully and log info', () => {
@@ -124,16 +124,15 @@ describe('Task Manager', () => {
       });
     });
 
-    it('should not execute doAction if shouldDecide fails and log info if ALWAYS_RECORD_SHOULD_ACTIVATE is true', async () => {
+    it('should not execute doAction if shouldDecide fails but should log info if ALWAYS_RECORD_SHOULD_ACTIVATE is true', async () => {
       
       process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'true';
 
-      (mockTask.shouldActivate as jest.Mock).mockResolvedValue({
+      (executeStep as jest.Mock).mockResolvedValue({
         step: TaskStep.SHOULD_ACTIVATE,
         result: { status: 'failure' },
       });
 
-      console.log('mockTask.shouldActivate', await mockTask.shouldActivate(mockUser, mockEvent));
       await executeTask(mockTask, mockEvent, mockUser);
 
       sinon.assert.calledWithExactly(
@@ -156,6 +155,19 @@ describe('Task Manager', () => {
       });
     });
 
+    it('should not execute doAction if shouldDecide fails and not log info if ALWAYS_RECORD_SHOULD_ACTIVATE is false', async () => {
+      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'false';
+
+      (executeStep as jest.Mock).mockResolvedValue({
+        step: TaskStep.SHOULD_ACTIVATE,
+        result: { status: 'failure' },
+      });
+
+      await executeTask(mockTask, mockEvent, mockUser);
+
+      expect(recordResult).toHaveBeenCalledTimes(0);
+    });
+
     it('should log an error if an exception occurs during execution', async () => {
       (executeStep as jest.Mock).mockRejectedValueOnce(new Error('Test error'));
 
@@ -165,6 +177,8 @@ describe('Task Manager', () => {
         loggerMocks.mockLogError,
         `Error executing task "mockTask" for user "user123": Error: Test error`
       );
+
+      expect(recordResult).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -92,12 +92,16 @@ export async function executeDecisionRule(
       results.push(shouldActivateResult);
     } else {
       Log.info(`Decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
-      return; // do not record results if it did not activate
     }
   } catch (error) {
     Log.error(
       `Error processing decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}": ${error}`
     );
+    results.push({
+      step: 'unknown',
+      result: { status: 'error', error },
+      timestamp: new Date(),
+    });
   } finally {
     if (results.length > 0) {
       recordResult({
