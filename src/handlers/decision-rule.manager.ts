@@ -87,9 +87,6 @@ export async function executeDecisionRule(
         );
         results.push(actionResult);
       }
-    } else if (process.env.ALWAYS_RECORD_SHOULD_ACTIVATE === 'true') {
-      Log.dev('recording should activate result, cuz true');
-      results.push(shouldActivateResult);
     } else {
       Log.info(`Decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
     }
@@ -103,14 +100,12 @@ export async function executeDecisionRule(
       timestamp: new Date(),
     });
   } finally {
-    if (results.length > 0) {
       recordResult({
         event,
         name: rule.name,
         steps: results,
         user,
       });
-    }
     Log.info(
       `Decision rule "${rule.name}" completed for user "${user.id}" in event "${event.eventType}".`
     );

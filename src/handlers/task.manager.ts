@@ -55,11 +55,9 @@ export async function executeTask(
         Promise.resolve(task.doAction(user, event, shouldActivateResult.result))
       );
       results.push(actionResult);
-    } else if (process.env.ALWAYS_RECORD_SHOULD_ACTIVATE === 'true') {
-      results.push(shouldActivateResult); 
     } else {
       Log.info(`Task "${task.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
-      return; 
+      return;
     }
   } catch (error) {
     Log.error(

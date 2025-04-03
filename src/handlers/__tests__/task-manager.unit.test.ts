@@ -124,50 +124,6 @@ describe('Task Manager', () => {
       });
     });
 
-    it('should not execute doAction if shouldDecide fails but should log info if ALWAYS_RECORD_SHOULD_ACTIVATE is true', async () => {
-      
-      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'true';
-
-      (executeStep as jest.Mock).mockResolvedValue({
-        step: TaskStep.SHOULD_ACTIVATE,
-        result: { status: 'failure' },
-      });
-
-      await executeTask(mockTask, mockEvent, mockUser);
-
-      sinon.assert.calledWithExactly(
-        loggerMocks.mockLogInfo,
-        `Executing task "mockTask" for user "user123" in event "MOCK_EVENT".`
-      );
-
-      sinon.assert.calledWithExactly(
-        loggerMocks.mockLogInfo,
-        `Completed execution of task "mockTask" for user "user123".`
-      );
-
-      expect(recordResult).toHaveBeenCalledWith({
-        event: mockEvent,
-        name: mockTask.name,
-        steps: [
-          { step: TaskStep.SHOULD_ACTIVATE, result: { status: 'failure' } },
-        ],
-        user: mockUser,
-      });
-    });
-
-    it('should not execute doAction if shouldDecide fails and not log info if ALWAYS_RECORD_SHOULD_ACTIVATE is false', async () => {
-      process.env.ALWAYS_RECORD_SHOULD_ACTIVATE = 'false';
-
-      (executeStep as jest.Mock).mockResolvedValue({
-        step: TaskStep.SHOULD_ACTIVATE,
-        result: { status: 'failure' },
-      });
-
-      await executeTask(mockTask, mockEvent, mockUser);
-
-      expect(recordResult).toHaveBeenCalledTimes(0);
-    });
-
     it('should log an error if an exception occurs during execution', async () => {
       (executeStep as jest.Mock).mockRejectedValueOnce(new Error('Test error'));
 
