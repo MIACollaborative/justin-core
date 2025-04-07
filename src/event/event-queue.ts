@@ -60,7 +60,7 @@ export const registerEvent = async (event: RegisterJEvent): Promise<void> => {
 /**
  * Triggers an event by creating an instance in the `EVENTS_QUEUE`.
  */
-export const publishEventInstance = async (name: string, eventDetails?: Record<string, any>): Promise<void> => {
+export const publishEventInstance = async (name: string,eventDetails?: Record<string, any>): Promise<void> => {
   try {
     const registeredEvents =
       await dataManager.getAllInCollection<JEvent>(EVENTS);
@@ -71,19 +71,12 @@ export const publishEventInstance = async (name: string, eventDetails?: Record<s
       throw new Error(`Event type or name "${name}" is not registered.`);
     }
 
-    let timestamp = new Date();
-    if (eventDetails?.timestamp) {
-      timestamp = typeof eventDetails.timestamp === 'string'
-        ? new Date(eventDetails.timestamp)
-        : eventDetails.timestamp;
-    } 
-
     const eventInstance: JEvent = {
       id: uuidv4(),
       eventType: registeredEvent.eventType,
       name: registeredEvent.name,
       procedures: registeredEvent.procedures,
-      timestamp,
+      timestamp: new Date(),
       eventDetails,
     };
 
