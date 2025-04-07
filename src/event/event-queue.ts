@@ -71,12 +71,19 @@ export const publishEventInstance = async (name: string, eventDetails?: Record<s
       throw new Error(`Event type or name "${name}" is not registered.`);
     }
 
+    let timestamp = new Date();
+    if (eventDetails?.timestamp) {
+      timestamp = typeof eventDetails.timestamp === 'string'
+        ? new Date(eventDetails.timestamp)
+        : eventDetails.timestamp;
+    } 
+
     const eventInstance: JEvent = {
       id: uuidv4(),
       eventType: registeredEvent.eventType,
       name: registeredEvent.name,
       procedures: registeredEvent.procedures,
-      timestamp: new Date(),
+      timestamp,
       eventDetails,
     };
 
