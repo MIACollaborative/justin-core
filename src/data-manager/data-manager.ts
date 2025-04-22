@@ -58,18 +58,13 @@ class DataManager extends EventEmitter {
       if (dbType !== DBType.MONGO) {
         throw new Error('MongoDB is the only supported DB type');
       }
-      Log.dev('In DM.init, about to init db');
       await this.db.init();
-      Log.dev('In DM.init, about to set isInitialized to true');
       this.isInitialized = true;
-      Log.dev('In DM.init, isInitialized:', this.isInitialized);
-      Log.dev('In DM.init, about to add change listener');
       this.changeListenerManager.addChangeListener(
         'EVENTS_QUEUE',
         CollectionChangeType.INSERT,
         this.handleEventsQueueInsert.bind(this)
       );
-      Log.dev('In DM.init, about to exit');
     } catch (error) {
       handleDbError('Failed to initialize DataManager', error);
     }
@@ -82,7 +77,6 @@ class DataManager extends EventEmitter {
    * @private
    */
   private async handleEventsQueueInsert(data: any): Promise<void> {
-    Log.dev('In DM.handleEventsQueueInsert, about to emit eventAdded', data);
     this.emit('eventAdded', data);
   }
 

@@ -57,7 +57,7 @@ const close = async (): Promise<void> => {
   try {
     await _client!.close();
     _isConnected = false;
-    Log.info('MongoDBManager connection closed');
+    Log.dev('MongoDBManager connection closed');
   } catch (error) {
     handleDbError('Error closing MongoDBManager connection', error);
   }

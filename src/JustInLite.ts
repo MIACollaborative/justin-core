@@ -15,6 +15,7 @@ import { EVENTS, EVENTS_QUEUE, USERS } from './data-manager/data-manager.constan
 class JustinLiteWrapper extends JustInWrapper {
   protected static instance: JustinLiteWrapper | null = null;
 
+  private static EVENT_QUEUE_WAIT_TIME = 60 * 1000;
   /**
    * Private constructor ensures use through getInstance().
    */
@@ -67,13 +68,13 @@ class JustinLiteWrapper extends JustInWrapper {
    * @param timeout - Maximum wait time in milliseconds (default: 10 seconds)
    * @throws Error if the queue is not empty within the timeout period
    */
-  public async waitUntilQueueIsEmpty(timeout = 10000): Promise<void> {
+  public async waitUntilQueueIsEmpty(timeout = JustinLiteWrapper.EVENT_QUEUE_WAIT_TIME): Promise<void> {
     const start = Date.now();
     Log.info('Waiting for event queue to empty, is it empty?', await queueIsEmpty(), 'isRunning', isRunning());
     while (isRunning()) {
       if (await queueIsEmpty()) return;
       if (Date.now() - start > timeout) {
-        throw new Error('Timeout while waiting for event queue to empty');
+        throw new Error('Timeout while waiting for event queue to empty' + timeout);
       }
       await new Promise(resolve => setTimeout(resolve, 200));
     }
