@@ -23,7 +23,7 @@ export async function executeStep<T>(
 
     return { step, result, timestamp };
   } catch (error) {
-    Log.error(`Error in step "${step}": ${error}`);
+    Log.error(`Error in step "${step}": ${error}, stack: ${error instanceof Error ? error.stack : 'No stack trace available'}`);
     return { step, result: { status: 'error', error }, timestamp };
   }
 }
