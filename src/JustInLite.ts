@@ -74,7 +74,7 @@ class JustinLiteWrapper extends JustInWrapper {
     while (isRunning()) {
       if (await queueIsEmpty()) return;
       if (Date.now() - start > timeout) {
-        throw new Error('Timeout while waiting for event queue to empty' + timeout);
+        throw new Error('Timeout while waiting for event queue to empty ' + timeout);
       }
       await new Promise(resolve => setTimeout(resolve, 200));
     }
