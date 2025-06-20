@@ -1,39 +1,37 @@
-# Justin Core
+# justin-core
 
-The `justin-core` package is intended as a **Just-In-Time Adaptive Intervention (JITAI)** framework. It enables research developers to define and manage interventions using events, decision rules, and tasks.
-
-This framework is designed for building study applications that deliver tailored interventions based on user data and environmental contexts.
+**justin-core** is the core package for the **Just-In-Time Adaptive Intervention (JITAI)** framework. It enables research developers to define and manage interventions using events, decision rules, and tasks. This framework is designed to build study applications that deliver tailored interventions based on user data and environmental context.
 
 ---
 
-## Features
+## 🚀 Features
 
-- **Define Tasks**: Create custom actions to be performed during an event such as getting fitbit data for a user and determine if the task should be taken for a given user.
-- **Define Decision Rules**: Define custom logical constructs that determine if, how, and when an intervention should occur.
-- **Create Events to something**: Define custom event somethings that can be triggered and set the tasks and decision rules to run when processed.
-- **Logging Utilities**: Flexible logging interface supporting console-based and custom implementations.
+- **Define Tasks**: Create custom actions triggered by events (e.g. fetch Fitbit data for a user and determine eligibility).
+- **Decision Rules**: Define logical rules to determine *if*, *how*, and *when* an intervention should occur.
+- **Custom Events**: Define and trigger events that process associated tasks and decision rules.
+- **Logging Utilities**: Built-in support for custom and console-based logging.
 
 ---
 
-## Installation
+## 📦 Installation
 
-```
+```bash
 yarn add justin-core
 ```
 
 ---
 
-## Usage
+## 🔧 Usage
 
 ### 1. Import the Framework
 
-```
+```ts
 import JustIn from 'justin-core';
 ```
 
-### 2. Set up configurations
+### 2. Configure Logging and DB
 
-```
+```ts
 JustIn.setLoggingLevels({
   info: false,
   warn: true,
@@ -41,29 +39,61 @@ JustIn.setLoggingLevels({
   debug: true,
 });
 
-JustIn.setLogger(CustomLogger)
+JustIn.setLogger(CustomLogger);
 
 await JustIn.initializeDB(DBType.MONGO);
 ```
 
 ### 3. Register Tasks and Decision Rules
 
-```
+```ts
 JustIn.registerTask(GetWeatherTask);
 JustIn.registerDecisionRule(SimpleTestDecisionRule);
 ```
 
 ### 4. Register Events
 
-```
+```ts
 JustIn.addClockEvent('DemoClockEvent', 1000, [
   SimpleTestDecisionRule.name
 ]);
 ```
 
-### 5. Start the engine
+### 5. Start the Engine
 
-```
+```ts
 JustIn.startEngine();
 ```
+
 ---
+
+## 🐳 Running with Docker
+
+### 1. Build the Docker Image
+
+```bash
+docker build -t justin-core .
+```
+
+### 2. Run the Container
+
+```bash
+docker run justin-core
+```
+
+> If your app is a service that exposes a port, add the appropriate `-p` flag:
+```bash
+docker run -p 3000:3000 justin-core
+```
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](./LICENSE)
+
+---
+
+## 🙋‍♂️ Contributing
+
+Coming soon — or open a PR or issue if you have suggestions!
