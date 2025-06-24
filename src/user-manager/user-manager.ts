@@ -12,9 +12,6 @@ import { Log } from "../logger/logger-manager";
  */
 export const _users: Map<string, JUser> = new Map();
 
-const dm = DataManager.getInstance();
-const clm = ChangeListenerManager.getInstance();
-
 /**
  * Ensures that the DataManager has been initialized before any user
  * management operation can proceed.
@@ -23,7 +20,7 @@ const clm = ChangeListenerManager.getInstance();
  * @private
  */
 export const _checkInitialization = (): void => {
-  if (!dm.getInitializationStatus()) {
+  if (!DataManager.getInstance().getInitializationStatus()) {
     throw new Error("UserManager has not been initialized");
   }
 };
@@ -37,7 +34,7 @@ export const _checkInitialization = (): void => {
  */
 const init = async (): Promise<void> => {
   Log.info("Entering UserManager.init, about to init dm");
-  await dm.init();
+  await DataManager.getInstance().init();
   Log.info("In UserManager.init, after dm.init");
   await loadUsers();
   Log.info("In UserManager.init, after loadUsers");
@@ -60,17 +57,17 @@ const transformUserDocument = (doc: any): JUser => {
  * @private
  */
 const setupChangeListeners = (): void => {
-  clm.addChangeListener(USERS, CollectionChangeType.INSERT, (user: JUser) => {
+  ChangeListenerManager.getInstance().addChangeListener(USERS, CollectionChangeType.INSERT, (user: JUser) => {
     const transformedUser = transformUserDocument(user);
     _users.set(transformedUser.id, transformedUser);
   });
 
-  clm.addChangeListener(USERS, CollectionChangeType.UPDATE, (user: JUser) => {
+  ChangeListenerManager.getInstance().addChangeListener(USERS, CollectionChangeType.UPDATE, (user: JUser) => {
     const transformedUser = transformUserDocument(user);
     _users.set(transformedUser.id, transformedUser);
   });
 
-  clm.addChangeListener(
+  ChangeListenerManager.getInstance().addChangeListener(
     USERS,
     CollectionChangeType.DELETE,
     (userId: string) => {
@@ -89,7 +86,7 @@ const modifyUserUniqueIdentifier = async (
   id: string,
   userUniqueIdentifierValueNew: string
 ): Promise<object | null> => {
-  const updatedUser = await dm.updateItemInCollectionById(USERS, id, {
+  const updatedUser = await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
     uniqueIdentifier: userUniqueIdentifierValueNew,
   });
 
@@ -106,7 +103,7 @@ const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
   updateData: object
 ): Promise<object | null> => {
-  const userList = await dm.findItemsInCollectionByCriteria<JUser>(USERS, {
+  const userList = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
     uniqueIdentifier: userUniqueIdentifier,
   });
 
@@ -124,7 +121,7 @@ const updateUserByUniqueIdentifier = async (
     ...dataToUpdate
   } = updateData as { [key: string]: any };
 
-  const updatedUser = await dm.updateItemInCollectionByUniquePropertyValue(
+  const updatedUser = await DataManager.getInstance().updateItemInCollectionByUniquePropertyValue(
     USERS,
     "uniqueIdentifier",
     userUniqueIdentifier,
@@ -158,7 +155,7 @@ const doesUserUniqueIdentifierExist = (user: {
 const isUserUniqueIdentifierNew = async (
   userUniqueIdentifier: string
 ): Promise<{ result: boolean; message: string }> => {
-  const existingUsers = await dm.findItemsInCollectionByCriteria<JUser>(USERS, {
+  const existingUsers = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
     uniqueIdentifier: userUniqueIdentifier,
   });
 
@@ -194,10 +191,9 @@ export const addUsersToDatabase = async (
   }
 
   try {
-    const dataManager = dm;
     let addedUsers = [];
     for (const user of users) {
-      const addedUser = await dm.addItemToCollection(USERS, user);
+      const addedUser = await DataManager.getInstance().addItemToCollection(USERS, user);
       addedUsers.push(addedUser);
     }
     return addedUsers;
@@ -216,7 +212,7 @@ export const addUsersToDatabase = async (
  */
 const createUser = async (initialData: object = {}): Promise<JUser> => {
   _checkInitialization();
-  const addedUser = (await dm.addItemToCollection(USERS, initialData)) as JUser;
+  const addedUser = (await DataManager.getInstance().addItemToCollection(USERS, initialData)) as JUser;
   if (!addedUser) {
     throw new Error("Failed to create user: result is null");
   }
@@ -232,7 +228,7 @@ const createUser = async (initialData: object = {}): Promise<JUser> => {
  */
 const deleteUser = async (userId: string): Promise<void> => {
   _checkInitialization();
-  await dm.removeItemFromCollection(USERS, userId);
+  await DataManager.getInstance().removeItemFromCollection(USERS, userId);
   _users.delete(userId);
 };
 
@@ -244,7 +240,7 @@ const deleteUser = async (userId: string): Promise<void> => {
 const loadUsers = async (): Promise<void> => {
   _checkInitialization();
   _users.clear();
-  const userDocs = (await dm.getAllInCollection<JUser>(USERS)) || [];
+  const userDocs = (await DataManager.getInstance().getAllInCollection<JUser>(USERS)) || [];
   userDocs.forEach((user: any) => {
     const transformedUser = transformUserDocument(user);
     _users.set(transformedUser.id, transformedUser);
@@ -284,7 +280,7 @@ const updateUser = async (
   updatedData: object
 ): Promise<JUser> => {
   _checkInitialization();
-  const updatedUser = (await dm.updateItemInCollectionById(
+  const updatedUser = (await DataManager.getInstance().updateItemInCollectionById(
     USERS,
     userId,
     updatedData
@@ -303,14 +299,14 @@ const updateUser = async (
  */
 const deleteAllUsers = async (): Promise<void> => {
   _checkInitialization();
-  await dm.clearCollection(USERS);
+  await DataManager.getInstance().clearCollection(USERS);
   _users.clear();
 };
 
 const stopUserManager = () => {
-  clm.removeChangeListener(USERS, CollectionChangeType.INSERT);
-  clm.removeChangeListener(USERS, CollectionChangeType.UPDATE);
-  clm.removeChangeListener(USERS, CollectionChangeType.DELETE);
+  ChangeListenerManager.getInstance().removeChangeListener(USERS, CollectionChangeType.INSERT);
+  ChangeListenerManager.getInstance().removeChangeListener(USERS, CollectionChangeType.UPDATE);
+  ChangeListenerManager.getInstance().removeChangeListener(USERS, CollectionChangeType.DELETE);
 };
 
 /**
