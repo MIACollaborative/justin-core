@@ -242,6 +242,38 @@ const findItemByIdInCollection = async (
 };
 
 /**
+ * Finds items by property-value pair in a specified collection.
+ * @param collectionName - The name of the collection.
+ * @param criteria - A collection name and a property-value pair to match.
+ * @returns A `Promise` resolving with a item list if found, or an empty list if not found.
+ */
+const findItemsByCriteriaInCollection = async (
+  collectionName: string,
+  criteria: object
+): Promise<object[] | null> => {
+  ensureInitialized();
+
+  if (!criteria) return null;
+
+  try {
+    const foundDocList = await _db!
+      .collection(collectionName)
+      .find(criteria);
+    
+    const docList = await foundDocList.toArray();
+    const transformedList = docList.map(transformId).filter(
+      (doc) => doc !== null
+    );
+    return transformedList;
+  } catch (error) {
+    return handleDbError(
+      `Error finding item with criteria ${criteria} in ${collectionName}`,
+      error
+    );
+  }
+};
+
+/**
  * Retrieves all items from a specified collection.
  * @param collectionName - The name of the collection.
  * @returns A Promise resolving with an array of items in the collection.
@@ -328,6 +360,7 @@ export const MongoDBManager = {
   close,
   getCollectionChangeReadable,
   findItemByIdInCollection,
+  findItemsByCriteriaInCollection,
   addItemToCollection,
   updateItemInCollection,
   getAllInCollection,

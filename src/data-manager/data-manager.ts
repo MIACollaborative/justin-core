@@ -275,6 +275,32 @@ class DataManager extends EventEmitter {
     }
   }
 
+    /**
+   * Finds items by criteria in a specified collection.
+   * @template T - The expected type of the item in the collection.
+   * @param {string} collectionName - The name of the collection.
+   * @param {object} criteria - An object containing the key-value pair to search for.
+   * @returns {Promise<T[] | null>} Resolves with the found item of type `T` or `null` if not found or on error.
+   */
+  public async findItemsInCollectionByCriteria<T>(
+    collectionName: string,
+    criteria: object
+  ): Promise<T[] | null> {
+    try {
+      this.checkInitialization();
+      const itemList = await this.db.findItemsByCriteriaInCollection(
+        collectionName,
+        criteria
+      );
+      return itemList as T[] | null;
+    } catch (error) {
+      return handleDbError(
+        `Failed to find items by criteria: ${criteria} in collection: ${collectionName}`,
+        error
+      ) as null;
+    }
+  }
+
   /**
    * Provides a change stream for a specific collection and change type.
    * This method is used by the ChangeListenerManager to abstract away database-specific logic.

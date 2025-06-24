@@ -1,4 +1,5 @@
 export type JUser = {
-  id: string;
+  id?: string;
+  uniqueIdentifier: string;
   [key: string]: any;
 };

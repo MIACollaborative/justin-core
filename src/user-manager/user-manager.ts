@@ -80,6 +80,104 @@ const setupChangeListeners = (): void => {
 };
 
 /**
+ * Modify the redable id of a user
+ * @param {string} id - the user id.
+ * @param {string} userReadableIdName - the readable id name.
+ * @param {string} userReadableIdValueNew - the readable id value.
+ * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
+ */
+const modifyUserReadableId = async (
+  id: string,
+  userReadableIdName: string,
+  userReadableIdValueNew: string
+): Promise<object | null> => {
+  const updatedUser = await dm.updateItemInCollectionById(USERS, id, {
+    [userReadableIdName]: userReadableIdValueNew,
+  });
+
+  return updatedUser;
+};
+
+/**
+ * Update the properties of a user by readableId
+ * @param {string} userReadableIdName - the readable id name.
+ * @param {string} userReadableIdValue - the readable id value.
+ * @param {object} updateData - the data to update.
+ * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
+ */
+const updateUserByReadableId = async (
+  userReadableIdName: string,
+  userReadableIdValue: string,
+  updateData: object
+): Promise<object | null> => {
+  const userList = await dm.findItemsInCollectionByCriteria<JUser>(USERS, {
+    [userReadableIdName]: userReadableIdValue,
+  });
+
+  if (!userList || userList.length === 0) {
+    const msg = `User with ${userReadableIdName}: ${userReadableIdValue} not found.`;
+    Log.warn(msg);
+    return null;
+  }
+
+  const {
+    id,
+    [userReadableIdName]: _,
+    ...dataToUpdate
+  } = updateData as { [key: string]: any };
+
+  const updatedUser = await dm.updateItemInCollectionById(
+    USERS,
+    userList[0].id,
+    dataToUpdate
+  );
+
+  return updatedUser;
+};
+
+/**
+ * Confirm that readable id is present
+ * @param {string} userReadableIdName - the readable id name.
+ * @returns {boolean} Return true if the readable id exists, false otherwise.
+ */
+const doesUserReadableIdExist = (
+  user: { [key: string]: any },
+  userReadableIdName: string
+): { result: boolean; message: string } => {
+  if (!(userReadableIdName in user) || !user[userReadableIdName]) {
+    const msg = `User data is incomplete: ${userReadableIdName} is required.`;
+    Log.warn(msg);
+    return { result: false, message: msg };
+  }
+  return { result: true, message: 'User readable id exists.' };
+};
+
+/**
+ * Check for readable id duplication.
+ * @param {string} userReadableIdName - the readable id name.
+ * @param {string} userReadableIdValue - the readable id value.
+ * @returns {boolean} Return true if the readable id is new, false otherwise.
+ */
+const isUserReadableIdNew = async (
+  userReadableIdName: string,
+  userReadableIdValue: string
+): Promise<{ result: boolean; message: string }> => {
+  const existingUsers = await dm.findItemsInCollectionByCriteria<JUser>(USERS, {
+    [userReadableIdName]: userReadableIdValue,
+  });
+
+  if (existingUsers && existingUsers.length > 0) {
+    const msg = `User with readable id (${userReadableIdName}: ${userReadableIdValue}) already exists.`;
+    Log.warn(msg);
+    return { result: false, message: msg };
+  }
+  return { result: true, message: `User's readable id is valid.` };
+};
+
+
+
+
+/**
  * Adds multiple users to the Users collection in a single operation.
  * @param {object[]} users - An array of user objects to add.
  * @returns {Promise<(object | null)[]>} Resolves with the added users or null if the operation fails.
@@ -90,6 +188,22 @@ export const addUsersToDatabase = async (
   if (!Array.isArray(users) || users.length === 0) {
     throw new Error('No users provided for insertion.');
   }
+
+    for (const user of users) {
+    const userReadableIdExist = await doesUserReadableIdExist(
+      user,
+      'participantId'
+    );
+    const userDataCheck = await isUserReadableIdNew(
+      'participantId',
+      user['participantId']
+    );
+    if (!userReadableIdExist || !userDataCheck['result']) {
+      throw new Error(`${userDataCheck['message']} - Add users failed.`);
+    }
+  }
+
+
   try {
     const dataManager = dm;
     let addedUsers = [];
@@ -222,6 +336,10 @@ export const UserManager = {
   addUsersToDatabase,
   deleteUser,
   loadUsers,
+  modifyUserReadableId,
+  updateUserByReadableId,
+  doesUserReadableIdExist,
+  isUserReadableIdNew,
   getAllUsers,
   getUser,
   updateUser,
