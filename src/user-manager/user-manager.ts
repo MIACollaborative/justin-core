@@ -1,9 +1,9 @@
-import DataManager from '../data-manager/data-manager';
-import { ChangeListenerManager } from '../data-manager/change-listener.manager';
-import { USERS } from '../data-manager/data-manager.constants';
-import { JUser } from './user.type';
-import { CollectionChangeType } from '../data-manager/data-manager.type';
-import { Log } from '../logger/logger-manager';
+import DataManager from "../data-manager/data-manager";
+import { ChangeListenerManager } from "../data-manager/change-listener.manager";
+import { USERS } from "../data-manager/data-manager.constants";
+import { JUser } from "./user.type";
+import { CollectionChangeType } from "../data-manager/data-manager.type";
+import { Log } from "../logger/logger-manager";
 
 /**
  * @type {Map<string, JUser>} _users - In-memory cache for user data.
@@ -24,7 +24,7 @@ const clm = ChangeListenerManager.getInstance();
  */
 export const _checkInitialization = (): void => {
   if (!dm.getInitializationStatus()) {
-    throw new Error('UserManager has not been initialized');
+    throw new Error("UserManager has not been initialized");
   }
 };
 
@@ -36,13 +36,13 @@ export const _checkInitialization = (): void => {
  * @returns {Promise<void>} Resolves when initialization is complete.
  */
 const init = async (): Promise<void> => {
-  Log.info('Entering UserManager.init, about to init dm');
+  Log.info("Entering UserManager.init, about to init dm");
   await dm.init();
-  Log.info('In UserManager.init, after dm.init');
+  Log.info("In UserManager.init, after dm.init");
   await loadUsers();
-  Log.info('In UserManager.init, after loadUsers');
+  Log.info("In UserManager.init, after loadUsers");
   setupChangeListeners();
-  Log.info('In UserManager.init, after setupChangeListeners');
+  Log.info("In UserManager.init, after setupChangeListeners");
 };
 
 /**
@@ -126,7 +126,7 @@ const updateUserByUniqueIdentifier = async (
 
   const updatedUser = await dm.updateItemInCollectionByUniquePropertyValue(
     USERS,
-    'uniqueIdentifier',
+    "uniqueIdentifier",
     userUniqueIdentifier,
     dataToUpdate
   );
@@ -135,46 +135,40 @@ const updateUserByUniqueIdentifier = async (
 };
 
 /**
- * Confirm that readable id is present
- * @param {string} userReadableIdName - the readable id name.
- * @returns {boolean} Return true if the readable id exists, false otherwise.
+ * Confirm that unique identifier is present
+ * @param {object} user - the user object.
+ * @returns {boolean} Return true if the unique identifier exists, false otherwise.
  */
-const doesUserReadableIdExist = (
-  user: { [key: string]: any },
-  userReadableIdName: string
-): { result: boolean; message: string } => {
-  if (!(userReadableIdName in user) || !user[userReadableIdName]) {
-    const msg = `User data is incomplete: ${userReadableIdName} is required.`;
+const doesUserUniqueIdentifierExist = (user: {
+  [key: string]: any;
+}): { result: boolean; message: string } => {
+  if (!("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
+    const msg = `User data is incomplete: uniqueIdentifier is required.`;
     Log.warn(msg);
     return { result: false, message: msg };
   }
-  return { result: true, message: 'User readable id exists.' };
+  return { result: true, message: "User unique identifier exists." };
 };
 
 /**
- * Check for readable id duplication.
- * @param {string} userReadableIdName - the readable id name.
- * @param {string} userReadableIdValue - the readable id value.
- * @returns {boolean} Return true if the readable id is new, false otherwise.
+ * Check for unique identifier duplication.
+ * @param {string} userUniqueIdentifier - the unique identifier.
+ * @returns {boolean} Return true if the unique identifier is new, false otherwise.
  */
-const isUserReadableIdNew = async (
-  userReadableIdName: string,
-  userReadableIdValue: string
+const isUserUniqueIdentifierNew = async (
+  userUniqueIdentifier: string
 ): Promise<{ result: boolean; message: string }> => {
   const existingUsers = await dm.findItemsInCollectionByCriteria<JUser>(USERS, {
-    [userReadableIdName]: userReadableIdValue,
+    uniqueIdentifier: userUniqueIdentifier,
   });
 
   if (existingUsers && existingUsers.length > 0) {
-    const msg = `User with readable id (${userReadableIdName}: ${userReadableIdValue}) already exists.`;
+    const msg = `User with unique identifier (${userUniqueIdentifier}) already exists.`;
     Log.warn(msg);
     return { result: false, message: msg };
   }
-  return { result: true, message: `User's readable id is valid.` };
+  return { result: true, message: `User's unique identifier is valid.` };
 };
-
-
-
 
 /**
  * Adds multiple users to the Users collection in a single operation.
@@ -185,23 +179,19 @@ export const addUsersToDatabase = async (
   users: object[]
 ): Promise<(object | null)[]> => {
   if (!Array.isArray(users) || users.length === 0) {
-    throw new Error('No users provided for insertion.');
+    throw new Error("No users provided for insertion.");
   }
 
-    for (const user of users) {
-    const userReadableIdExist = await doesUserReadableIdExist(
-      user,
-      'participantId'
+  for (const user of users) {
+    const userUniqueIdentifierExist = await doesUserUniqueIdentifierExist(user);
+    const userWithId = user as { uniqueIdentifier: string, [key: string]: any };
+    const userDataCheck = await isUserUniqueIdentifierNew(
+      userWithId["uniqueIdentifier"]
     );
-    const userDataCheck = await isUserReadableIdNew(
-      'participantId',
-      user['participantId']
-    );
-    if (!userReadableIdExist || !userDataCheck['result']) {
-      throw new Error(`${userDataCheck['message']} - Add users failed.`);
+    if (!userUniqueIdentifierExist || !userDataCheck["result"]) {
+      throw new Error(`${userDataCheck["message"]} - Add users failed.`);
     }
   }
-
 
   try {
     const dataManager = dm;
@@ -212,7 +202,7 @@ export const addUsersToDatabase = async (
     }
     return addedUsers;
   } catch (error) {
-    Log.error('Failed to add users:', error);
+    Log.error("Failed to add users:", error);
     throw error;
   }
 };
@@ -228,7 +218,7 @@ const createUser = async (initialData: object = {}): Promise<JUser> => {
   _checkInitialization();
   const addedUser = (await dm.addItemToCollection(USERS, initialData)) as JUser;
   if (!addedUser) {
-    throw new Error('Failed to create user: result is null');
+    throw new Error("Failed to create user: result is null");
   }
   _users.set(addedUser.id, addedUser);
   return addedUser;
@@ -317,11 +307,11 @@ const deleteAllUsers = async (): Promise<void> => {
   _users.clear();
 };
 
-const stopUserManager = () =>{
+const stopUserManager = () => {
   clm.removeChangeListener(USERS, CollectionChangeType.INSERT);
   clm.removeChangeListener(USERS, CollectionChangeType.UPDATE);
   clm.removeChangeListener(USERS, CollectionChangeType.DELETE);
-}
+};
 
 /**
  * UserManager provides methods for managing users.
@@ -335,15 +325,15 @@ export const UserManager = {
   addUsersToDatabase,
   deleteUser,
   loadUsers,
-  modifyUserReadableId: modifyUserUniqueIdentifier,
-  updateUserByReadableId,
-  doesUserReadableIdExist,
-  isUserReadableIdNew,
+  modifyUserUniqueIdentifier,
+  updateUserByUniqueIdentifier,
+  doesUserUniqueIdentifierExist,
+  isUserUniqueIdentifierNew,
   getAllUsers,
   getUser,
   updateUser,
   deleteAllUsers,
-  stopUserManager
+  stopUserManager,
 };
 
 /**
