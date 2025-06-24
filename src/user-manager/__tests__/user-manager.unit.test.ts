@@ -14,6 +14,7 @@ describe('UserManager', () => {
   beforeEach(() => {
     findStub = sinon.stub().resolves([fakeUser]);
     dmStub = sinon.stub(DataManager, 'getInstance').returns({
+      checkInitialization: sinon.stub().resolves(),
       getInitializationStatus: sinon.stub().returns(true),
       init: sinon.stub().resolves(),
       addItemToCollection: sinon.stub().resolves(fakeUser),
