@@ -103,6 +103,13 @@ const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
   updateData: object
 ): Promise<object | null> => {
+
+  if( "uniqueIdentifier" in updateData ) {
+    const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
+    Log.warn(msg);
+    return null;
+  }
+  
   const userList = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
     uniqueIdentifier: userUniqueIdentifier,
   });
