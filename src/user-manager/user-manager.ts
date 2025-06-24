@@ -80,55 +80,54 @@ const setupChangeListeners = (): void => {
 };
 
 /**
- * Modify the redable id of a user
+ * Modify the uniqueIdentifier of a user
  * @param {string} id - the user id.
- * @param {string} userReadableIdName - the readable id name.
- * @param {string} userReadableIdValueNew - the readable id value.
+ * @param {string} userUniqueIdentifierValueNew - the new uniqueIdentifier value.
  * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
  */
-const modifyUserReadableId = async (
+const modifyUserUniqueIdentifier = async (
   id: string,
-  userReadableIdName: string,
-  userReadableIdValueNew: string
+  userUniqueIdentifierValueNew: string
 ): Promise<object | null> => {
   const updatedUser = await dm.updateItemInCollectionById(USERS, id, {
-    [userReadableIdName]: userReadableIdValueNew,
+    uniqueIdentifier: userUniqueIdentifierValueNew,
   });
 
   return updatedUser;
 };
 
 /**
- * Update the properties of a user by readableId
- * @param {string} userReadableIdName - the readable id name.
- * @param {string} userReadableIdValue - the readable id value.
+ * Update the properties of a user by uniqueIdentifier
+ * @param {string} userUniqueIdentifier - the uniqueIdentifier value.
  * @param {object} updateData - the data to update.
  * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
  */
-const updateUserByReadableId = async (
-  userReadableIdName: string,
-  userReadableIdValue: string,
+const updateUserByUniqueIdentifier = async (
+  userUniqueIdentifier: string,
   updateData: object
 ): Promise<object | null> => {
   const userList = await dm.findItemsInCollectionByCriteria<JUser>(USERS, {
-    [userReadableIdName]: userReadableIdValue,
+    uniqueIdentifier: userUniqueIdentifier,
   });
 
   if (!userList || userList.length === 0) {
-    const msg = `User with ${userReadableIdName}: ${userReadableIdValue} not found.`;
+    const msg = `User with uniqueIdentifier: ${userUniqueIdentifier} not found.`;
     Log.warn(msg);
     return null;
   }
 
+  const theUser: JUser = userList[0];
+
   const {
     id,
-    [userReadableIdName]: _,
+    uniqueIdentifier: _,
     ...dataToUpdate
   } = updateData as { [key: string]: any };
 
-  const updatedUser = await dm.updateItemInCollectionById(
+  const updatedUser = await dm.updateItemInCollectionByUniquePropertyValue(
     USERS,
-    userList[0].id,
+    'uniqueIdentifier',
+    userUniqueIdentifier,
     dataToUpdate
   );
 
@@ -336,7 +335,7 @@ export const UserManager = {
   addUsersToDatabase,
   deleteUser,
   loadUsers,
-  modifyUserReadableId,
+  modifyUserReadableId: modifyUserUniqueIdentifier,
   updateUserByReadableId,
   doesUserReadableIdExist,
   isUserReadableIdNew,

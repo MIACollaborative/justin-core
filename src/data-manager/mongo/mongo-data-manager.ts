@@ -215,6 +215,52 @@ const updateItemInCollection = async (
 };
 
 /**
+ * Updates an item by a unique property in a specified collection and returns the updated item.
+ * @param collectionName - The name of the collection.
+ * @param uniquePropertyName - The property name of the item to update.
+ * @param uniquePropertyValue - The property value of the item to update. 
+ * @param updateObject - The fields to update in the item.
+ * @returns A Promise resolving with the updated item object if the update succeeded, otherwise `null`.
+ */
+const updateItemInCollectionByUniqueProperty = async (
+  collectionName: string,
+  uniquePropertyName: string,
+  uniquePropertyValue: string,
+  updateObject: object
+): Promise<object | null> => {
+  ensureInitialized();
+
+  try {
+
+    // query using findMany and check if more than one result is returned
+    const existingItems = await _db!
+      .collection(collectionName)
+      .find({ [uniquePropertyName]: uniquePropertyValue })
+      .toArray();
+
+    if (existingItems.length > 1) {
+      Log.warn(`Multiple items found with ${uniquePropertyName}: ${uniquePropertyValue}`);
+      return null;
+    }
+    // now, update the item
+    const { matchedCount, modifiedCount } = await _db!
+      .collection(collectionName)
+      .updateOne({ [uniquePropertyName]: uniquePropertyValue }, { $set: updateObject });
+    
+    const updatedItem = await _db!
+        .collection(collectionName)
+        .findOne({ [uniquePropertyName]: uniquePropertyValue });
+
+    return transformId(updatedItem);
+  } catch (error) {
+    return handleDbError(
+      `Error updating item with property ${uniquePropertyName} and value ${uniquePropertyValue} in ${collectionName}`,
+      error
+    );
+  }
+};
+
+/**
  * Finds an item by ID in a specified collection.
  * @param collectionName - The name of the collection.
  * @param id - The ID of the item to find.
@@ -363,6 +409,7 @@ export const MongoDBManager = {
   findItemsByCriteriaInCollection,
   addItemToCollection,
   updateItemInCollection,
+  updateItemInCollectionByUniqueProperty,
   getAllInCollection,
   removeItemFromCollection,
   clearCollection,
