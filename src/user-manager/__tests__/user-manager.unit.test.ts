@@ -52,6 +52,11 @@ describe('UserManager', () => {
     const result = await UserManager.isUserUniqueIdentifierNew('abc');
     expect(result.result).toBe(false);
     expect(result.message).toMatch(/already exists/);
+
+    findStub.resolves([]);
+    const result2 = await UserManager.isUserUniqueIdentifierNew('new-uid');
+    expect(result2.result).toBe(true);
+    expect(result2.message).toMatch(/valid/);
   });
 
   /*
