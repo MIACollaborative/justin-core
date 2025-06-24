@@ -13,6 +13,7 @@ describe('UserManager', () => {
   let findStub: sinon.SinonStub;
   let updateStub: sinon.SinonStub;
   let updateUniqueStub: sinon.SinonStub;
+  let addStub = sinon.stub().resolves(fakeUser);
 
   beforeEach(() => {
     findStub = sinon.stub().resolves([fakeUser]);
@@ -22,7 +23,7 @@ describe('UserManager', () => {
       checkInitialization: sinon.stub().resolves(),
       getInitializationStatus: sinon.stub().returns(true),
       init: sinon.stub().resolves(),
-      addItemToCollection: sinon.stub().resolves(fakeUser),
+      addItemToCollection: addStub,
       removeItemFromCollection: sinon.stub().resolves(),
       getAllInCollection: sinon.stub().resolves([fakeUser, fakeUser2]),
       updateItemInCollectionById: updateStub,
@@ -87,21 +88,30 @@ describe('UserManager', () => {
     expect(logWarnStub.calledWithMatch(/not found/)).toBe(true);
     expect(result).toBeNull();
   });
-
-  /*
-  it('should add users to database', async () => {
-    const addStub = sinon.stub().resolves(fakeUser);
-    dmStub.restore();
-    sinon.stub(DataManager, 'getInstance').returns({
-      ...DataManager.getInstance(),
-      addItemToCollection: addStub,
-      findItemsInCollectionByCriteria: sinon.stub().resolves([]),
-      getInitializationStatus: sinon.stub().returns(true),
-    } as any);
-    const users = [ { uniqueIdentifier: 'u1' } ];
+  
+  it('should add users to database when all uniqueIdentifiers are valid and new', async () => {
+    findStub.resolves([]);
+    const users = [fakeUser, fakeUser2];
+    addStub.onFirstCall().resolves(fakeUser);
+    addStub.onSecondCall().resolves(fakeUser2);
     const result = await UserManager.addUsersToDatabase(users);
+    expect(addStub.callCount).toBe(2);
     expect(result[0]).toEqual(fakeUser);
+    expect(result[1]).toEqual(fakeUser2);
   });
-  */
 
+  it('should throw error if any user uniqueIdentifier already exists', async () => {
+    // Arrange
+    findStub.resolves([]);
+    findStub.onFirstCall().resolves([fakeUser]);
+    findStub.onSecondCall().resolves([]);
+
+    const users = [fakeUser, fakeUser2];
+    // Act & Assert
+    await expect(UserManager.addUsersToDatabase(users)).rejects.toThrow(/already exists/);
+  });
+
+  it('should throw error if users array is empty', async () => {
+    await expect(UserManager.addUsersToDatabase([])).rejects.toThrow(/No users provided/);
+  });
 });

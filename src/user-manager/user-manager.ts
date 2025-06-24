@@ -113,8 +113,6 @@ const updateUserByUniqueIdentifier = async (
     return null;
   }
 
-  const theUser: JUser = userList[0];
-
   const {
     id,
     uniqueIdentifier: _,
