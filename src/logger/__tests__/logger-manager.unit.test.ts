@@ -113,7 +113,7 @@ describe('Logger Manager', () => {
             timestamp: new Date(),
           },
         ],
-        user: { id: '12345', name: 'Test User', email: 'test@test.com' },
+        user: { id: '12345', uniqueIdentifier: "12345", name: 'Test User', email: 'test@test.com' },
       };
 
       setLogLevels({
@@ -141,7 +141,7 @@ describe('Logger Manager', () => {
             timestamp: new Date(),
           },
         ],
-        user: { id: '12345', name: 'Test User', email: 'test@test.com' },
+        user: { id: '12345', uniqueIdentifier: "12345", name: 'Test User', email: 'test@test.com' },
       };
 
       setLogLevels({

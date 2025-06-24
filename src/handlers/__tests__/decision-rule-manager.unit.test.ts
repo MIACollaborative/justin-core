@@ -96,6 +96,7 @@ describe('DecisionRuleManager', () => {
 
     const mockUser: JUser = {
       id: 'user123',
+      uniqueIdentifier: 'user123',
       preferredName: 'Test User',
     };
 
