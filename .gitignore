@@ -53,6 +53,9 @@ coverage/
 # Ignore IntelliJ IDEA project files
 .idea/
 
+# Ignore configuration for nvm (node version manager)
+.nvmrc
+
 # Ignore TSLint cache files
 tslint.cache
 
