@@ -31,6 +31,7 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     (require("../mongo-data-manager") as any)._db = fakeDb;
         sandbox = sinon.createSandbox();
     // Replace internalFunction on the required module object
+    /*
     const transformId = (doc: any) => {
        if (!doc) return null;
         const { _id, ...rest } = doc;
@@ -41,11 +42,12 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
       'transformId',
       transformId
     );
+    */
   });
 
   afterEach(() => {
     sinon.restore();
-    sandbox.restore();
+    //sandbox.restore();
   });
 
   it("returns null if criteria is null", async () => {
