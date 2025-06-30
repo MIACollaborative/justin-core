@@ -295,9 +295,9 @@ const findItemByIdInCollection = async (
  */
 const findItemsByCriteriaInCollection = async (
   collectionName: string,
-  criteria: object
+  criteria: object | null
 ): Promise<object[] | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
 
   if (!criteria) return null;
 
@@ -404,6 +404,7 @@ const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
 export const MongoDBManager = {
   init,
   close,
+  ensureInitialized,
   getCollectionChangeReadable,
   findItemByIdInCollection,
   findItemsByCriteriaInCollection,
@@ -415,3 +416,15 @@ export const MongoDBManager = {
   clearCollection,
   isCollectionEmpty,
 };
+
+/**
+ * TestingMongoDBManager provides additional utilities for testing.
+ *
+ * @namespace TestingMongoDBManager
+ * @private
+ */
+export const TestingMongoDBManager = {
+  ...MongoDBManager,
+  _db, // Exposes the in-memory cache for testing purposes
+};
+
