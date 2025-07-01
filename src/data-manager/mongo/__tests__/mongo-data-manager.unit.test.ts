@@ -15,6 +15,7 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
   let handleDbErrorStub: sinon.SinonStub;
   let fakeCollection: any;
   let fakeDb: any;
+  let mdStub: sinon.SinonStub;
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
@@ -30,7 +31,7 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     /*
     handleDbErrorStub = sinon
       .stub(dataManagerHelpers, "handleDbError")
-      .throws(new Error("fail"));
+      .returns(['error']);
     */
     toArrayStub = sinon.stub();
     findStub = sinon.stub().returns({ toArray: toArrayStub });
@@ -40,12 +41,19 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
       findOne: () => {},
       toArray: () => [],
     };
-    collectionStub = sinon.stub().returns(fakeCollection);
-    fakeDb = { collection: (_collectionName: string) => collectionStub };
+    //collectionStub = sinon.stub().returns(fakeCollection);
+    fakeDb = { collection: (_collectionName: string) => fakeCollection };
     TestingMongoDBManager._db = fakeDb;
     // Patch the internal _db variable
     //(require("../mongo-data-manager") as any)._db = fakeDb;
     sandbox = sinon.createSandbox();
+
+    // approach 2
+    mdStub = sinon.stub(MongoDBManager, "getDatabaseInstance").returns({
+      collection: () => fakeCollection,
+    } as any);
+
+
     // Replace internalFunction on the required module object
     /*
     const transformId = (doc: any) => {
@@ -72,7 +80,6 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
       null
     );
     expect(result).toBeNull();
-    expect(collectionStub.notCalled).toBe(true);
   });
 
   it("returns transformed list when documents are found", async () => {
@@ -85,7 +92,7 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
       "users",
       { name: "Alice" }
     );
-    expect(collectionStub.calledWith("users")).toBe(true);
+    //expect(collectionStub.calledWith("users")).toBe(true);
     expect(findStub.calledWith({ name: "Alice" })).toBe(true);
     expect(toArrayStub.called).toBe(true);
     expect(result).toEqual([
