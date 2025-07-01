@@ -4,6 +4,8 @@ import { MongoDBManager } from "../mongo-data-manager";
 import * as mongoHelpers from "../mongo.helpers";
 import * as logger from "../../../logger/logger-manager";
 import * as dataManagerHelpers from "../../data-manager.helpers";
+import { TestingMongoDBManager } from '../mongo-data-manager';
+
 
 describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
   let collectionStub: sinon.SinonStub;
@@ -19,17 +21,31 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     ensureInitializedStub = sinon
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {});
+
+    // this stubbing seems to work
+    // but I want to see the actual error handling in action
+    // so I will not stub this out
+    // but I will keep the stub for handleDbError
+
+    /*
     handleDbErrorStub = sinon
       .stub(dataManagerHelpers, "handleDbError")
       .throws(new Error("fail"));
+    */
     toArrayStub = sinon.stub();
     findStub = sinon.stub().returns({ toArray: toArrayStub });
-    fakeCollection = { find: findStub };
+    fakeCollection = {
+      find: findStub,
+      updateOne: () => {},
+      findOne: () => {},
+      toArray: () => [],
+    };
     collectionStub = sinon.stub().returns(fakeCollection);
-    fakeDb = { collection: collectionStub };
+    fakeDb = { collection: (_collectionName: string) => collectionStub };
+    TestingMongoDBManager._db = fakeDb;
     // Patch the internal _db variable
-    (require("../mongo-data-manager") as any)._db = fakeDb;
-        sandbox = sinon.createSandbox();
+    //(require("../mongo-data-manager") as any)._db = fakeDb;
+    sandbox = sinon.createSandbox();
     // Replace internalFunction on the required module object
     /*
     const transformId = (doc: any) => {
@@ -59,7 +75,6 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     expect(collectionStub.notCalled).toBe(true);
   });
 
-  
   it("returns transformed list when documents are found", async () => {
     const docs = [
       { _id: "123", name: "Alice" },
