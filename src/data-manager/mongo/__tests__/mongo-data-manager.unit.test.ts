@@ -41,14 +41,10 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
       findOne: () => {},
       toArray: () => [],
     };
-    //collectionStub = sinon.stub().returns(fakeCollection);
     fakeDb = { collection: (_collectionName: string) => fakeCollection };
     TestingMongoDBManager._db = fakeDb;
-    // Patch the internal _db variable
-    //(require("../mongo-data-manager") as any)._db = fakeDb;
     sandbox = sinon.createSandbox();
 
-    // approach 2
     mdStub = sinon.stub(MongoDBManager, "getDatabaseInstance").returns({
       collection: () => fakeCollection,
     } as any);
