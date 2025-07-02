@@ -298,7 +298,7 @@ const findItemByIdInCollection = async (
 /**
  * Finds items by property-value pair in a specified collection.
  * @param collectionName - The name of the collection.
- * @param criteria - A collection name and a property-value pair to match.
+ * @param criteria - A collection of property-value pairs to match.
  * @returns A `Promise` resolving with a item list if found, or an empty list if not found.
  */
 const findItemsByCriteriaInCollection = async (

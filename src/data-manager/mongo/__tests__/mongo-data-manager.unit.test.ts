@@ -1,14 +1,10 @@
 import * as mongoDB from "mongodb";
 import sinon from "sinon";
 import { MongoDBManager } from "../mongo-data-manager";
-import * as mongoHelpers from "../mongo.helpers";
-import * as logger from "../../../logger/logger-manager";
 import * as dataManagerHelpers from "../../data-manager.helpers";
-import { TestingMongoDBManager } from '../mongo-data-manager';
-
+import { TestingMongoDBManager } from "../mongo-data-manager";
 
 describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
-  let collectionStub: sinon.SinonStub;
   let findStub: sinon.SinonStub;
   let toArrayStub: sinon.SinonStub;
   let ensureInitializedStub: sinon.SinonStub;
@@ -16,23 +12,16 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
   let fakeCollection: any;
   let fakeDb: any;
   let mdStub: sinon.SinonStub;
-  let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
     ensureInitializedStub = sinon
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {});
 
-    // this stubbing seems to work
-    // but I want to see the actual error handling in action
-    // so I will not stub this out
-    // but I will keep the stub for handleDbError
-
-    /*
     handleDbErrorStub = sinon
       .stub(dataManagerHelpers, "handleDbError")
-      .returns(['error']);
-    */
+      .throws(new Error("fail"));
+
     toArrayStub = sinon.stub();
     findStub = sinon.stub().returns({ toArray: toArrayStub });
     fakeCollection = {
@@ -43,31 +32,14 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     };
     fakeDb = { collection: (_collectionName: string) => fakeCollection };
     TestingMongoDBManager._db = fakeDb;
-    sandbox = sinon.createSandbox();
 
     mdStub = sinon.stub(MongoDBManager, "getDatabaseInstance").returns({
       collection: () => fakeCollection,
     } as any);
-
-
-    // Replace internalFunction on the required module object
-    /*
-    const transformId = (doc: any) => {
-       if (!doc) return null;
-        const { _id, ...rest } = doc;
-        return { ...rest, id: _id?.toString()};
-    };
-    sandbox.replace(
-      require("../mongo-data-manager") as any,
-      'transformId',
-      transformId
-    );
-    */
   });
 
   afterEach(() => {
     sinon.restore();
-    //sandbox.restore();
   });
 
   it("returns null if criteria is null", async () => {
@@ -88,7 +60,6 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
       "users",
       { name: "Alice" }
     );
-    //expect(collectionStub.calledWith("users")).toBe(true);
     expect(findStub.calledWith({ name: "Alice" })).toBe(true);
     expect(toArrayStub.called).toBe(true);
     expect(result).toEqual([
@@ -97,33 +68,14 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     ]);
   });
 
-  /*
-  it("filters out nulls from transformId", async () => {
-    const docs = [{ _id: "123", name: "Alice" }, null];
-    toArrayStub.resolves(docs);
-    const transformId = (doc: any) => (doc ? { ...doc, id: doc._id } : null);
-    sinon.replace(
-      require("../mongo-data-manager") as any,
-      "transformId",
-      transformId
-    );
-    const result = await MongoDBManager.findItemsByCriteriaInCollection(
-      "users",
-      {}
-    );
-    expect(result).toEqual([{ _id: "123", name: "Alice", id: "123" }]);
-  });
-
   it("returns handleDbError result on error", async () => {
     findStub.throws(new Error("fail"));
-    const result = await MongoDBManager.findItemsByCriteriaInCollection(
-      "users",
-      { name: "Alice" }
-    );
+    await expect(
+      MongoDBManager.findItemsByCriteriaInCollection("users", { name: "Alice" })
+    ).rejects.toThrow("fail");
     expect(handleDbErrorStub.called).toBe(true);
-    expect(result).toEqual(["error"]);
+    expect(findStub.calledWith({ name: "Alice" })).toBe(true);
   });
-  */
 });
 
 /*
