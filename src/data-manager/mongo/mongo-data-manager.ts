@@ -139,7 +139,7 @@ const getCollectionChangeReadable = (
         id: (nextDoc as DeletedDocRecord).documentKey._id?.toString() || NO_ID,
       };
     } else {
-      normalizedDoc = transformId(
+      normalizedDoc = MongoDBManager.transformId(
         (nextDoc as InsertedOrUpatedDocRecord).fullDocument
       );
     }
@@ -209,7 +209,7 @@ const updateItemInCollection = async (
         .collection(collectionName)
         .findOne({ _id: objectId });
       Log.info(`Update succeeded for item with id ${id} in ${collectionName}`);
-      return transformId(updatedItem);
+      return MongoDBManager.transformId(updatedItem);
     } else {
       Log.warn(`Update failed for item with id ${id} in ${collectionName}`);
       return null;
@@ -259,7 +259,7 @@ const updateItemInCollectionByUniqueProperty = async (
         .collection(collectionName)
         .findOne({ [uniquePropertyName]: uniquePropertyValue });
 
-    return transformId(updatedItem);
+    return MongoDBManager.transformId(updatedItem);
   } catch (error) {
     return handleDbError(
       `Error updating item with property ${uniquePropertyName} and value ${uniquePropertyValue} in ${collectionName}`,
@@ -286,7 +286,7 @@ const findItemByIdInCollection = async (
     const foundDoc = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .findOne({ _id: objectId });
-    return transformId(foundDoc);
+    return MongoDBManager.transformId(foundDoc);
   } catch (error) {
     return handleDbError(
       `Error finding item with id ${id} in ${collectionName}`,
@@ -315,7 +315,7 @@ const findItemsByCriteriaInCollection = async (
       .find(criteria);
     
     const docList = await foundDocList.toArray();
-    const transformedList = docList.map(transformId).filter(
+    const transformedList = docList.map(MongoDBManager.transformId).filter(
       (doc) => doc !== null
     );
     return transformedList;
@@ -339,7 +339,7 @@ const getAllInCollection = async (
   try {
     const results = (
       await MongoDBManager.getDatabaseInstance()!.collection(collectionName).find({}).toArray()
-    ).map(transformId);
+    ).map(MongoDBManager.transformId);
     return results.filter((doc) => doc !== null);
   } catch (error) {
     return handleDbError(
@@ -412,6 +412,7 @@ const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
 export const MongoDBManager = {
   init,
   close,
+  transformId,
   ensureInitialized,
   getDatabaseInstance,
   getCollectionChangeReadable,
