@@ -181,7 +181,6 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(handleDbErrorStub.called).toBe(true);
   });
 
-  /*
   
   it("returns null if no items found", async () => {
     toArrayStub.resolves([]);
@@ -194,6 +193,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
+  /*
   it("returns null if updateOne does not match or modify", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
     updateOneStub.resolves({ matchedCount: 0, modifiedCount: 0 });

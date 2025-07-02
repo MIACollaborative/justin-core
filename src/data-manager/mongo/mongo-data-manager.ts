@@ -240,7 +240,6 @@ const updateItemInCollectionByUniqueProperty = async (
 
   try {
 
-    // query using findMany and check if more than one result is returned
     const existingItems = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .find({ [uniquePropertyName]: uniquePropertyValue })
@@ -248,6 +247,10 @@ const updateItemInCollectionByUniqueProperty = async (
 
     if (existingItems.length > 1) {
       Log.warn(`Multiple items found with ${uniquePropertyName}: ${uniquePropertyValue}`);
+      return null;
+    }
+    else if (existingItems.length === 0) {
+      Log.warn(`No items found with ${uniquePropertyName}: ${uniquePropertyValue}`);
       return null;
     }
     // now, update the item
