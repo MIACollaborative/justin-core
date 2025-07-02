@@ -2,7 +2,6 @@ import * as mongoDB from "mongodb";
 import sinon from "sinon";
 import { MongoDBManager } from "../mongo-data-manager";
 import * as dataManagerHelpers from "../../data-manager.helpers";
-import { TestingMongoDBManager } from "../mongo-data-manager";
 
 describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
   let findStub: sinon.SinonStub;
@@ -166,6 +165,6 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   });
   */
 
-  
+
 });
 

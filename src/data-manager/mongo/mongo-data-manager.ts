@@ -61,7 +61,7 @@ const init = async (): Promise<void> => {
  * @throws Will throw an error if closing the connection fails.
  */
 const close = async (): Promise<void> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
     await _client!.close();
     _isConnected = false;
@@ -104,7 +104,7 @@ const getCollectionChangeReadable = (
   collectionName: string,
   changeType: CollectionChangeType
 ): Readable => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
 
   const filterList = [{ $match: { operationType: changeType } }];
   const options =
@@ -166,7 +166,7 @@ const addItemToCollection = async (
   collectionName: string,
   obj: object
 ): Promise<string> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const { id, _id, ...filteredObject } = obj as WithId;
 
   try {
@@ -195,7 +195,7 @@ const updateItemInCollection = async (
   id: string,
   updateObject: object
 ): Promise<object | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const objectId = toObjectId(id);
   if (!objectId) return null;
 
@@ -236,7 +236,7 @@ const updateItemInCollectionByUniqueProperty = async (
   uniquePropertyValue: string,
   updateObject: object
 ): Promise<object | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
 
   try {
 
@@ -278,7 +278,7 @@ const findItemByIdInCollection = async (
   collectionName: string,
   id: string
 ): Promise<object | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const objectId = toObjectId(id);
   if (!objectId) return null;
 
@@ -335,7 +335,7 @@ const findItemsByCriteriaInCollection = async (
 const getAllInCollection = async (
   collectionName: string
 ): Promise<object[]> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
     const results = (
       await MongoDBManager.getDatabaseInstance()!.collection(collectionName).find({}).toArray()
@@ -359,7 +359,7 @@ const removeItemFromCollection = async (
   collectionName: string,
   id: string
 ): Promise<boolean> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const objectId = toObjectId(id);
   if (!objectId) return false;
 
@@ -383,7 +383,7 @@ const removeItemFromCollection = async (
  * @throws Will throw an error if the operation fails.
  */
 const clearCollection = async (collectionName: string): Promise<void> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
     await MongoDBManager.getDatabaseInstance()!.collection(collectionName).drop();
   } catch (error) {
@@ -397,7 +397,7 @@ const clearCollection = async (collectionName: string): Promise<void> => {
  * @returns A `Promise` resolving with `true` if the collection is empty, otherwise `false`.
  */
 const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
     const count = await MongoDBManager.getDatabaseInstance()!.collection(collectionName).countDocuments({});
     return count === 0;
@@ -424,16 +424,5 @@ export const MongoDBManager = {
   removeItemFromCollection,
   clearCollection,
   isCollectionEmpty,
-};
-
-/**
- * TestingMongoDBManager provides additional utilities for testing.
- *
- * @namespace TestingMongoDBManager
- * @private
- */
-export const TestingMongoDBManager = {
-  ...MongoDBManager,
-  _db, // Exposes the in-memory cache for testing purposes
 };
 
