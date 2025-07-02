@@ -134,23 +134,24 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
-  /*
+  
   it("updates and returns transformed item if one item found", async () => {
-    toArrayStub.resolves([{ email: "a@b.com" }]);
+    toArrayStub.resolves([{ email: "a@b.com", id: "123" }]);
     updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
-    const updatedDoc = { email: "a@b.com", name: "A" };
+    const updatedDoc = { email: "a@b.com", name: "A", _id: "123" };
+    const transformedDoc = { email: "a@b.com", name: "A", id: "123" };
     findOneStub.resolves(updatedDoc);
-    transformIdStub.returns(updatedDoc);
-    // Patch transformId if needed
+    transformIdStub.returns(transformedDoc);
     const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
       "users",
       "email",
       "a@b.com",
       { name: "A" }
     );
-    expect(result).toEqual(updatedDoc);
+    expect(result).toEqual(transformedDoc);
   });
 
+  
   it("handles error and calls handleDbError", async () => {
     toArrayStub.rejects(new Error("fail"));
     await expect(
@@ -163,8 +164,5 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     ).rejects.toThrow("fail");
     expect(handleDbErrorStub.called).toBe(true);
   });
-  */
-
-
 });
 
