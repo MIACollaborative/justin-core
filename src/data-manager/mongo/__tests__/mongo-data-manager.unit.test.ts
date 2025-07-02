@@ -78,16 +78,11 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
   it("filters out nulls from transformId", async () => {
     const docs = [{ _id: "123", name: "Alice" }, null];
     toArrayStub.resolves(docs);
-    const result = await MongoDBManager.findItemsByCriteriaInCollection("users", {});
+    const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      "users",
+      {}
+    );
     expect(result).toEqual([{ id: "123", name: "Alice" }]);
-  });
-
-  /*
-  it("handles non-Error thrown values", async () => {
-    findStub.throws("fail-string");
-    await expect(
-      MongoDBManager.findItemsByCriteriaInCollection("users", { name: "Alice" })
-    ).rejects.toThrow();
   });
 
   it("returns handleDbError result on error", async () => {
@@ -98,9 +93,7 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     expect(handleDbErrorStub.called).toBe(true);
     expect(findStub.calledWith({ name: "Alice" })).toBe(true);
   });
-  */
 });
-
 
 describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   let findStub: sinon.SinonStub;
@@ -116,7 +109,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   let transformIdStub: sinon.SinonStub;
 
   beforeEach(() => {
-        ensureInitializedStub = sinon
+    ensureInitializedStub = sinon
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {});
 
@@ -125,7 +118,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
       .throws(new Error("fail"));
 
     toArrayStub = sinon.stub();
-        updateOneStub = sinon.stub();
+    updateOneStub = sinon.stub();
     findOneStub = sinon.stub();
     findStub = sinon.stub().returns({ toArray: toArrayStub });
     fakeCollection = {
@@ -159,7 +152,6 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
-  
   it("updates and returns transformed item if one item found", async () => {
     toArrayStub.resolves([{ email: "a@b.com", id: "123" }]);
     updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
@@ -176,7 +168,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toEqual(transformedDoc);
   });
 
-    it("handles error and calls handleDbError", async () => {
+  it("handles error and calls handleDbError", async () => {
     toArrayStub.rejects(new Error("fail"));
     await expect(
       MongoDBManager.updateItemInCollectionByUniqueProperty(
@@ -292,6 +284,4 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   });
 
   */
-
 });
-
