@@ -77,7 +77,7 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
   });
 });
 
-/*
+
 describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   let findStub: sinon.SinonStub;
   let toArrayStub: sinon.SinonStub;
@@ -92,27 +92,32 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   let transformIdStub: sinon.SinonStub;
 
   beforeEach(() => {
-    ensureInitializedStub = sinon
+        ensureInitializedStub = sinon
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {});
+
     handleDbErrorStub = sinon
       .stub(dataManagerHelpers, "handleDbError")
       .throws(new Error("fail"));
-    logWarnStub = sinon.stub(console, "warn");
+
     toArrayStub = sinon.stub();
-    findStub = sinon.stub().returns({ toArray: toArrayStub });
-    updateOneStub = sinon.stub();
+        updateOneStub = sinon.stub();
     findOneStub = sinon.stub();
-    transformIdStub = sinon.stub().callsFake((doc: any) => doc);
+    findStub = sinon.stub().returns({ toArray: toArrayStub });
     fakeCollection = {
       find: findStub,
       updateOne: updateOneStub,
       findOne: findOneStub,
+      toArray: () => [],
     };
     fakeDb = { collection: (_collectionName: string) => fakeCollection };
+
     mdStub = sinon.stub(MongoDBManager, "getDatabaseInstance").returns({
       collection: () => fakeCollection,
     } as any);
+
+    logWarnStub = sinon.stub(console, "warn");
+    transformIdStub = sinon.stub().callsFake((doc: any) => doc);
   });
 
   afterEach(() => {
@@ -130,6 +135,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
+  /*
   it("updates and returns transformed item if one item found", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
     updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
@@ -158,6 +164,8 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     ).rejects.toThrow("fail");
     expect(handleDbErrorStub.called).toBe(true);
   });
+  */
+
+  
 });
-*/
 
