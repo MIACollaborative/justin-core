@@ -20,6 +20,14 @@ let _client: mongoDB.MongoClient | undefined;
 let _isConnected = false;
 
 /**
+ * Gets the MongoDB database instance.
+ * @returns A Promise that resolves when the database is initialized.
+ */
+const getDatabaseInstance = (): mongoDB.Db | undefined => {
+    return _db;
+}
+
+/**
  * Initializes the MongoDB connection.
  * Establishes a connection to MongoDB using environment variables or default values.
  * @returns A Promise that resolves when the connection is established.
@@ -53,7 +61,7 @@ const init = async (): Promise<void> => {
  * @throws Will throw an error if closing the connection fails.
  */
 const close = async (): Promise<void> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
     await _client!.close();
     _isConnected = false;
@@ -68,7 +76,7 @@ const close = async (): Promise<void> => {
  * @throws Will throw an error if the MongoDB client is not initialized.
  */
 const ensureInitialized = (): void => {
-  if (!_client || !_isConnected || !_db) {
+  if (!_client || !_isConnected || !MongoDBManager.getDatabaseInstance) {
     const errorMessage = 'MongoDB client not initialized';
     Log.error(errorMessage);
     throw new Error(errorMessage);
@@ -96,14 +104,14 @@ const getCollectionChangeReadable = (
   collectionName: string,
   changeType: CollectionChangeType
 ): Readable => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
 
   const filterList = [{ $match: { operationType: changeType } }];
   const options =
     changeType === CollectionChangeType.UPDATE
       ? { fullDocument: 'updateLookup' }
       : {};
-  const changeStream = _db!
+  const changeStream = MongoDBManager.getDatabaseInstance()!
     .collection(collectionName)
     .watch(filterList, options);
 
@@ -158,11 +166,11 @@ const addItemToCollection = async (
   collectionName: string,
   obj: object
 ): Promise<string> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const { id, _id, ...filteredObject } = obj as WithId;
 
   try {
-    const result = await _db!
+    const result = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .insertOne(filteredObject);
     Log.info(`Item added to ${collectionName}`, {
@@ -187,17 +195,17 @@ const updateItemInCollection = async (
   id: string,
   updateObject: object
 ): Promise<object | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const objectId = toObjectId(id);
   if (!objectId) return null;
 
   try {
-    const { matchedCount, modifiedCount } = await _db!
+    const { matchedCount, modifiedCount } = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .updateOne({ _id: objectId }, { $set: updateObject });
 
     if (matchedCount === 1 && modifiedCount === 1) {
-      const updatedItem = await _db!
+      const updatedItem = await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
         .findOne({ _id: objectId });
       Log.info(`Update succeeded for item with id ${id} in ${collectionName}`);
@@ -228,12 +236,12 @@ const updateItemInCollectionByUniqueProperty = async (
   uniquePropertyValue: string,
   updateObject: object
 ): Promise<object | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
 
   try {
 
     // query using findMany and check if more than one result is returned
-    const existingItems = await _db!
+    const existingItems = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .find({ [uniquePropertyName]: uniquePropertyValue })
       .toArray();
@@ -243,11 +251,11 @@ const updateItemInCollectionByUniqueProperty = async (
       return null;
     }
     // now, update the item
-    const { matchedCount, modifiedCount } = await _db!
+    const { matchedCount, modifiedCount } = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .updateOne({ [uniquePropertyName]: uniquePropertyValue }, { $set: updateObject });
     
-    const updatedItem = await _db!
+    const updatedItem = await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
         .findOne({ [uniquePropertyName]: uniquePropertyValue });
 
@@ -270,12 +278,12 @@ const findItemByIdInCollection = async (
   collectionName: string,
   id: string
 ): Promise<object | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const objectId = toObjectId(id);
   if (!objectId) return null;
 
   try {
-    const foundDoc = await _db!
+    const foundDoc = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .findOne({ _id: objectId });
     return transformId(foundDoc);
@@ -290,19 +298,19 @@ const findItemByIdInCollection = async (
 /**
  * Finds items by property-value pair in a specified collection.
  * @param collectionName - The name of the collection.
- * @param criteria - A collection name and a property-value pair to match.
+ * @param criteria - A collection of property-value pairs to match.
  * @returns A `Promise` resolving with a item list if found, or an empty list if not found.
  */
 const findItemsByCriteriaInCollection = async (
   collectionName: string,
-  criteria: object
+  criteria: object | null
 ): Promise<object[] | null> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
 
   if (!criteria) return null;
 
   try {
-    const foundDocList = await _db!
+    const foundDocList = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .find(criteria);
     
@@ -327,10 +335,10 @@ const findItemsByCriteriaInCollection = async (
 const getAllInCollection = async (
   collectionName: string
 ): Promise<object[]> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
     const results = (
-      await _db!.collection(collectionName).find({}).toArray()
+      await MongoDBManager.getDatabaseInstance()!.collection(collectionName).find({}).toArray()
     ).map(transformId);
     return results.filter((doc) => doc !== null);
   } catch (error) {
@@ -351,12 +359,12 @@ const removeItemFromCollection = async (
   collectionName: string,
   id: string
 ): Promise<boolean> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   const objectId = toObjectId(id);
   if (!objectId) return false;
 
   try {
-    const { acknowledged } = await _db!
+    const { acknowledged } = await MongoDBManager.getDatabaseInstance()!
       .collection(collectionName)
       .deleteOne({ _id: objectId });
     return acknowledged;
@@ -375,9 +383,9 @@ const removeItemFromCollection = async (
  * @throws Will throw an error if the operation fails.
  */
 const clearCollection = async (collectionName: string): Promise<void> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
-    await _db!.collection(collectionName).drop();
+    await MongoDBManager.getDatabaseInstance()!.collection(collectionName).drop();
   } catch (error) {
     handleDbError(`Failed to clear collection: ${collectionName}`, error);
   }
@@ -389,9 +397,9 @@ const clearCollection = async (collectionName: string): Promise<void> => {
  * @returns A `Promise` resolving with `true` if the collection is empty, otherwise `false`.
  */
 const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
-  ensureInitialized();
+  MongoDBManager.ensureInitialized();
   try {
-    const count = await _db!.collection(collectionName).countDocuments({});
+    const count = await MongoDBManager.getDatabaseInstance()!.collection(collectionName).countDocuments({});
     return count === 0;
   } catch (error) {
     return handleDbError(
@@ -404,6 +412,8 @@ const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
 export const MongoDBManager = {
   init,
   close,
+  ensureInitialized,
+  getDatabaseInstance,
   getCollectionChangeReadable,
   findItemByIdInCollection,
   findItemsByCriteriaInCollection,
@@ -415,3 +425,4 @@ export const MongoDBManager = {
   clearCollection,
   isCollectionEmpty,
 };
+
