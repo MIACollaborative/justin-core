@@ -60,6 +60,7 @@ class DataManager extends EventEmitter {
       }
       await this.db.init();
       this.isInitialized = true;
+      // TODO: figure out why we're doing this here
       this.changeListenerManager.addChangeListener(
         'EVENTS_QUEUE',
         CollectionChangeType.INSERT,
@@ -227,7 +228,10 @@ class DataManager extends EventEmitter {
   public async clearCollection(collectionName: string): Promise<void> {
     try {
       this.checkInitialization();
+      const itemsBefore = await this.db.getAllInCollection(collectionName);
       await this.db.clearCollection(collectionName);
+      const itemsAfter = await this.db.getAllInCollection(collectionName);
+      Log.dev(`Cleared collection: ${collectionName}, itemsBefore: ${itemsBefore?.length}, itemsAfter: ${itemsAfter?.length}`);
     } catch (error) {
       handleDbError(`Failed to clear collection: ${collectionName}`, error);
     }

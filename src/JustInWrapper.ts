@@ -1,7 +1,7 @@
 import DataManager from './data-manager/data-manager';
-import EventManager from './event/event.manager';
+import { EventHandlerManager } from './event/event-handler-manager';
 import {
-  publishEventInstance,
+  publishEvent,
   processEventQueue,
   setupEventQueueListener,
   stopEventQueueProcessing,
@@ -32,6 +32,7 @@ const clockIntervals: Map<string, NodeJS.Timeout> = new Map();
 export class JustInWrapper {
   protected static instance: JustInWrapper | null = null;
   private dataManager: DataManager = DataManager.getInstance();
+  private eventHandlerManager: EventHandlerManager = EventHandlerManager.getInstance();
   private isInitialized: boolean = false;
   private initializedAt: Date | null = null;
   protected constructor() {
@@ -86,47 +87,35 @@ export class JustInWrapper {
   }
   /**
    * Registers a new custom event and adds it to the queue.
-   * @param {string} name - The name of the custom event.
-   * @param {string[]} procedures - The ordered task or decision rule names for the event.
+   * @param {string} eventType - The type of the event.
+   * @param {string[]} handlers - The ordered task or decision rule names for the event.
    */
-  public async registerCustomEvent(
-    name: string,
+  public async registerEventHandlers(
     eventType: string,
-    procedures: string[]
+    handlers: string[]
   ): Promise<void> {
-    await EventManager.registerCustomEventHandlers(name, eventType, procedures);
+    await this.eventHandlerManager.registerEventHandlers(eventType, handlers);
   }
 
-  /**
-   * Registers a new clock event with a specified interval.
-   * @param {string} name - The name of the clock event.
-   * @param {number} interval - The interval in milliseconds at which the clock event triggers.
-   * @param {string[]} procedures - The ordered task or decision rule names for the event.
-   */
-  public async registerClockEvent(
-    name: string,
-    interval: number,
-    procedures: string[]
-  ): Promise<void> {
-    await EventManager.registerClockEventHandlers(name, interval, procedures);
-  }
 
   /**
    * Unregisters an existing event by name.
-   * @param {string} name - The name of the event to unregister.
+   * @param {string} eventType - The type of the event to unregister.
    */
-  public unregisterEventHandlers(name: string): void {
-    EventManager.unregisterEventHandler(name);
+  public unregisterEventHandlers(eventType: string): void {
+    this.eventHandlerManager.unregisterEventHandlers(eventType);
   }
+
   /**
-   * Triggers a registered event by name, adding it to the processing queue.
-   * @param {string} eventName - The name of the event to trigger.
+   * Publishes an event, adding it to the processing queue.
+   * @param {string} eventType - The type of the event.
+   * @param {Date} generatedTimestamp - The timestamp of the event.
    * @param {object} eventDetails - The details of the event instance.
    *      NOTE: publishEventDetails expects a Record,
    *      but I don't think we want to expose this to 3PDs
    */
-  public async publishEvent(eventName: string, eventDetails?: object): Promise<void> {
-    await publishEventInstance(eventName, eventDetails);
+  public async publishEvent(eventType: string, generatedTimestamp: Date, eventDetails?: object): Promise<void> {
+    await publishEvent(eventType, generatedTimestamp, eventDetails);
   }
 
   /**
@@ -138,7 +127,7 @@ export class JustInWrapper {
     startEventQueueProcessing();
     setupEventQueueListener();
 
-    await EventManager.initializeClockEvents();
+    //await EventHandlerManager.getInstance().initializeClockEvents();
 
     await processEventQueue();
     Log.info('Engine started and processing events.');

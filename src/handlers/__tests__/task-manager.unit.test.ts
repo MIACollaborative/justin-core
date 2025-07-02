@@ -29,9 +29,7 @@ describe('Task Manager', () => {
   const mockEvent: JEvent = {
     id: 'event123',
     eventType: 'MOCK_EVENT',
-    name: 'mockEvent',
-    procedures: ['mockProcedure'],
-    timestamp: new Date(),
+    generatedTimestamp: new Date(),
   };
 
   const mockUser: JUser = {

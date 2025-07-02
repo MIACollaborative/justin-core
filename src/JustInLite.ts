@@ -3,7 +3,7 @@ import DataManager from './data-manager/data-manager';
 import { ChangeListenerManager } from './data-manager/change-listener.manager';
 import { Log } from './logger/logger-manager';
 import { isRunning, queueIsEmpty } from './event/event-queue';
-import { EVENTS, EVENTS_QUEUE, USERS } from './data-manager/data-manager.constants';
+import { EVENT_QUEUE, USERS } from './data-manager/data-manager.constants';
 
 /**
  * JustinLite is a lightweight version of the core JustInWrapper singleton,
@@ -55,8 +55,7 @@ class JustinLiteWrapper extends JustInWrapper {
    */
   
   public async cleanseDB(): Promise<void> {
-    await DataManager.getInstance().clearCollection(EVENTS_QUEUE);
-    await DataManager.getInstance().clearCollection(EVENTS);
+    await DataManager.getInstance().clearCollection(EVENT_QUEUE);
     await DataManager.getInstance().clearCollection(USERS);
     Log.info('DB cleansed');
   }

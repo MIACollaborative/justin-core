@@ -104,7 +104,7 @@ describe('Logger Manager', () => {
   describe('handlerResult', () => {
     it('should log handler results when handlerResults level is enabled', () => {
       const mockHandlerResults: RecordResult = {
-        event: { eventType: 'Test Event', name: 'Test Event Name', id: '12345', procedures: [] },
+        event: { eventType: 'Test Event', id: '12345', generatedTimestamp: new Date() },
         name: 'Test Handler',
         steps: [
           {
@@ -132,7 +132,7 @@ describe('Logger Manager', () => {
 
     it('should not log handler results when handlerResults level is disabled', () => {
       const mockHandlerResults: RecordResult = {
-        event: { eventType: 'Test Event', name: 'Test Event Name', id: '12345', procedures: [] },
+        event: { eventType: 'Test Event', id: '12345', generatedTimestamp: new Date() },
         name: 'Test Handler',
         steps: [
           {

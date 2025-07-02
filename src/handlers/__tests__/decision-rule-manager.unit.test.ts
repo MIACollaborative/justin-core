@@ -89,9 +89,7 @@ describe('DecisionRuleManager', () => {
     const mockEvent: JEvent = {
       id: 'event123',
       eventType: 'MOCK_EVENT',
-      name: 'mockEvent',
-      procedures: ['testProcedure'],
-      timestamp: new Date(),
+      generatedTimestamp: new Date(),
     };
 
     const mockUser: JUser = {
