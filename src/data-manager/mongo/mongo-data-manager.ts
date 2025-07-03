@@ -208,7 +208,6 @@ const updateItemInCollection = async (
       const updatedItem = await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
         .findOne({ _id: objectId });
-      Log.info(`Update succeeded for item with id ${id} in ${collectionName}`);
       return MongoDBManager.transformId(updatedItem);
     } else {
       Log.warn(`Update failed for item with id ${id} in ${collectionName}`);
@@ -281,9 +280,6 @@ const updateItemInCollectionByUniqueProperty = async (
       const updatedItem = await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
         .findOne({ [uniquePropertyName]: uniquePropertyValue });
-      Log.info(
-        `Update succeeded for item with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
-      );
       return MongoDBManager.transformId(updatedItem);
     } else {
       Log.warn(

@@ -2,6 +2,7 @@ import DataManager from "../data-manager/data-manager";
 import { ChangeListenerManager } from "../data-manager/change-listener.manager";
 import { USERS } from "../data-manager/data-manager.constants";
 import { JUser } from "./user.type";
+import { handleDbError } from "../data-manager/data-manager.helpers";
 import { CollectionChangeType } from "../data-manager/data-manager.type";
 import { Log } from "../logger/logger-manager";
 
@@ -208,9 +209,13 @@ export const addUsersToDatabase = async (
     }
     return addedUsers;
   } catch (error) {
-    Log.error("Failed to add users:", error);
-    throw error;
+    return handleDbError(
+      "Failed to add users:",
+      error
+    );
   }
+
+  
 };
 
 /**
