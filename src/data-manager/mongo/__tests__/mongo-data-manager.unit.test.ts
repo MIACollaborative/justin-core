@@ -134,7 +134,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     } as any);
 
     logWarnStub = sinon.stub(console, "warn");
-    transformIdStub = sinon.stub().callsFake((doc: any) => doc);
+    transformIdStub =  mdStub = sinon.stub(MongoDBManager, "transformId").callsFake((doc: any) => doc);
   });
 
   afterEach(() => {
@@ -193,7 +193,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
-  /*
+  
   it("returns null if updateOne does not match or modify", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
     updateOneStub.resolves({ matchedCount: 0, modifiedCount: 0 });
@@ -206,18 +206,6 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
-  it("returns null if findOne returns null after update", async () => {
-    toArrayStub.resolves([{ email: "a@b.com" }]);
-    updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
-    findOneStub.resolves(null);
-    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
-      "users",
-      "email",
-      "a@b.com",
-      { name: "A" }
-    );
-    expect(result).toBeNull();
-  });
 
   it("returns null if transformId returns null", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
@@ -234,6 +222,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
+
   it("handles error thrown in updateOne", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
     updateOneStub.rejects(new Error("fail"));
@@ -247,6 +236,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     ).rejects.toThrow("fail");
   });
 
+  
   it("handles error thrown in findOne", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
     updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
@@ -261,6 +251,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     ).rejects.toThrow("fail");
   });
 
+  
   it("returns null if unique property value is undefined", async () => {
     toArrayStub.resolves([]);
     const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
@@ -272,6 +263,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
+  
   it("returns null if unique property value is null", async () => {
     toArrayStub.resolves([]);
     const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
@@ -282,6 +274,4 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     );
     expect(result).toBeNull();
   });
-
-  */
 });
