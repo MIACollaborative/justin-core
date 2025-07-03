@@ -144,7 +144,7 @@ const updateUserByUniqueIdentifier = async (
 const doesUserUniqueIdentifierExist = (user: {
   [key: string]: any;
 }): { result: boolean; message: string } => {
-  if (!("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
+  if (!user || !("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
     const msg = `User data is incomplete: uniqueIdentifier is required.`;
     Log.warn(msg);
     return { result: false, message: msg };

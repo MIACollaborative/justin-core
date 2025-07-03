@@ -45,13 +45,33 @@ describe("UserManager", () => {
     sinon.restore();
   });
 
-  it("should check for unique identifier existence", () => {
-    const result = UserManager.doesUserUniqueIdentifierExist({
-      uniqueIdentifier: "abc",
+  describe("doesUserUniqueIdentifierExist", () => {
+    it("returns true when uniqueIdentifier exists in cache", () => {
+      const result = UserManager.doesUserUniqueIdentifierExist({
+        uniqueIdentifier: "abc",
+      });
+      expect(result.result).toBe(true);
     });
-    expect(result.result).toBe(true);
-    const result2 = UserManager.doesUserUniqueIdentifierExist({});
-    expect(result2.result).toBe(false);
+    it("returns false when uniqueIdentifier is missing from input", () => {
+      const result = UserManager.doesUserUniqueIdentifierExist({});
+      expect(result.result).toBe(false);
+    });
+    it("returns false when input is null", () => {
+      // @ts-ignore
+      const result = UserManager.doesUserUniqueIdentifierExist(null);
+      expect(result.result).toBe(false);
+    });
+    it("returns false when input is undefined", () => {
+      // @ts-ignore
+      const result = UserManager.doesUserUniqueIdentifierExist(undefined);
+      expect(result.result).toBe(false);
+    });
+    it("returns false when uniqueIdentifier is empty string", () => {
+      const result = UserManager.doesUserUniqueIdentifierExist({
+        uniqueIdentifier: "",
+      });
+      expect(result.result).toBe(false);
+    });
   });
 
   it("should check for unique identifier duplication", async () => {
