@@ -107,6 +107,9 @@ const modifyUserUniqueIdentifier = async (
  * @param {string} userUniqueIdentifier - the uniqueIdentifier value.
  * @param {object} updateData - the data to update.
  * @returns {Promise<JUser | null>} Resolves with the updated JUser or `null` on error.
+ * @throws {Error} If trying to update the uniqueIdentifier field directly.
+ * If the user with the given uniqueIdentifier does not exist.
+ * If the update operation fails.
  */
 const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
@@ -114,8 +117,7 @@ const updateUserByUniqueIdentifier = async (
 ): Promise<JUser | null> => {
   if ("uniqueIdentifier" in updateData) {
     const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
-    Log.warn(msg);
-    return null;
+    throw new Error(msg);
   }
 
   const userList: JUser[] | null =
@@ -128,8 +130,7 @@ const updateUserByUniqueIdentifier = async (
 
   if (!userList || userList.length === 0) {
     const msg = `User with uniqueIdentifier: ${userUniqueIdentifier} not found.`;
-    Log.warn(msg);
-    return null;
+    throw new Error(msg);
   }
 
   const {
@@ -205,6 +206,7 @@ const isUserUniqueIdentifierNew = async (
  * Adds multiple users to the Users collection in a single operation.
  * @param {object[]} users - An array of user objects to add.
  * @returns {Promise<(JUser | null)[]>} Resolves with the added users or null if the operation fails.
+ * @throws {Error} If no users are provided or if any user fails validation.
  */
 export const addUsersToDatabase = async (
   users: object[]
@@ -230,7 +232,6 @@ export const addUsersToDatabase = async (
         Log.warn(
           `${userDataCheck["message"]} - User: ${JSON.stringify(userWithId)}`
         );
-        //throw new Error(`${userDataCheck["message"]} - Add users failed.`);
       } else {
         newUsers.push(user);
       }

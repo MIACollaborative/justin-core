@@ -147,21 +147,15 @@ describe("UserManager", () => {
   });
 
   describe("updateUserByUniqueIdentifier", () => {
-    it("should return null if attempting to update uniqueIdentifier", async () => {
-      updateUniqueStub.callsFake((_col, _prop, _val, updateData) => {
-        if ("uniqueIdentifier" in updateData) {
-          return null;
-        }
-        return { ...fakeUser, ...updateData };
-      });
-      findStub.resolves([fakeUser]);
-      const result = await UserManager.updateUserByUniqueIdentifier("abc", {
+    it("should throw error if attempting to update uniqueIdentifier", async () => {
+      // with this message: Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier
+
+      expect(UserManager.updateUserByUniqueIdentifier("abc", {
         name: "Updated Name",
         uniqueIdentifier: "should-not-update",
-      });
-      expect(result).toBeNull();
-      expect(updateUniqueStub.notCalled).toBe(true);
-      expect(findStub.notCalled).toBe(true);
+      })).rejects.toThrow(
+        "Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier"
+      );
     });
 
     it("should update user by unique identifier when user exists", async () => {
@@ -177,21 +171,16 @@ describe("UserManager", () => {
       expect(result).toEqual({ ...fakeUser, name: "Updated Name" });
     });
 
-    it("should return null and log warning if user not found by unique identifier", async () => {
+    it("should throw error if user not found by unique identifier", async () => {
       findStub.resolves([]);
-      const result = await UserManager.updateUserByUniqueIdentifier(
+      await expect(UserManager.updateUserByUniqueIdentifier(
         "notfound",
         {
           name: "No User",
         }
+      )).rejects.toThrow(
+        "User with uniqueIdentifier: notfound not found."
       );
-      expect(
-        findStub.calledOnceWith(USERS, { uniqueIdentifier: "notfound" })
-      ).toBe(true);
-      expect(updateUniqueStub.notCalled).toBe(true);
-      expect(logWarnStub.called).toBe(true);
-      expect(logWarnStub.calledWithMatch(/not found/)).toBe(true);
-      expect(result).toBeNull();
     });
 
     it("should throw if updateItemInCollectionByUniquePropertyValue throws", async () => {
