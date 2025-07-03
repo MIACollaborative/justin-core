@@ -89,7 +89,6 @@ const modifyUserUniqueIdentifier = async (
   const updatedUser = await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
     uniqueIdentifier: userUniqueIdentifierValueNew,
   });
-
   return updatedUser;
 };
 

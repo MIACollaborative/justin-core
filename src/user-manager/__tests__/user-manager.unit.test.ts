@@ -106,57 +106,92 @@ describe("UserManager", () => {
     });
   });
 
-  it("should modify user unique identifier", async () => {
-    updateStub.resolves({ ...fakeUser, uniqueIdentifier: "new-uid" });
-    const result = await UserManager.modifyUserUniqueIdentifier("1", "new-uid");
-    expect(
-      updateStub.calledOnceWith(USERS, "1", { uniqueIdentifier: "new-uid" })
-    ).toBe(true);
-    expect(result).toEqual({ ...fakeUser, uniqueIdentifier: "new-uid" });
+  describe("modifyUserUniqueIdentifier", () => {
+    updateStub = sinon
+      .stub()
+      .resolves({ ...fakeUser, uniqueIdentifier: "new-uid" });
+
+    it("should update the user's unique identifier and return the updated user", async () => {
+      updateStub.resolves({ ...fakeUser, uniqueIdentifier: "new-uid" });
+      const result = await UserManager.modifyUserUniqueIdentifier(
+        "1",
+        "new-uid"
+      );
+      expect(
+        updateStub.calledOnceWith(USERS, "1", { uniqueIdentifier: "new-uid" })
+      ).toBe(true);
+      expect(result).toEqual({ ...fakeUser, uniqueIdentifier: "new-uid" });
+    });
+
+    it("should return null if updateItemInCollectionById returns null", async () => {
+      updateStub.resolves(null);
+      const result = await UserManager.modifyUserUniqueIdentifier(
+        "1",
+        "new-uid"
+      );
+      expect(result).toBeNull();
+    });
+
+    it("should throw if updateItemInCollectionById throws", async () => {
+      updateStub.rejects(new Error("fail"));
+      await expect(
+        UserManager.modifyUserUniqueIdentifier("1", "new-uid")
+      ).rejects.toThrow("fail");
+    });
   });
 
-  it("should return null if attempting to update uniqueIdentifier through updateUserByUniqueIdentifier", async () => {
-    updateUniqueStub.callsFake((_col, _prop, _val, updateData) => {
-      if ("uniqueIdentifier" in updateData) {
-        return null;
-      }
-      return { ...fakeUser, ...updateData };
-    });
-    findStub.resolves([fakeUser]);
-    const result = await UserManager.updateUserByUniqueIdentifier("abc", {
-      name: "Updated Name",
-      uniqueIdentifier: "should-not-update",
-    });
-    expect(result).toBeNull();
-    expect(updateUniqueStub.notCalled).toBe(true);
-    expect(findStub.notCalled).toBe(true);
-  });
+  describe("updateUserByUniqueIdentifier", () => {
 
-  it("should update user by unique identifier when user exists", async () => {
-    updateUniqueStub.resolves({ ...fakeUser, name: "Updated Name" });
-    const result = await UserManager.updateUserByUniqueIdentifier("abc", {
-      name: "Updated Name",
-    });
-    expect(
-      updateUniqueStub.calledOnceWith(USERS, "uniqueIdentifier", "abc", {
+    it("should return null if attempting to update uniqueIdentifier", async () => {
+      updateUniqueStub.callsFake((_col, _prop, _val, updateData) => {
+        if ("uniqueIdentifier" in updateData) {
+          return null;
+        }
+        return { ...fakeUser, ...updateData };
+      });
+      findStub.resolves([fakeUser]);
+      const result = await UserManager.updateUserByUniqueIdentifier("abc", {
         name: "Updated Name",
-      })
-    ).toBe(true);
-    expect(result).toEqual({ ...fakeUser, name: "Updated Name" });
-  });
-
-  it("should return null and log warning if user not found by unique identifier", async () => {
-    findStub.resolves([]);
-    const result = await UserManager.updateUserByUniqueIdentifier("notfound", {
-      name: "No User",
+        uniqueIdentifier: "should-not-update",
+      });
+      expect(result).toBeNull();
+      expect(updateUniqueStub.notCalled).toBe(true);
+      expect(findStub.notCalled).toBe(true);
     });
-    expect(
-      findStub.calledOnceWith(USERS, { uniqueIdentifier: "notfound" })
-    ).toBe(true);
-    expect(updateUniqueStub.notCalled).toBe(true);
-    expect(logWarnStub.called).toBe(true);
-    expect(logWarnStub.calledWithMatch(/not found/)).toBe(true);
-    expect(result).toBeNull();
+
+    it("should update user by unique identifier when user exists", async () => {
+      updateUniqueStub.resolves({ ...fakeUser, name: "Updated Name" });
+      const result = await UserManager.updateUserByUniqueIdentifier("abc", {
+        name: "Updated Name",
+      });
+      expect(
+        updateUniqueStub.calledOnceWith(USERS, "uniqueIdentifier", "abc", {
+          name: "Updated Name",
+        })
+      ).toBe(true);
+      expect(result).toEqual({ ...fakeUser, name: "Updated Name" });
+    });
+
+    it("should return null and log warning if user not found by unique identifier", async () => {
+      findStub.resolves([]);
+      const result = await UserManager.updateUserByUniqueIdentifier("notfound", {
+        name: "No User",
+      });
+      expect(
+        findStub.calledOnceWith(USERS, { uniqueIdentifier: "notfound" })
+      ).toBe(true);
+      expect(updateUniqueStub.notCalled).toBe(true);
+      expect(logWarnStub.called).toBe(true);
+      expect(logWarnStub.calledWithMatch(/not found/)).toBe(true);
+      expect(result).toBeNull();
+    });
+
+    it("should throw if updateItemInCollectionByUniquePropertyValue throws", async () => {
+      updateUniqueStub.rejects(new Error("fail"));
+      await expect(
+        UserManager.updateUserByUniqueIdentifier("abc", { name: "Updated Name" })
+      ).rejects.toThrow("fail");
+    });
   });
 
   it("should add users to database when all uniqueIdentifiers are valid and new", async () => {
