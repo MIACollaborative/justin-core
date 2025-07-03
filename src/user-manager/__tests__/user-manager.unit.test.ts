@@ -216,13 +216,17 @@ describe("UserManager", () => {
       expect(result[1]).toEqual(fakeUser2);
     });
 
-    it("should throw error if any user uniqueIdentifier already exists", async () => {
+    it("should log warning and skip adding a user if that user's uniqueIdentifier already exists", async () => {
       findStub.onFirstCall().resolves([fakeUser]);
       findStub.onSecondCall().resolves([]);
+      addStub.onFirstCall().resolves(fakeUser2);
       const users = [fakeUser, fakeUser2];
-      await expect(UserManager.addUsersToDatabase(users)).rejects.toThrow(
-        /already exists/
-      );
+      await expect(UserManager.addUsersToDatabase(users)).resolves.toEqual([fakeUser2]);
+      expect(logWarnStub.called).toBe(true);
+      expect(logWarnStub.calledWithMatch(/already exists/)).toBe(true);
+      expect(addStub.callCount).toBe(1);
+      expect(addStub.firstCall.args[0]).toEqual("users");
+      expect(addStub.firstCall.args[1]).toEqual(fakeUser2);
     });
 
     it("should throw error if users array is empty", async () => {
