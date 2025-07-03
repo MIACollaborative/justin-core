@@ -86,10 +86,10 @@ const setupChangeListeners = (): void => {
 const modifyUserUniqueIdentifier = async (
   id: string,
   userUniqueIdentifierValueNew: string
-): Promise<object | null> => {
-  const updatedUser = await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
+): Promise<JUser | null> => {
+  const updatedUser: JUser | null = await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
     uniqueIdentifier: userUniqueIdentifierValueNew,
-  });
+  }) as JUser;
   return updatedUser;
 };
 
@@ -97,12 +97,12 @@ const modifyUserUniqueIdentifier = async (
  * Update the properties of a user by uniqueIdentifier
  * @param {string} userUniqueIdentifier - the uniqueIdentifier value.
  * @param {object} updateData - the data to update.
- * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
+ * @returns {Promise<JUser | null>} Resolves with the updated item or `null` on error.
  */
 const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
   updateData: object
-): Promise<object | null> => {
+): Promise<JUser | null> => {
 
   if( "uniqueIdentifier" in updateData ) {
     const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
@@ -110,7 +110,7 @@ const updateUserByUniqueIdentifier = async (
     return null;
   }
   
-  const userList = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
+  const userList: JUser[] | null = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
     uniqueIdentifier: userUniqueIdentifier,
   });
 
@@ -126,12 +126,12 @@ const updateUserByUniqueIdentifier = async (
     ...dataToUpdate
   } = updateData as { [key: string]: any };
 
-  const updatedUser = await DataManager.getInstance().updateItemInCollectionByUniquePropertyValue(
+  const updatedUser: JUser | null = await DataManager.getInstance().updateItemInCollectionByUniquePropertyValue(
     USERS,
     "uniqueIdentifier",
     userUniqueIdentifier,
     dataToUpdate
-  );
+  ) as JUser;
 
   return updatedUser;
 };
@@ -202,9 +202,9 @@ export const addUsersToDatabase = async (
   }
 
   try {
-    let addedUsers = [];
+    let addedUsers: (JUser | null)[] = [];
     for (const user of users) {
-      const addedUser = await DataManager.getInstance().addItemToCollection(USERS, user);
+      const addedUser = await DataManager.getInstance().addItemToCollection(USERS, user) as JUser;
       addedUsers.push(addedUser);
     }
     return addedUsers;
