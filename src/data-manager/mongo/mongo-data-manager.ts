@@ -243,7 +243,9 @@ const updateItemInCollectionByUniqueProperty = async (
     );
   }
   if (!uniquePropertyName) {
-    throw new Error(`No unique property name provided for update in ${collectionName}`) ;
+    throw new Error(
+      `No unique property name provided for update in ${collectionName}`
+    );
   }
 
   try {
@@ -251,7 +253,6 @@ const updateItemInCollectionByUniqueProperty = async (
       .collection(collectionName)
       .find({ [uniquePropertyName]: uniquePropertyValue })
       .toArray();
-
     if (existingItems.length > 1) {
       throw new Error(
         `Multiple items found with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
@@ -261,7 +262,14 @@ const updateItemInCollectionByUniqueProperty = async (
         `No items found with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
       );
     }
+  } catch (error) {
+    return handleDbError(
+      `Error finding items with property ${uniquePropertyName} and value ${uniquePropertyValue} in ${collectionName}`,
+      error
+    );
+  }
 
+  try {
     const { matchedCount, modifiedCount } =
       await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
