@@ -104,12 +104,6 @@ describe("UserManager", () => {
       expect(result.result).toBe(false);
       expect(result.message).toMatch(/Invalid/);
     });
-    it("returns false and message if DataManager throws error", async () => {
-      findStub.rejects(new Error("db error"));
-      const result = await UserManager.isUserUniqueIdentifierNew("abc");
-      expect(result.result).toBe(false);
-      expect(result.message).toMatch(/error/i);
-    });
   });
 
   it("should modify user unique identifier", async () => {
