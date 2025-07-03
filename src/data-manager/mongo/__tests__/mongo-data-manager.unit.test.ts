@@ -66,6 +66,25 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     ]);
   });
 
+  it("returns empty array if no documents found", async () => {
+    toArrayStub.resolves([]);
+    const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      "users",
+      { name: "Nobody" }
+    );
+    expect(result).toEqual([]);
+  });
+
+  it("filters out nulls from transformId", async () => {
+    const docs = [{ _id: "123", name: "Alice" }, null];
+    toArrayStub.resolves(docs);
+    const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      "users",
+      {}
+    );
+    expect(result).toEqual([{ id: "123", name: "Alice" }]);
+  });
+
   it("returns handleDbError result on error", async () => {
     findStub.throws(new Error("fail"));
     await expect(
@@ -75,7 +94,6 @@ describe("MongoDBManager.findItemsByCriteriaInCollection", () => {
     expect(findStub.calledWith({ name: "Alice" })).toBe(true);
   });
 });
-
 
 describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   let findStub: sinon.SinonStub;
@@ -91,7 +109,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   let transformIdStub: sinon.SinonStub;
 
   beforeEach(() => {
-        ensureInitializedStub = sinon
+    ensureInitializedStub = sinon
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {});
 
@@ -100,7 +118,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
       .throws(new Error("fail"));
 
     toArrayStub = sinon.stub();
-        updateOneStub = sinon.stub();
+    updateOneStub = sinon.stub();
     findOneStub = sinon.stub();
     findStub = sinon.stub().returns({ toArray: toArrayStub });
     fakeCollection = {
@@ -116,7 +134,7 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     } as any);
 
     logWarnStub = sinon.stub(console, "warn");
-    transformIdStub = sinon.stub().callsFake((doc: any) => doc);
+    transformIdStub =  mdStub = sinon.stub(MongoDBManager, "transformId").callsFake((doc: any) => doc);
   });
 
   afterEach(() => {
@@ -134,7 +152,6 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toBeNull();
   });
 
-  
   it("updates and returns transformed item if one item found", async () => {
     toArrayStub.resolves([{ email: "a@b.com", id: "123" }]);
     updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
@@ -151,7 +168,6 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(result).toEqual(transformedDoc);
   });
 
-  
   it("handles error and calls handleDbError", async () => {
     toArrayStub.rejects(new Error("fail"));
     await expect(
@@ -164,5 +180,98 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     ).rejects.toThrow("fail");
     expect(handleDbErrorStub.called).toBe(true);
   });
-});
 
+  
+  it("returns null if no items found", async () => {
+    toArrayStub.resolves([]);
+    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
+      "users",
+      "email",
+      "notfound@b.com",
+      { name: "A" }
+    );
+    expect(result).toBeNull();
+  });
+
+  
+  it("returns null if updateOne does not match or modify", async () => {
+    toArrayStub.resolves([{ email: "a@b.com" }]);
+    updateOneStub.resolves({ matchedCount: 0, modifiedCount: 0 });
+    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
+      "users",
+      "email",
+      "a@b.com",
+      { name: "A" }
+    );
+    expect(result).toBeNull();
+  });
+
+
+  it("returns null if transformId returns null", async () => {
+    toArrayStub.resolves([{ email: "a@b.com" }]);
+    updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
+    const updatedDoc = { email: "a@b.com", name: "A", _id: "123" };
+    findOneStub.resolves(updatedDoc);
+    transformIdStub.returns(null);
+    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
+      "users",
+      "email",
+      "a@b.com",
+      { name: "A" }
+    );
+    expect(result).toBeNull();
+  });
+
+
+  it("handles error thrown in updateOne", async () => {
+    toArrayStub.resolves([{ email: "a@b.com" }]);
+    updateOneStub.rejects(new Error("fail"));
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        "a@b.com",
+        { name: "A" }
+      )
+    ).rejects.toThrow("fail");
+  });
+
+  
+  it("handles error thrown in findOne", async () => {
+    toArrayStub.resolves([{ email: "a@b.com" }]);
+    updateOneStub.resolves({ matchedCount: 1, modifiedCount: 1 });
+    findOneStub.rejects(new Error("fail"));
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        "a@b.com",
+        { name: "A" }
+      )
+    ).rejects.toThrow("fail");
+  });
+
+  
+  it("returns null if unique property value is undefined", async () => {
+    toArrayStub.resolves([]);
+    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
+      "users",
+      "email",
+      undefined as any,
+      { name: "A" }
+    );
+    expect(result).toBeNull();
+  });
+
+  
+  it("returns null if unique property value is null", async () => {
+    toArrayStub.resolves([]);
+    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
+      "users",
+      "email",
+      null as any,
+      { name: "A" }
+    );
+    expect(result).toBeNull();
+  });
+});
