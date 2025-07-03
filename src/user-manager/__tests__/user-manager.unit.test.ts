@@ -74,16 +74,42 @@ describe("UserManager", () => {
     });
   });
 
-  it("should check for unique identifier duplication", async () => {
-    findStub.resolves([fakeUser]);
-    const result = await UserManager.isUserUniqueIdentifierNew("abc");
-    expect(result.result).toBe(false);
-    expect(result.message).toMatch(/already exists/);
-
-    findStub.resolves([]);
-    const result2 = await UserManager.isUserUniqueIdentifierNew("new-uid");
-    expect(result2.result).toBe(true);
-    expect(result2.message).toMatch(/valid/);
+  describe("isUserUniqueIdentifierNew", () => {
+    it("returns false and message if identifier already exists", async () => {
+      findStub.resolves([fakeUser]);
+      const result = await UserManager.isUserUniqueIdentifierNew("abc");
+      expect(result.result).toBe(false);
+      expect(result.message).toMatch(/already exists/);
+    });
+    it("returns true and message if identifier is new", async () => {
+      findStub.resolves([]);
+      const result = await UserManager.isUserUniqueIdentifierNew("new-uid");
+      expect(result.result).toBe(true);
+      expect(result.message).toMatch(/valid/);
+    });
+    it("returns false and message if identifier is null", async () => {
+      // @ts-ignore
+      const result = await UserManager.isUserUniqueIdentifierNew(null);
+      expect(result.result).toBe(false);
+      expect(result.message).toMatch(/Invalid/);
+    });
+    it("returns false and message if identifier is undefined", async () => {
+      // @ts-ignore
+      const result = await UserManager.isUserUniqueIdentifierNew(undefined);
+      expect(result.result).toBe(false);
+      expect(result.message).toMatch(/Invalid/);
+    });
+    it("returns false and message if identifier is empty string", async () => {
+      const result = await UserManager.isUserUniqueIdentifierNew("");
+      expect(result.result).toBe(false);
+      expect(result.message).toMatch(/Invalid/);
+    });
+    it("returns false and message if DataManager throws error", async () => {
+      findStub.rejects(new Error("db error"));
+      const result = await UserManager.isUserUniqueIdentifierNew("abc");
+      expect(result.result).toBe(false);
+      expect(result.message).toMatch(/error/i);
+    });
   });
 
   it("should modify user unique identifier", async () => {

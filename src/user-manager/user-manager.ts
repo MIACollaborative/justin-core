@@ -160,6 +160,12 @@ const doesUserUniqueIdentifierExist = (user: {
 const isUserUniqueIdentifierNew = async (
   userUniqueIdentifier: string
 ): Promise<{ result: boolean; message: string }> => {
+  if (!userUniqueIdentifier || typeof userUniqueIdentifier !== "string" || userUniqueIdentifier.trim() === "") {
+    const msg = `Invalid unique identifier: ${userUniqueIdentifier}`;
+    Log.warn(msg);
+    return { result: false, message: msg };
+  }
+
   const existingUsers = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
     uniqueIdentifier: userUniqueIdentifier,
   });
