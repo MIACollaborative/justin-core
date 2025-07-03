@@ -208,7 +208,6 @@ const updateItemInCollection = async (
       const updatedItem = await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
         .findOne({ _id: objectId });
-      Log.info(`Update succeeded for item with id ${id} in ${collectionName}`);
       return MongoDBManager.transformId(updatedItem);
     } else {
       Log.warn(`Update failed for item with id ${id} in ${collectionName}`);
@@ -239,16 +238,14 @@ const updateItemInCollectionByUniqueProperty = async (
   MongoDBManager.ensureInitialized();
 
   if (!uniquePropertyValue) {
-    Log.warn(
+    throw new Error(
       `No value provided for unique property ${uniquePropertyName} in ${collectionName}`
     );
-    return null;
   }
   if (!uniquePropertyName) {
-    Log.warn(
+    throw new Error(
       `No unique property name provided for update in ${collectionName}`
     );
-    return null;
   }
 
   try {
@@ -256,19 +253,23 @@ const updateItemInCollectionByUniqueProperty = async (
       .collection(collectionName)
       .find({ [uniquePropertyName]: uniquePropertyValue })
       .toArray();
-
     if (existingItems.length > 1) {
-      Log.warn(
-        `Multiple items found with ${uniquePropertyName}: ${uniquePropertyValue}`
+      throw new Error(
+        `Multiple items found with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
       );
-      return null;
     } else if (existingItems.length === 0) {
-      Log.warn(
-        `No items found with ${uniquePropertyName}: ${uniquePropertyValue}`
+      throw new Error(
+        `No items found with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
       );
-      return null;
     }
-    // now, update the item
+  } catch (error) {
+    return handleDbError(
+      `Error finding items with property ${uniquePropertyName} and value ${uniquePropertyValue} in ${collectionName}`,
+      error
+    );
+  }
+
+  try {
     const { matchedCount, modifiedCount } =
       await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
@@ -281,13 +282,10 @@ const updateItemInCollectionByUniqueProperty = async (
       const updatedItem = await MongoDBManager.getDatabaseInstance()!
         .collection(collectionName)
         .findOne({ [uniquePropertyName]: uniquePropertyValue });
-      Log.info(
-        `Update succeeded for item with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
-      );
       return MongoDBManager.transformId(updatedItem);
     } else {
       Log.warn(
-        `Update failed for item with with ${uniquePropertyName}: ${uniquePropertyValue}∏ in ${collectionName}`
+        `Update failed for item with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
       );
       return null;
     }

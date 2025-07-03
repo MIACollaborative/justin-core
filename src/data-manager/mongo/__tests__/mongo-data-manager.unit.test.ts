@@ -141,15 +141,18 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     sinon.restore();
   });
 
-  it("returns null if multiple items found", async () => {
+  it("throws error if multiple items found", async () => {
     toArrayStub.resolves([{}, {}]);
-    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
-      "users",
-      "email",
-      "a@b.com",
-      { name: "A" }
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        "a@b.com",
+        { name: "A" }
+      )
+    ).rejects.toThrow(
+      `fail`
     );
-    expect(result).toBeNull();
   });
 
   it("updates and returns transformed item if one item found", async () => {
@@ -181,29 +184,32 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
     expect(handleDbErrorStub.called).toBe(true);
   });
 
-  
-  it("returns null if no items found", async () => {
+
+  it("throws error if no items found", async () => {
     toArrayStub.resolves([]);
-    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
-      "users",
-      "email",
-      "notfound@b.com",
-      { name: "A" }
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        "notfound@b.com",
+        { name: "A" }
+      )
+    ).rejects.toThrow(
+      `fail`
     );
-    expect(result).toBeNull();
   });
 
-  
-  it("returns null if updateOne does not match or modify", async () => {
+  it("return null if updateOne does not match or modify", async () => {
     toArrayStub.resolves([{ email: "a@b.com" }]);
     updateOneStub.resolves({ matchedCount: 0, modifiedCount: 0 });
-    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
-      "users",
-      "email",
-      "a@b.com",
-      { name: "A" }
-    );
-    expect(result).toBeNull();
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        "a@b.com",
+        { name: "A" }
+      )
+    ).resolves.toBeNull();
   });
 
 
@@ -252,26 +258,31 @@ describe("MongoDBManager.updateItemInCollectionByUniqueProperty", () => {
   });
 
   
-  it("returns null if unique property value is undefined", async () => {
+  it("throws error if unique property value is undefined", async () => {
     toArrayStub.resolves([]);
-    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
-      "users",
-      "email",
-      undefined as any,
-      { name: "A" }
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        undefined as any,
+      { name: "A" })
+    ).rejects.toThrow(
+      `No value provided for unique property email in users`
     );
-    expect(result).toBeNull();
   });
 
   
-  it("returns null if unique property value is null", async () => {
+  it("throws error if unique property value is null", async () => {
     toArrayStub.resolves([]);
-    const result = await MongoDBManager.updateItemInCollectionByUniqueProperty(
-      "users",
-      "email",
-      null as any,
-      { name: "A" }
+    await expect(
+      MongoDBManager.updateItemInCollectionByUniqueProperty(
+        "users",
+        "email",
+        null as any,
+        { name: "A" }
+      )
+    ).rejects.toThrow(
+      `No value provided for unique property email in users`
     );
-    expect(result).toBeNull();
   });
 });

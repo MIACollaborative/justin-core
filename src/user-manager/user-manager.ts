@@ -2,6 +2,7 @@ import DataManager from "../data-manager/data-manager";
 import { ChangeListenerManager } from "../data-manager/change-listener.manager";
 import { USERS } from "../data-manager/data-manager.constants";
 import { JUser } from "./user.type";
+import { handleDbError } from "../data-manager/data-manager.helpers";
 import { CollectionChangeType } from "../data-manager/data-manager.type";
 import { Log } from "../logger/logger-manager";
 
@@ -57,15 +58,23 @@ const transformUserDocument = (doc: any): JUser => {
  * @private
  */
 const setupChangeListeners = (): void => {
-  ChangeListenerManager.getInstance().addChangeListener(USERS, CollectionChangeType.INSERT, (user: JUser) => {
-    const transformedUser = transformUserDocument(user);
-    _users.set(transformedUser.id, transformedUser);
-  });
+  ChangeListenerManager.getInstance().addChangeListener(
+    USERS,
+    CollectionChangeType.INSERT,
+    (user: JUser) => {
+      const transformedUser = transformUserDocument(user);
+      _users.set(transformedUser.id, transformedUser);
+    }
+  );
 
-  ChangeListenerManager.getInstance().addChangeListener(USERS, CollectionChangeType.UPDATE, (user: JUser) => {
-    const transformedUser = transformUserDocument(user);
-    _users.set(transformedUser.id, transformedUser);
-  });
+  ChangeListenerManager.getInstance().addChangeListener(
+    USERS,
+    CollectionChangeType.UPDATE,
+    (user: JUser) => {
+      const transformedUser = transformUserDocument(user);
+      _users.set(transformedUser.id, transformedUser);
+    }
+  );
 
   ChangeListenerManager.getInstance().addChangeListener(
     USERS,
@@ -85,11 +94,11 @@ const setupChangeListeners = (): void => {
 const modifyUserUniqueIdentifier = async (
   id: string,
   userUniqueIdentifierValueNew: string
-): Promise<object | null> => {
-  const updatedUser = await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
-    uniqueIdentifier: userUniqueIdentifierValueNew,
-  });
-
+): Promise<JUser | null> => {
+  const updatedUser: JUser | null =
+    (await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
+      uniqueIdentifier: userUniqueIdentifierValueNew,
+    })) as JUser;
   return updatedUser;
 };
 
@@ -97,27 +106,31 @@ const modifyUserUniqueIdentifier = async (
  * Update the properties of a user by uniqueIdentifier
  * @param {string} userUniqueIdentifier - the uniqueIdentifier value.
  * @param {object} updateData - the data to update.
- * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
+ * @returns {Promise<JUser | null>} Resolves with the updated JUser or `null` on error.
+ * @throws {Error} If trying to update the uniqueIdentifier field directly.
+ * If the user with the given uniqueIdentifier does not exist.
+ * If the update operation fails.
  */
 const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
   updateData: object
-): Promise<object | null> => {
-
-  if( "uniqueIdentifier" in updateData ) {
+): Promise<JUser | null> => {
+  if ("uniqueIdentifier" in updateData) {
     const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
-    Log.warn(msg);
-    return null;
+    throw new Error(msg);
   }
-  
-  const userList = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
-    uniqueIdentifier: userUniqueIdentifier,
-  });
+
+  const userList: JUser[] | null =
+    await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(
+      USERS,
+      {
+        uniqueIdentifier: userUniqueIdentifier,
+      }
+    );
 
   if (!userList || userList.length === 0) {
     const msg = `User with uniqueIdentifier: ${userUniqueIdentifier} not found.`;
-    Log.warn(msg);
-    return null;
+    throw new Error(msg);
   }
 
   const {
@@ -126,12 +139,13 @@ const updateUserByUniqueIdentifier = async (
     ...dataToUpdate
   } = updateData as { [key: string]: any };
 
-  const updatedUser = await DataManager.getInstance().updateItemInCollectionByUniquePropertyValue(
-    USERS,
-    "uniqueIdentifier",
-    userUniqueIdentifier,
-    dataToUpdate
-  );
+  const updatedUser: JUser | null =
+    (await DataManager.getInstance().updateItemInCollectionByUniquePropertyValue(
+      USERS,
+      "uniqueIdentifier",
+      userUniqueIdentifier,
+      dataToUpdate
+    )) as JUser;
 
   return updatedUser;
 };
@@ -139,12 +153,12 @@ const updateUserByUniqueIdentifier = async (
 /**
  * Confirm that unique identifier is present
  * @param {object} user - the user object.
- * @returns {boolean} Return true if the unique identifier exists, false otherwise.
+ * @returns {boolean, string} An object containing the result (true if uniqueIdentifier exists, false otherwise) and message.
  */
 const doesUserUniqueIdentifierExist = (user: {
   [key: string]: any;
 }): { result: boolean; message: string } => {
-  if (!("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
+  if (!user || !("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
     const msg = `User data is incomplete: uniqueIdentifier is required.`;
     Log.warn(msg);
     return { result: false, message: msg };
@@ -155,14 +169,30 @@ const doesUserUniqueIdentifierExist = (user: {
 /**
  * Check for unique identifier duplication.
  * @param {string} userUniqueIdentifier - the unique identifier.
- * @returns {boolean} Return true if the unique identifier is new, false otherwise.
+ * @returns {Promise<{ result: boolean; message: string }>} Resolves with an object containing the result and message.
+ * If the unique identifier is new, it returns true; otherwise, it returns false.
  */
+
 const isUserUniqueIdentifierNew = async (
   userUniqueIdentifier: string
 ): Promise<{ result: boolean; message: string }> => {
-  const existingUsers = await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(USERS, {
-    uniqueIdentifier: userUniqueIdentifier,
-  });
+  if (
+    !userUniqueIdentifier ||
+    typeof userUniqueIdentifier !== "string" ||
+    userUniqueIdentifier.trim() === ""
+  ) {
+    const msg = `Invalid unique identifier: ${userUniqueIdentifier}`;
+    Log.warn(msg);
+    return { result: false, message: msg };
+  }
+
+  const existingUsers =
+    await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(
+      USERS,
+      {
+        uniqueIdentifier: userUniqueIdentifier,
+      }
+    );
 
   if (existingUsers && existingUsers.length > 0) {
     const msg = `User with unique identifier (${userUniqueIdentifier}) already exists.`;
@@ -175,36 +205,49 @@ const isUserUniqueIdentifierNew = async (
 /**
  * Adds multiple users to the Users collection in a single operation.
  * @param {object[]} users - An array of user objects to add.
- * @returns {Promise<(object | null)[]>} Resolves with the added users or null if the operation fails.
+ * @returns {Promise<(JUser | null)[]>} Resolves with the added users or null if the operation fails.
+ * @throws {Error} If no users are provided or if any user fails validation.
  */
 export const addUsersToDatabase = async (
   users: object[]
-): Promise<(object | null)[]> => {
+): Promise<(JUser | null)[]> => {
   if (!Array.isArray(users) || users.length === 0) {
     throw new Error("No users provided for insertion.");
   }
 
-  for (const user of users) {
-    const userUniqueIdentifierExist = await doesUserUniqueIdentifierExist(user);
-    const userWithId = user as { uniqueIdentifier: string, [key: string]: any };
-    const userDataCheck = await isUserUniqueIdentifierNew(
-      userWithId["uniqueIdentifier"]
-    );
-    if (!userUniqueIdentifierExist || !userDataCheck["result"]) {
-      throw new Error(`${userDataCheck["message"]} - Add users failed.`);
-    }
-  }
-
   try {
-    let addedUsers = [];
+    let newUsers: object[] = [];
+
     for (const user of users) {
-      const addedUser = await DataManager.getInstance().addItemToCollection(USERS, user);
+      const userUniqueIdentifierExist =
+        await doesUserUniqueIdentifierExist(user);
+      const userWithId = user as {
+        uniqueIdentifier: string;
+        [key: string]: any;
+      };
+      const userDataCheck = await isUserUniqueIdentifierNew(
+        userWithId["uniqueIdentifier"]
+      );
+      if (!userUniqueIdentifierExist["result"] || !userDataCheck["result"]) {
+        Log.warn(
+          `${userDataCheck["message"]} - User: ${JSON.stringify(userWithId)}`
+        );
+      } else {
+        newUsers.push(user);
+      }
+    }
+
+    let addedUsers: (JUser | null)[] = [];
+    for (const user of newUsers) {
+      const addedUser = (await DataManager.getInstance().addItemToCollection(
+        USERS,
+        user
+      )) as JUser;
       addedUsers.push(addedUser);
     }
     return addedUsers;
   } catch (error) {
-    Log.error("Failed to add users:", error);
-    throw error;
+    return handleDbError("Failed to add users:", error);
   }
 };
 
@@ -217,7 +260,10 @@ export const addUsersToDatabase = async (
  */
 const createUser = async (initialData: object = {}): Promise<JUser> => {
   _checkInitialization();
-  const addedUser = (await DataManager.getInstance().addItemToCollection(USERS, initialData)) as JUser;
+  const addedUser = (await DataManager.getInstance().addItemToCollection(
+    USERS,
+    initialData
+  )) as JUser;
   if (!addedUser) {
     throw new Error("Failed to create user: result is null");
   }
@@ -245,7 +291,8 @@ const deleteUser = async (userId: string): Promise<void> => {
 const loadUsers = async (): Promise<void> => {
   _checkInitialization();
   _users.clear();
-  const userDocs = (await DataManager.getInstance().getAllInCollection<JUser>(USERS)) || [];
+  const userDocs =
+    (await DataManager.getInstance().getAllInCollection<JUser>(USERS)) || [];
   userDocs.forEach((user: any) => {
     const transformedUser = transformUserDocument(user);
     _users.set(transformedUser.id, transformedUser);
@@ -285,11 +332,12 @@ const updateUser = async (
   updatedData: object
 ): Promise<JUser> => {
   _checkInitialization();
-  const updatedUser = (await DataManager.getInstance().updateItemInCollectionById(
-    USERS,
-    userId,
-    updatedData
-  )) as JUser;
+  const updatedUser =
+    (await DataManager.getInstance().updateItemInCollectionById(
+      USERS,
+      userId,
+      updatedData
+    )) as JUser;
   if (!updatedUser) {
     throw new Error(`Failed to update user: ${userId}`);
   }
@@ -309,9 +357,18 @@ const deleteAllUsers = async (): Promise<void> => {
 };
 
 const stopUserManager = () => {
-  ChangeListenerManager.getInstance().removeChangeListener(USERS, CollectionChangeType.INSERT);
-  ChangeListenerManager.getInstance().removeChangeListener(USERS, CollectionChangeType.UPDATE);
-  ChangeListenerManager.getInstance().removeChangeListener(USERS, CollectionChangeType.DELETE);
+  ChangeListenerManager.getInstance().removeChangeListener(
+    USERS,
+    CollectionChangeType.INSERT
+  );
+  ChangeListenerManager.getInstance().removeChangeListener(
+    USERS,
+    CollectionChangeType.UPDATE
+  );
+  ChangeListenerManager.getInstance().removeChangeListener(
+    USERS,
+    CollectionChangeType.DELETE
+  );
 };
 
 /**
