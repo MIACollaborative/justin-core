@@ -251,13 +251,13 @@ const findItemByIdInCollection = async (
 /**
  * Finds items by property-value pair in a specified collection.
  * @param collectionName - The name of the collection.
- * @param criteria - A collection of property-value pairs to match.
+ * @param criteria - A collection of property-value pairs to match. All property-value pairs must be matched.
  * @returns A `Promise` resolving with a item list if found, or an empty list if not found.
  */
 const findItemsByCriteriaInCollection = async (
   collectionName: string,
   criteria: object | null
-): Promise<object[] | null> => {
+): Promise<Record<string, any>[] | null> => {
   MongoDBManager.ensureInitialized();
 
   if (!criteria) return null;

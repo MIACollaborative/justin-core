@@ -284,7 +284,7 @@ class DataManager extends EventEmitter {
    */
   public async findItemsInCollectionByCriteria<T>(
     collectionName: string,
-    criteria: object
+    criteria: Record<string, any>
   ): Promise<T[] | null> {
     try {
       this.checkInitialization();
