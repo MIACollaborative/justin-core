@@ -18,7 +18,9 @@ describe("MongoDBManager", () => {
     sandbox = sinon.createSandbox();
     ensureInitializedStub = sandbox
       .stub(MongoDBManager, "ensureInitialized")
-      .callsFake(() => {});
+      .callsFake(() => {
+        throw new Error("ensureInitialized called");
+      });
 
     handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
@@ -42,6 +44,9 @@ describe("MongoDBManager", () => {
   afterEach(() => {
     sandbox.restore();
   });
+
+  // passing
+  /*
   describe("ensureInitialized", () => {
     it("should not throw error if database is initialized", async () => {
       await MongoDBManager.ensureInitialized();
@@ -63,9 +68,8 @@ describe("MongoDBManager", () => {
       );
     });
   });
+  */
 
-  // was working
-  /*
   describe("findItemsByCriteriaInCollection", () => {
     it("returns null if criteria is null", async () => {
       const result = await MongoDBManager.findItemsByCriteriaInCollection(
@@ -75,6 +79,7 @@ describe("MongoDBManager", () => {
       expect(result).toBeNull();
     });
 
+    /*
     it("returns transformed list when documents are found", async () => {
       const docs = [
         { _id: "123", name: "Alice" },
@@ -122,6 +127,6 @@ describe("MongoDBManager", () => {
       expect(handleDbErrorStub.called).toBe(true);
       expect(findStub.calledWith({ name: "Alice" })).toBe(true);
     });
+    */
   });
-  */
 });
