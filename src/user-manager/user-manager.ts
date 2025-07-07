@@ -133,6 +133,14 @@ const updateUserByUniqueIdentifier = async (
     throw new Error(msg);
   }
 
+  // throw error if more than one user found with the same uniqueIdentifier
+  if (userList.length > 1) {
+    const msg = `Multiple users found with uniqueIdentifier: ${userUniqueIdentifier}. Please ensure uniqueIdentifier is unique.`;
+    throw new Error(msg);
+  }
+
+  const theUser = userList[0];
+
   const {
     id,
     uniqueIdentifier: _,
@@ -140,12 +148,7 @@ const updateUserByUniqueIdentifier = async (
   } = updateData as { [key: string]: any };
 
   const updatedUser: JUser | null =
-    (await DataManager.getInstance().updateItemInCollectionByUniquePropertyValue(
-      USERS,
-      "uniqueIdentifier",
-      userUniqueIdentifier,
-      dataToUpdate
-    )) as JUser;
+    (await DataManager.getInstance().updateItemInCollectionById(USERS, theUser.id, dataToUpdate)) as JUser;
 
   return updatedUser;
 };

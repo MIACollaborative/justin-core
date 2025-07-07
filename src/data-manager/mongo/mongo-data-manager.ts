@@ -222,82 +222,6 @@ const updateItemInCollection = async (
 };
 
 /**
- * Updates an item by a unique property in a specified collection and returns the updated item.
- * @param collectionName - The name of the collection.
- * @param uniquePropertyName - The property name of the item to update.
- * @param uniquePropertyValue - The property value of the item to update.
- * @param updateObject - The fields to update in the item.
- * @returns A Promise resolving with the updated item object if the update succeeded, otherwise `null`.
- */
-const updateItemInCollectionByUniqueProperty = async (
-  collectionName: string,
-  uniquePropertyName: string,
-  uniquePropertyValue: string,
-  updateObject: object
-): Promise<object | null> => {
-  MongoDBManager.ensureInitialized();
-
-  if (!uniquePropertyValue) {
-    throw new Error(
-      `No value provided for unique property ${uniquePropertyName} in ${collectionName}`
-    );
-  }
-  if (!uniquePropertyName) {
-    throw new Error(
-      `No unique property name provided for update in ${collectionName}`
-    );
-  }
-
-  try {
-    const existingItems = await MongoDBManager.getDatabaseInstance()!
-      .collection(collectionName)
-      .find({ [uniquePropertyName]: uniquePropertyValue })
-      .toArray();
-    if (existingItems.length > 1) {
-      throw new Error(
-        `Multiple items found with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
-      );
-    } else if (existingItems.length === 0) {
-      throw new Error(
-        `No items found with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
-      );
-    }
-  } catch (error) {
-    return handleDbError(
-      `Error finding items with property ${uniquePropertyName} and value ${uniquePropertyValue} in ${collectionName}`,
-      error
-    );
-  }
-
-  try {
-    const { matchedCount, modifiedCount } =
-      await MongoDBManager.getDatabaseInstance()!
-        .collection(collectionName)
-        .updateOne(
-          { [uniquePropertyName]: uniquePropertyValue },
-          { $set: updateObject }
-        );
-
-    if (matchedCount === 1 && modifiedCount === 1) {
-      const updatedItem = await MongoDBManager.getDatabaseInstance()!
-        .collection(collectionName)
-        .findOne({ [uniquePropertyName]: uniquePropertyValue });
-      return MongoDBManager.transformId(updatedItem);
-    } else {
-      Log.warn(
-        `Update failed for item with ${uniquePropertyName}: ${uniquePropertyValue} in ${collectionName}`
-      );
-      return null;
-    }
-  } catch (error) {
-    return handleDbError(
-      `Error updating item with property ${uniquePropertyName} and value ${uniquePropertyValue} in ${collectionName}`,
-      error
-    );
-  }
-};
-
-/**
  * Finds an item by ID in a specified collection.
  * @param collectionName - The name of the collection.
  * @param id - The ID of the item to find.
@@ -456,7 +380,6 @@ export const MongoDBManager = {
   findItemsByCriteriaInCollection,
   addItemToCollection,
   updateItemInCollection,
-  updateItemInCollectionByUniqueProperty,
   getAllInCollection,
   removeItemFromCollection,
   clearCollection,

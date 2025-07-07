@@ -35,7 +35,6 @@ describe("UserManager", () => {
       updateItemInCollectionById: updateStub,
       clearCollection: sinon.stub().resolves(),
       findItemsInCollectionByCriteria: findStub,
-      updateItemInCollectionByUniquePropertyValue: updateUniqueStub,
     } as any);
     clmStub = sinon.stub(ChangeListenerManager, "getInstance").returns({
       addChangeListener: sinon.stub(),
@@ -159,14 +158,13 @@ describe("UserManager", () => {
     });
 
     it("should update user by unique identifier when user exists", async () => {
-      updateUniqueStub.resolves({ ...fakeUser, name: "Updated Name" });
-      const result = await UserManager.updateUserByUniqueIdentifier("abc", {
+      const updateData = { name: "Updated Name" };
+      updateStub.resolves({ ...fakeUser, ...updateData });
+      const result = await UserManager.updateUserByUniqueIdentifier(fakeUser.id, {
         name: "Updated Name",
       });
       expect(
-        updateUniqueStub.calledOnceWith(USERS, "uniqueIdentifier", "abc", {
-          name: "Updated Name",
-        })
+        updateStub.calledOnceWith(USERS, fakeUser.id, updateData)
       ).toBe(true);
       expect(result).toEqual({ ...fakeUser, name: "Updated Name" });
     });
@@ -181,15 +179,6 @@ describe("UserManager", () => {
       )).rejects.toThrow(
         "User with uniqueIdentifier: notfound not found."
       );
-    });
-
-    it("should throw if updateItemInCollectionByUniquePropertyValue throws", async () => {
-      updateUniqueStub.rejects(new Error("fail"));
-      await expect(
-        UserManager.updateUserByUniqueIdentifier("abc", {
-          name: "Updated Name",
-        })
-      ).rejects.toThrow("fail");
     });
   });
 
