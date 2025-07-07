@@ -62,8 +62,8 @@ const setupChangeListeners = (): void => {
     USERS,
     CollectionChangeType.INSERT,
     (user: JUser) => {
-      const transformedUser = transformUserDocument(user);
-      _users.set(transformedUser.id, transformedUser);
+      const jUser: JUser = transformUserDocument(user);
+      _users.set(jUser.id, jUser);
     }
   );
 
@@ -71,8 +71,8 @@ const setupChangeListeners = (): void => {
     USERS,
     CollectionChangeType.UPDATE,
     (user: JUser) => {
-      const transformedUser = transformUserDocument(user);
-      _users.set(transformedUser.id, transformedUser);
+      const jUser: JUser = transformUserDocument(user);
+      _users.set(jUser.id, jUser);
     }
   );
 
@@ -297,8 +297,8 @@ const loadUsers = async (): Promise<void> => {
   const userDocs =
     (await DataManager.getInstance().getAllInCollection<JUser>(USERS)) || [];
   userDocs.forEach((user: any) => {
-    const transformedUser = transformUserDocument(user);
-    _users.set(transformedUser.id, transformedUser);
+    const jUser: JUser = transformUserDocument(user);
+    _users.set(jUser.id, jUser);
   });
 };
 

@@ -25,6 +25,9 @@ describe("UserManager", () => {
     findStub = sinon.stub().resolves([fakeUser]);
     updateStub = sinon.stub().resolves(fakeUser);
     updateUniqueStub = sinon.stub().resolves(fakeUser);
+
+
+    
     dmStub = sinon.stub(DataManager, "getInstance").returns({
       checkInitialization: sinon.stub().resolves(),
       getInitializationStatus: sinon.stub().returns(true),
