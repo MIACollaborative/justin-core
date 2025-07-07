@@ -173,41 +173,6 @@ class DataManager extends EventEmitter {
   }
 
   /**
-   * Updates an item in a collection by property value pair and emits an event.
-   * @param {string} collectionName - The name of the collection.
-   * @param {string} uniquePropertyName - The property name of the item to update.
-   * @param {string} uniquePropertyValue - The property value of the item to update.
-   * @param {object} updateObject - The update data.
-   * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
-   */
-  public async updateItemInCollectionByUniquePropertyValue(
-    collectionName: string,
-    uniquePropertyName: string,
-    uniquePropertyValue: string,
-    updateObject: object
-  ): Promise<object | null> {
-    try {
-      this.checkInitialization();
-      const updatedItem = await this.db.updateItemInCollectionByUniqueProperty(
-        collectionName,
-        uniquePropertyName,
-        uniquePropertyValue,
-        updateObject
-      );
-
-      if (collectionName === 'USERS') {
-        this.emit('userUpdated', { [uniquePropertyName]: uniquePropertyValue, ...updateObject });
-      }
-      return updatedItem;
-    } catch (error) {
-      return handleDbError(
-        `Failed to update item in collection: ${collectionName}`,
-        error
-      );
-    }
-  }
-
-  /**
    * Removes an item from a collection by ID and emits an event.
    * @param {string} collectionName - The name of the collection.
    * @param {string} id - The ID of the item to remove.
