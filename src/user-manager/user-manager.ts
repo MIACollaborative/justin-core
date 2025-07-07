@@ -152,7 +152,6 @@ const loadUsers = async (): Promise<void> => {
  */
 const getAllUsers = (): JUser[] => {
   _checkInitialization();
-  Log.info('getAllUsers', _users);
   return Array.from(_users.values());
 };
 

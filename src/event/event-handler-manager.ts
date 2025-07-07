@@ -40,7 +40,7 @@ export class EventHandlerManager {
     } else {
       this.handlerMap.set(eventType, handlerNames);
     }
-    Log.info(`Event "${eventType}" registered and added to the event registry.`);
+    Log.info(`Event "${eventType}" registered with handlers: ${handlerNames} and added to the event registry.`);
   };
 
   /**
@@ -70,7 +70,6 @@ export class EventHandlerManager {
       Log.error(`Invalid event type: "${eventType}"`);
       throw new Error('Event name must be a non-empty string.');
     }
-    Log.dev('handlerNames', handlerNames);
     if (
       !Array.isArray(handlerNames) ||
       handlerNames.length === 0 ||
@@ -90,7 +89,8 @@ export class EventHandlerManager {
   public getHandlersForEventType = (eventType: string): string[] => {
     if (!this.handlerMap.has(eventType)) {
       Log.warn(`No handlers found for event type "${eventType}".`);
-      throw new Error(`No handlers found for event type "${eventType}".`);
+      // TODO: get rid of this? Why throw an error for this?
+      //throw new Error(`No handlers found for event type "${eventType}".`);
     }
     return this.handlerMap.get(eventType) ?? [];
   };
@@ -110,6 +110,6 @@ export class EventHandlerManager {
    */
   public clearEventHandlers = (): void => {
     this.handlerMap.clear();
-    Log.info('All event handlers cleared.');
+    Log.info(`All event handlers cleared. handler map now: ${JSON.stringify(this.handlerMap)}.`);
   };
 }

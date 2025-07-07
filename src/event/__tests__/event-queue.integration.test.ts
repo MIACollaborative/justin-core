@@ -283,7 +283,7 @@ describe('Event Queue Integration', () => {
       expect(await EventQueue.queueIsEmpty()).toBe(true);
     });
 
-    it('should handle queue processing state correctly', () => {
+    it('should handle queue processing state correctly', async () => {
       // Initially should be running
       expect(EventQueue.isRunning()).toBe(true);
       
@@ -292,7 +292,7 @@ describe('Event Queue Integration', () => {
       expect(EventQueue.isRunning()).toBe(false);
       
       // Start processing again
-      EventQueue.startEventQueueProcessing();
+      await EventQueue.startEventQueueProcessing();
       expect(EventQueue.isRunning()).toBe(true);
     });
   });

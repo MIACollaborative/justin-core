@@ -28,3 +28,9 @@ export type RecordResultData = {
   steps: StepRecord[];
 };
 
+export type IntervalTimerEventGeneratorOptions = {
+  simulatedStartDate?: Date;
+  simulatedTickDurationInMs?: number;
+  simulatedTickCountMax?: number;
+};
+

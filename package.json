@@ -13,8 +13,8 @@
     "clean": "rm -rf dist",
     "docs": "typedoc",
     "start": "node dist/index.js",
-    "test:unit": "yarn build && jest --config=jest.unit.config.js -i --verbose --passWithNoTests",
-    "test:integration": "yarn build && jest --config=jest.integration.config.js --verbose --passWithNoTests",
+    "test:unit": "yarn build && jest --config=jest.unit.config.js -i --verbose --passWithNoTests --runInBand --detectOpenHandles",
+    "test:integration": "yarn build && jest --config=jest.integration.config.js --verbose --passWithNoTests --runInBand --detectOpenHandles",
     "test": "yarn test:unit && yarn test:integration",
     "test:coverage": "yarn test:unit && yarn test:integration --coverage"
   },

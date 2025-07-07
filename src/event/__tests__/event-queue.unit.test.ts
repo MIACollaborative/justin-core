@@ -46,7 +46,7 @@ const getDecisionRuleByNameStub = sinon.stub(DecisionRuleManager, 'getDecisionRu
 const executeDecisionRuleStub = sinon.stub(DecisionRuleManager, 'executeDecisionRule');
 
 describe('Event Queue', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset all stubs
     hasHandlersForEventTypeStub.reset();
     getHandlersForEventTypeStub.reset();
@@ -64,7 +64,7 @@ describe('Event Queue', () => {
     executeTaskStub.reset();
     getDecisionRuleByNameStub.reset();
     executeDecisionRuleStub.reset();
-    EventQueue.startEventQueueProcessing();
+    EventQueue.setShouldProcessQueue(true);
   });
 
   afterAll(() => {
@@ -161,8 +161,8 @@ describe('Event Queue', () => {
       console.log('about to process event queue');
       await EventQueue.processEventQueue();
       console.log('processed event queue');
-
       expect(getAllInCollectionStub.calledTwice).toBe(true);
+      console.log('getHandlersForEventTypeStub.args', getHandlersForEventTypeStub.args);
       expect(getHandlersForEventTypeStub.calledWith('TEST_EVENT')).toBe(true);
       expect(addItemToCollectionStub.called).toBe(true);
       expect(removeItemFromCollectionStub.calledWith('event_queue', 'event1')).toBe(true);
@@ -226,7 +226,7 @@ describe('Event Queue', () => {
     it('should setup listener and start processing', async () => {
       getAllInCollectionStub.resolves([]);
 
-      EventQueue.setupEventQueueListener();
+      await EventQueue.setupEventQueueListener();
 
       expect(addChangeListenerStub.calledOnce).toBe(true);
       expect(addChangeListenerStub.firstCall.args[0]).toBe('event_queue');
@@ -265,16 +265,17 @@ describe('Event Queue', () => {
   });
 
   describe('startEventQueueProcessing', () => {
-    it('should start queue processing', () => {
-      EventQueue.startEventQueueProcessing();
-
+    it('should start queue processing', async () => {
+      EventQueue.setShouldProcessQueue(false);
+      await EventQueue.startEventQueueProcessing();
       expect(logInfoStub.calledWith('Event queue processing started.')).toBe(true);
     });
   });
 
   describe('isRunning', () => {
-    it('should return true when queue is running', () => {
-      EventQueue.startEventQueueProcessing();
+    it('should return true when queue is running', async () => {
+      EventQueue.setShouldProcessQueue(false);
+      await EventQueue.startEventQueueProcessing();
       expect(EventQueue.isRunning()).toBe(true);
     });
 

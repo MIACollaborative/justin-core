@@ -8,6 +8,7 @@ import {
   createDataManagerStub,
   restoreDataManagerStub,
 } from '../../__tests__/stubs/data-manager.stub';
+import { Log } from '../../logger/logger-manager';
 
 describe('ChangeListenerManager', () => {
   let loggerMock: LoggerMocksType;
@@ -130,6 +131,7 @@ describe('ChangeListenerManager', () => {
     );
     changeListenerManager.clearChangeListeners();
 
+    Log.dev("loggerMock.mockLogInfo.args", loggerMock.mockLogInfo.args);
     expect(
       loggerMock.mockLogInfo.calledWith('All custom change listeners removed.')
     ).toBe(true);

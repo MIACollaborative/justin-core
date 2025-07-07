@@ -6,6 +6,7 @@ import { DBType } from './data-manager.constants';
 import { handleDbError } from './data-manager.helpers';
 import { Readable } from 'stream';
 import { Log } from '../logger/logger-manager';
+import { USERS } from './data-manager.constants';
 
 /**
  * Manages database operations and collection change listeners.
@@ -66,6 +67,7 @@ class DataManager extends EventEmitter {
         CollectionChangeType.INSERT,
         this.handleEventsQueueInsert.bind(this)
       );
+      Log.info('DataManager initialized successfully');
     } catch (error) {
       handleDbError('Failed to initialize DataManager', error);
     }
@@ -94,11 +96,13 @@ class DataManager extends EventEmitter {
    * @returns {Promise<void>} Resolves when closed.
    */
   public async close(): Promise<void> {
+    Log.dev('Initiating DataManager.close');
     try {
       this.checkInitialization();
       this.changeListenerManager.clearChangeListeners();
       await this.db.close();
       this.isInitialized = false;
+      Log.dev('DataManager closed and uninitialized');
     } catch (error) {
       handleDbError('Failed to close DataManager', error);
     }
@@ -126,7 +130,7 @@ class DataManager extends EventEmitter {
       const id = await this.db.addItemToCollection(collectionName, item);
       const newItem = { id, ...item };
 
-      if (collectionName === 'USERS') {
+      if (collectionName === USERS) {
         this.emit('userAdded', newItem);
       } else if (collectionName === 'EVENTS_QUEUE') {
         this.emit('eventAdded', newItem);
@@ -161,7 +165,7 @@ class DataManager extends EventEmitter {
         updateObject
       );
 
-      if (collectionName === 'USERS') {
+      if (collectionName === USERS) {
         this.emit('userUpdated', { id, ...updateObject });
       }
       return updatedItem;
@@ -187,7 +191,7 @@ class DataManager extends EventEmitter {
       this.checkInitialization();
       const result = await this.db.removeItemFromCollection(collectionName, id);
 
-      if (result && collectionName === 'USERS') {
+      if (result && collectionName === USERS) {
         this.emit('userDeleted', id);
       }
       return result;

@@ -22,8 +22,9 @@ import {
 import { DBType } from './data-manager/data-manager.constants';
 import { Logger } from './logger/logger.interface';
 import { UserManager } from './user-manager/user-manager';
+import { IntervalTimerEventGenerator } from './event/interval-timer-event-generator';
+import { IntervalTimerEventGeneratorOptions } from './event/event.type';
 
-const clockIntervals: Map<string, NodeJS.Timeout> = new Map();
 
 /**
  * JustInWrapper class provides a unified interface for managing application-level configurations,
@@ -35,6 +36,8 @@ export class JustInWrapper {
   private eventHandlerManager: EventHandlerManager = EventHandlerManager.getInstance();
   private isInitialized: boolean = false;
   private initializedAt: Date | null = null;
+  private intervalTimerEventGenerators: Map<string, IntervalTimerEventGenerator> = new Map();
+  
   protected constructor() {
     this.isInitialized = false;
     this.initializedAt = new Date();
@@ -63,30 +66,91 @@ export class JustInWrapper {
   }
 
   /**
-   * Initializes the DataManager, setting up the database connection.
+   * Returns the initialization status of the JustInWrapper.
+   * @returns {boolean} The initialization status.
+   */
+  public getInitializationStatus(): boolean {
+    return this.isInitialized;
+  }
+
+  /**
+   * Initializes the DataManager and UserManager, setting up the database connection.
    * This should be called before any operations that depend on the database.
    * @param {DBType} dbType - The type of database to initialize (default is MongoDB).
    * @returns {Promise<void>}
    */
-  public async initializeDB(dbType: DBType = DBType.MONGO): Promise<void> {
-    Log.info('Entering JW.initializeDB, isInitialized:', this.isInitialized);
-    if (this.isInitialized) {
-      Log.warn('DataManager is already initialized.');
+  public async init(dbType: DBType = DBType.MONGO): Promise<void> {
+    if (this.getInitializationStatus()) {
+      Log.warn('JustInWrapper is already initialized.');
       return;
       }
-    Log.info('In JW.initializeDB, about to init dataManager');
     await this.dataManager.init(dbType);
-    Log.info('In JW.initializeDB, about to init UserManager');
     await UserManager.init();
     this.isInitialized = true;
-    Log.info('DataManager initialized successfully.');
+    Log.info('JustInWrapper initialized successfully.');
+  }
+  /**
+   * Shuts down data manager, user manager, and event queue, clearing all events.
+   * Clears all interval timer event generators and event handlers.
+   * This should be called when the application is shutting down.
+   */
+  public async shutdown(): Promise<void> {
+    try {
+      if (!this.getInitializationStatus()) {
+        Log.warn('JustInWrapper is not initialized.');
+        return;
+      }
+      await this.stopEngine();
+      UserManager.stopUserManager();
+      await this.dataManager.close();
+      this.intervalTimerEventGenerators.clear();
+      this.eventHandlerManager.clearEventHandlers();
+      this.isInitialized = false;
+      this.initializedAt = null;
+      Log.info('JustIn shut down successfully.');
+    } catch (error) {
+      Log.warn('Error shutting down JustInWrapper:', error);
+    }
+  }
+
+  /**
+   * Starts the event queue engine, processing all queued events.
+   * This should be called after init().
+   */
+  public async startEngine(): Promise<void> {
+    Log.info('Starting engine...');
+
+    startEventQueueProcessing();
+    setupEventQueueListener();
+
+    this.intervalTimerEventGenerators.forEach((eventGenerator, eventTypeName) => {
+      Log.info(`Starting interval timer event generator for event type: ${eventTypeName}`);
+      eventGenerator.start();
+    });
+
+    await processEventQueue();
+    Log.info('Engine started and processing events.');
+  }
+
+  /**
+   * Stops the engine, halts event processing, and unregisters all clock events.
+   * This can be called to stop the engine without shutting down the application.
+   */
+  public async stopEngine(): Promise<void> {
+    this.intervalTimerEventGenerators.forEach((eventGenerator, eventTypeName) => {
+      Log.info(`Stopping interval timer event generator for event type: ${eventTypeName}`);
+      eventGenerator.stop();
+    });
+    stopEventQueueProcessing();
+    Log.info('Engine stopped and cleared of all events.');
   }
 
   public async addUsersToDatabase(users: object[]) : Promise<void> {
     await UserManager.addUsersToDatabase(users);
   }
+
   /**
-   * Registers a new custom event and adds it to the queue.
+   * Registers a new event type and adds it to the queue.
    * @param {string} eventType - The type of the event.
    * @param {string[]} handlers - The ordered task or decision rule names for the event.
    */
@@ -97,13 +161,31 @@ export class JustInWrapper {
     await this.eventHandlerManager.registerEventHandlers(eventType, handlers);
   }
 
-
   /**
    * Unregisters an existing event by name.
    * @param {string} eventType - The type of the event to unregister.
    */
   public unregisterEventHandlers(eventType: string): void {
     this.eventHandlerManager.unregisterEventHandlers(eventType);
+  }
+
+  /**
+   * Creates a new interval timer event generator.
+   * @param {string} eventTypeName - The name of the event type.
+   * @param {number} intervalInMs - The interval in milliseconds.
+   * @param {IntervalTimerEventGeneratorOptions} options - The options for the event generator.
+   */
+  public createIntervalTimerEventGenerator(eventTypeName: string, intervalInMs: number, options: IntervalTimerEventGeneratorOptions = {}): void {
+    const eventGenerator = new IntervalTimerEventGenerator(intervalInMs, eventTypeName, options);
+    this.intervalTimerEventGenerators.set(eventTypeName, eventGenerator);
+  }
+
+  /**
+   * Returns the interval timer event generators.
+   * @returns {Map<string, IntervalTimerEventGenerator>} The interval timer event generators.
+   */
+  public getIntervalTimerEventGenerators(): Map<string, IntervalTimerEventGenerator> {
+    return this.intervalTimerEventGenerators;
   }
 
   /**
@@ -118,21 +200,10 @@ export class JustInWrapper {
     await publishEvent(eventType, generatedTimestamp, eventDetails);
   }
 
+
   /**
-   * Starts the event queue engine, processing all queued events.
+   * Sets up the event queue listener.
    */
-  public async startEngine(): Promise<void> {
-    Log.info('Starting engine...');
-
-    startEventQueueProcessing();
-    setupEventQueueListener();
-
-    //await EventHandlerManager.getInstance().initializeClockEvents();
-
-    await processEventQueue();
-    Log.info('Engine started and processing events.');
-  }
-
   public setupEventQueueListener(): void {
     setupEventQueueListener();
   }
@@ -169,21 +240,7 @@ export class JustInWrapper {
     setLogLevels(levels);
   }
 
-  /**
-   * Stops the engine, halts event processing, and unregisters all clock events.
-   */
-  public async shutdown(): Promise<void> {
-    clockIntervals.forEach((interval, name) => {
-      clearInterval(interval);
-      clockIntervals.delete(name);
-      Log.info(`Clock event "${name}" stopped.`);
-    });
 
-    stopEventQueueProcessing();
-    UserManager.stopUserManager();
-    await DataManager.getInstance().close();
-    Log.info('Engine stopped and cleared of all events.');
-  }
 }
 
 export const JustIn = () => {

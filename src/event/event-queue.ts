@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import { ChangeListenerManager } from '../data-manager/change-listener.manager';
 import DataManager from '../data-manager/data-manager';
 import { UserManager } from '../user-manager/user-manager';
@@ -60,7 +59,7 @@ export const publishEvent = async (
  */
 export const processEventQueue = async (): Promise<void> => {
   if (isProcessingQueue) {
-    Log.info('Event queue processing already in progress. Skipping trigger.');
+    Log.info('Event queue processing already in progress. Skipping processing.');
     return;
   }
 
@@ -81,7 +80,7 @@ export const processEventQueue = async (): Promise<void> => {
       }
 
       for (const event of events) {
-        Log.info(`Processing event "${event.eventType}" with ID: ${event.id}.`);
+        Log.info(`Processing event "${event.eventType}" with ID: ${event.id} for ${users.length} users.`);
 
         for (const handlerName of eventHandlerManager.getHandlersForEventType(event.eventType)) {
           await processExecutionLifecycle(handlerName, event, "beforeExecution")
@@ -122,25 +121,27 @@ export const processEventQueue = async (): Promise<void> => {
 /**
  * Sets up a listener for the `EVENTS_QUEUE` collection.
  */
-export const setupEventQueueListener = (): void => {
-  Log.dev('Setting up event queue listener.');
-  if (clm.hasChangeListener(EVENT_QUEUE, CollectionChangeType.INSERT)) {
-    Log.info('Event queue listener already set up. Skipping setup.');
-    return;
-  }
-
-  clm.addChangeListener(EVENT_QUEUE, CollectionChangeType.INSERT, async () => {
-    if (shouldProcessQueue) {
-      Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
-      await processEventQueue();
+export const setupEventQueueListener = async (): Promise<void> => {
+  try {
+    Log.dev('Setting up event queue listener.');
+    if (clm.hasChangeListener(EVENT_QUEUE, CollectionChangeType.INSERT)) {
+      Log.info('Event queue listener already set up. Skipping setup.');
+      return;
     }
-  });
 
-  processEventQueue().catch((error) =>
-    Log.error(`Error during initial queue processing: ${error}`)
-  );
+    clm.addChangeListener(EVENT_QUEUE, CollectionChangeType.INSERT, async () => {
+      if (shouldProcessQueue) {
+        Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
+        await processEventQueue();
+      }
+    });
 
-  Log.info('Event queue listener set up successfully.');
+    await processEventQueue();
+
+    Log.info('Event queue listener set up successfully.');
+  } catch (error) {
+    Log.error(`Error setting up event queue listener: ${error}`);
+  }
 };
 
 /**
@@ -234,8 +235,8 @@ export const stopEventQueueProcessing = (): void => {
 /**
  * Starts the event queue processing.
  */
-export const startEventQueueProcessing = (): void => {
-  setupEventQueueListener();
+export const startEventQueueProcessing = async (): Promise<void> => {
+  await setupEventQueueListener();
   shouldProcessQueue = true;
   Log.info('Event queue processing started.');
 };
@@ -254,3 +255,10 @@ export async function queueIsEmpty(): Promise<boolean> {
   const events = await dataManager.getAllInCollection(EVENT_QUEUE);
   return !events || events.length === 0;
 }
+
+/**
+ * Sets the shouldProcessQueue flag.
+ */
+export const setShouldProcessQueue = (shouldProcess: boolean): void => {
+  shouldProcessQueue = shouldProcess;
+};
