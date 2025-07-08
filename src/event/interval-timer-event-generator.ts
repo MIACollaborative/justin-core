@@ -36,7 +36,6 @@ export class IntervalTimerEventGenerator {
     const timerInterval = 
       this.useSimulatedStartDate ? this.simulatedTickDurationInMs : this.intervalInMs;
     this.intervalId = setInterval(() => {
-      console.log('interval timer event generator tick after', new Date().getTime() - startDate.getTime(), 'ms');
       let eventTimestamp: Date;
       if (this.useSimulatedStartDate) {
         eventTimestamp = new Date(

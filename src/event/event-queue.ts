@@ -135,7 +135,7 @@ export const setupEventQueueListener = async (): Promise<void> => {
         await processEventQueue();
       }
     });
-
+    
     await processEventQueue();
 
     Log.info('Event queue listener set up successfully.');

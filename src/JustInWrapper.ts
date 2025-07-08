@@ -120,8 +120,8 @@ export class JustInWrapper {
   public async startEngine(): Promise<void> {
     Log.info('Starting engine...');
 
-    startEventQueueProcessing();
-    setupEventQueueListener();
+    await startEventQueueProcessing();
+    //setupEventQueueListener();
 
     this.intervalTimerEventGenerators.forEach((eventGenerator, eventTypeName) => {
       Log.info(`Starting interval timer event generator for event type: ${eventTypeName}`);

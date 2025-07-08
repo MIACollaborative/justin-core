@@ -57,7 +57,7 @@ const close = async (): Promise<void> => {
   try {
     await _client!.close();
     _isConnected = false;
-    Log.dev('MongoDBManager connection closed');
+    Log.dev('MongoDBManager MongoDB client connection closed');
   } catch (error) {
     handleDbError('Error closing MongoDBManager connection', error);
   }
@@ -135,7 +135,7 @@ const getCollectionChangeReadable = (
         (nextDoc as InsertedOrUpatedDocRecord).fullDocument
       );
     }
-
+    Log.dev(`Pushing to stream: ${JSON.stringify(normalizedDoc)}`);
     collectionChangeReadable.push(normalizedDoc);
   };
 

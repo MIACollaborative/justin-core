@@ -75,6 +75,11 @@ describe('JustInWrapper Integration', () => {
   });
 
   describe('User Management', () => {
+
+    afterEach(async () => {
+      await justIn.shutdown();
+    });
+
     it('should add users to database successfully', async () => {
       await justIn.init(DBType.MONGO);
       
@@ -267,7 +272,7 @@ describe('JustInWrapper Integration', () => {
     });
   });
 
-  fdescribe('Full Engine Integration', () => {
+  describe('Full Engine Integration', () => {
 
     beforeEach(async () => {
       await justIn.init(DBType.MONGO);
@@ -276,6 +281,7 @@ describe('JustInWrapper Integration', () => {
 
     afterEach(async () => {
       await justIn.shutdown();
+      sinon.reset();
     });
 
     it('should invoke all handler functions for a published event when all succeed', async () => {
@@ -309,7 +315,6 @@ describe('JustInWrapper Integration', () => {
       expect((aTask.doAction as sinon.SinonStub).called).toBe(true);
     });
 
-    //TODO: figure out why this passes if the previous test is skipped but fails otherwise
     it('should run the engine with a decision rule that should not activate', async () => {
 
       const aDecisionRule: DecisionRuleRegistration = {
@@ -320,14 +325,12 @@ describe('JustInWrapper Integration', () => {
       };
 
       justIn.registerDecisionRule(aDecisionRule);
-      justIn.registerEventHandlers('TEST_EVENT', ['testDecisionRule']);
+      justIn.registerEventHandlers('TEST_EVENT2', ['testDecisionRule']);
       await justIn.addUsersToDatabase([{name: 'testUser', email: 'testUser@test.com'}]);
       await justIn.startEngine();
-      await justIn.publishEvent('TEST_EVENT', new Date(), {test: 'test'});
+      await justIn.publishEvent('TEST_EVENT2', new Date(), {test: 'test'});
 
-      //TODO: figure out why the change listener for event insert gets removed
-      //during this timeout and before the event is processed
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       expect((aDecisionRule.shouldActivate as sinon.SinonStub).called).toBe(true);
       expect((aDecisionRule.selectAction as sinon.SinonStub).called).toBe(false);
@@ -336,7 +339,7 @@ describe('JustInWrapper Integration', () => {
     });
   });
 
-  fdescribe('Using interval timer event generators', () => {
+  describe('Using interval timer event generators', () => {
 
     beforeEach(async () => {
       await justIn.init(DBType.MONGO);
@@ -364,7 +367,6 @@ describe('JustInWrapper Integration', () => {
 
       await new Promise(resolve => setTimeout(resolve, 2500));
 
-      console.log('called shouldActivate', (aDecisionRule.shouldActivate as sinon.SinonStub).callCount);
       expect((aDecisionRule.shouldActivate as sinon.SinonStub).calledTwice).toBe(true);
       expect((aDecisionRule.selectAction as sinon.SinonStub).calledTwice).toBe(true);
       expect((aDecisionRule.doAction as sinon.SinonStub).calledTwice).toBe(true);
