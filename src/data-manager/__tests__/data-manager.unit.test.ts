@@ -16,18 +16,19 @@ describe("DataManager", () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
-    // version 2: from justin-heartsteps    
+    // version 2: from justin-heartsteps
+    /*    
     const dataManagerStub = sandbox.createStubInstance(DataManager);
     dataManagerInstanceStub = sinon
       .stub(DataManager, "getInstance")
       .returns(dataManagerStub as any);
-
+    */
     checkInitStub = sandbox
       .stub(DataManager.prototype, "checkInitialization")
       .callsFake(() => {});
 
-      mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
-      // version 1: I write it
+    mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
+    // version 1: I write it
     /*
     dataManager = DataManager.getInstance();
     
@@ -53,7 +54,10 @@ describe("DataManager", () => {
   describe("findItemsInCollection", () => {
     it("returns null if criteria is null", async () => {
       mongoFindStub.resolves(null);
-      const result = await DataManager.getInstance().findItemsInCollection("users", null);
+      const result = await DataManager.getInstance().findItemsInCollection(
+        "users",
+        null as any
+      );
       expect(result).toBeNull();
       expect(mongoFindStub.calledWith("users", null)).toBe(true);
     });
