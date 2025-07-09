@@ -398,9 +398,9 @@ export const MongoDBManager = {
 };
 
 /**
- * MongoDBManager provides additional utilities for testing.
+ * TestingMongoDBManager provides additional utilities for testing.
  *
- * @namespace MongoDBManager
+ * @namespace TestingMongoDBManager
  * @private
  */
 export const TestingMongoDBManager = {
