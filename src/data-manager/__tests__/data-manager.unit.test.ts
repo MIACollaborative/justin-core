@@ -46,5 +46,9 @@ describe("DataManager", () => {
     expect(true).toBe(true);
   });
 
-  // findItemsInCollectionByCriteria
+  // findItemsInCollection
+  describe("findItemsInCollection", () => {
+    
+
+  });
 });

@@ -121,7 +121,7 @@ const updateUserByUniqueIdentifier = async (
   }
 
   const userList: JUser[] | null =
-    await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(
+    await DataManager.getInstance().findItemsInCollection<JUser>(
       USERS,
       {
         uniqueIdentifier: userUniqueIdentifier,
@@ -190,7 +190,7 @@ const isUserUniqueIdentifierNew = async (
   }
 
   const existingUsers =
-    await DataManager.getInstance().findItemsInCollectionByCriteria<JUser>(
+    await DataManager.getInstance().findItemsInCollection<JUser>(
       USERS,
       {
         uniqueIdentifier: userUniqueIdentifier,

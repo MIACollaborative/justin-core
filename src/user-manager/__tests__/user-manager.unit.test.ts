@@ -37,7 +37,7 @@ describe("UserManager", () => {
       getAllInCollection: sinon.stub().resolves([fakeUser, fakeUser2]),
       updateItemByIdInCollection: updateStub,
       clearCollection: sinon.stub().resolves(),
-      findItemsInCollectionByCriteria: findStub,
+      findItemsInCollection: findStub,
     } as any);
     clmStub = sinon.stub(ChangeListenerManager, "getInstance").returns({
       addChangeListener: sinon.stub(),

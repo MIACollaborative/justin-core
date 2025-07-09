@@ -259,7 +259,7 @@ class DataManager extends EventEmitter {
    * @param {string} id - The ID of the item to find.
    * @returns {Promise<T | null>} Resolves with the found item of type `T` or `null` if not found or on error.
    */
-  public async findItemInCollectionById<T>(
+  public async findItemByIdInCollection<T>(
     collectionName: string,
     id: string
   ): Promise<T | null> {
@@ -282,7 +282,7 @@ class DataManager extends EventEmitter {
    * @param {object} criteria - An object containing the key-value pair to search for.
    * @returns {Promise<T[] | null>} Resolves with the found item of type `T` or `null` if not found or on error.
    */
-  public async findItemsInCollectionByCriteria<T>(
+  public async findItemsInCollection<T>(
     collectionName: string,
     criteria: Record<string, any>
   ): Promise<T[] | null> {
