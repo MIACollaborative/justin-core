@@ -95,7 +95,7 @@ const close = async (): Promise<void> => {
  */
 const ensureInitialized = (): void => {
   // print all three variables
-  Log.dev(`MongoDBManager ensureInitialized: _client: ${_client}, _isConnected: ${_isConnected}, _db: ${_db}, getDatabaseInstance(): ${getDatabaseInstance()}`);
+  Log.dev(`MongoDBManager ensureInitialized: _client: ${_client}, _isConnected: ${_isConnected}, _db: ${_db}, getDatabaseInstance: ${getDatabaseInstance()}`);
   if (!_client || !_isConnected || !getDatabaseInstance()) {
     const errorMessage = "MongoDB client not initialized";
     Log.error(errorMessage);
@@ -131,7 +131,7 @@ const getCollectionChangeReadable = (
     changeType === CollectionChangeType.UPDATE
       ? { fullDocument: "updateLookup" }
       : {};
-  const changeStream = getDatabaseInstance()!
+  const changeStream = _db!
     .collection(collectionName)
     .watch(filterList, options);
 
@@ -190,7 +190,7 @@ const addItemToCollection = async (
   const { id, _id, ...filteredObject } = obj as WithId;
 
   try {
-    const result = await getDatabaseInstance()!
+    const result = await _db!
       .collection(collectionName)
       .insertOne(filteredObject);
     Log.info(`Item added to ${collectionName}`, {
@@ -219,12 +219,12 @@ const updateItemInCollection = async (
   if (!objectId) return null;
 
   try {
-    const { matchedCount, modifiedCount } = await getDatabaseInstance()!
+    const { matchedCount, modifiedCount } = await _db!
       .collection(collectionName)
       .updateOne({ _id: objectId }, { $set: updateObject });
 
     if (matchedCount === 1 && modifiedCount === 1) {
-      const updatedItem = await getDatabaseInstance()!
+      const updatedItem = await _db!
         .collection(collectionName)
         .findOne({ _id: objectId });
       return transformId(updatedItem);
@@ -255,7 +255,7 @@ const findItemByIdInCollection = async (
   if (!objectId) return null;
 
   try {
-    const foundDoc = await getDatabaseInstance()!
+    const foundDoc = await _db!
       .collection(collectionName)
       .findOne({ _id: objectId });
     return transformId(foundDoc);
@@ -282,7 +282,7 @@ const findItemsByCriteriaInCollection = async (
   if (!criteria) return null;
 
   try {
-    const foundDocList = await getDatabaseInstance()!
+    const foundDocList = await _db!
       .collection(collectionName)
       .find(criteria);
 
@@ -310,7 +310,7 @@ const getAllInCollection = async (
   ensureInitialized();
   try {
     const results = (
-      await getDatabaseInstance()!.collection(collectionName).find({}).toArray()
+      await _db!.collection(collectionName).find({}).toArray()
     ).map(transformId);
     return results.filter((doc) => doc !== null);
   } catch (error) {
@@ -336,7 +336,7 @@ const removeItemFromCollection = async (
   if (!objectId) return false;
 
   try {
-    const { acknowledged } = await getDatabaseInstance()!
+    const { acknowledged } = await _db!
       .collection(collectionName)
       .deleteOne({ _id: objectId });
     return acknowledged;
@@ -357,7 +357,7 @@ const removeItemFromCollection = async (
 const clearCollection = async (collectionName: string): Promise<void> => {
   ensureInitialized();
   try {
-    await getDatabaseInstance()!.collection(collectionName).drop();
+    await _db!.collection(collectionName).drop();
   } catch (error) {
     handleDbError(`Failed to clear collection: ${collectionName}`, error);
   }
@@ -371,7 +371,7 @@ const clearCollection = async (collectionName: string): Promise<void> => {
 const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
   ensureInitialized();
   try {
-    const count = await getDatabaseInstance()!
+    const count = await _db!
       .collection(collectionName)
       .countDocuments({});
     return count === 0;
