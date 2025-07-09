@@ -288,7 +288,7 @@ class DataManager extends EventEmitter {
   ): Promise<T[] | null> {
     try {
       this.checkInitialization();
-      const itemList = await this.db.findItemsByCriteriaInCollection(
+      const itemList = await this.db.findItemsInCollection(
         collectionName,
         criteria
       );

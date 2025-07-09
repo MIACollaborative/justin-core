@@ -1,9 +1,12 @@
 import * as mongoDB from "mongodb";
 import sinon from "sinon";
-import { MongoDBManager } from "../mongo-data-manager";
+import { MongoDBManager, TestingMongoDBManager } from "../mongo-data-manager";
 import * as dataManagerHelpers from "../../data-manager.helpers";
+import { Log } from "../../../logger/logger-manager";
 
 describe("MongoDBManager", () => {
+  let sandbox: sinon.SinonSandbox;
+
   let findStub: sinon.SinonStub;
   let toArrayStub: sinon.SinonStub;
   let ensureInitializedStub: sinon.SinonStub;
@@ -13,63 +16,86 @@ describe("MongoDBManager", () => {
   let mdStub: sinon.SinonStub;
 
   beforeEach(() => {
-    ensureInitializedStub = sinon
+    sandbox = sinon.createSandbox();
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    ensureInitializedStub = sandbox
       .stub(MongoDBManager, "ensureInitialized")
-      .callsFake(() => {});
-
-    handleDbErrorStub = sinon
-      .stub(dataManagerHelpers, "handleDbError")
-      .throws(new Error("fail"));
-
-    toArrayStub = sinon.stub();
-    findStub = sinon.stub().returns({ toArray: toArrayStub });
+      .callsFake(() => {
+        Log.dev("MongoDBManager ensureInitialized stub called");
+      });
+    toArrayStub = sandbox.stub();
+    findStub = sandbox.stub().returns({ toArray: toArrayStub });
     fakeCollection = {
       find: findStub,
       updateOne: () => {},
       findOne: () => {},
       toArray: () => [],
     };
-    fakeDb = { collection: (_collectionName: string) => fakeCollection };
 
-    mdStub = sinon.stub(MongoDBManager, "getDatabaseInstance").returns({
+    TestingMongoDBManager._setDatabaseInstance({
       collection: () => fakeCollection,
-    } as any);
+    } as unknown as mongoDB.Db);
+    TestingMongoDBManager._setClient({
+      connect: () => {},
+      close: () => {},
+      db: () => fakeDb,
+    } as unknown as mongoDB.MongoClient);
+    TestingMongoDBManager._setIsConnected(true);
+
+    handleDbErrorStub = sandbox
+      .stub(dataManagerHelpers, "handleDbError")
+      .throws(new Error("fail"));
+
+    fakeDb = { collection: (_collectionName: string) => fakeCollection };
   });
 
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
-  describe("findItemsByCriteriaInCollection", () => {
+  // passing
+
+  describe("ensureInitialized", () => {
+    it("should not throw error if database is initialized", async () => {
+      // so, the stubbing is actually working if call it through MongoDBManager
+      await MongoDBManager.ensureInitialized();
+    });
+
+    it("should throw if database is not connected", async () => {
+      sandbox.restore();
+      sandbox = sinon.createSandbox();
+
+      TestingMongoDBManager._setIsConnected(false);
+      expect(() => {
+        MongoDBManager.ensureInitialized();
+      }).toThrow(/MongoDB client not initialized/);
+    });
+  });
+
+  describe("findItemsInCollection", () => {
     it("returns null if criteria is null", async () => {
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         null
       );
       expect(result).toBeNull();
     });
 
-    it("returns transformed list when documents are found", async () => {
-      const docs = [
-        { _id: "123", name: "Alice" },
-        { _id: "456", name: "Bob" },
-      ];
+    it("returns documents fitting the criteria", async () => {
+      const docs = [{ _id: "123", name: "Alice" }];
       toArrayStub.resolves(docs);
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         { name: "Alice" }
       );
       expect(findStub.calledWith({ name: "Alice" })).toBe(true);
       expect(toArrayStub.called).toBe(true);
-      expect(result).toEqual([
-        { name: "Alice", id: "123" },
-        { name: "Bob", id: "456" },
-      ]);
+      expect(result).toEqual([{ name: "Alice", id: "123" }]);
     });
 
     it("returns empty array if no documents found", async () => {
       toArrayStub.resolves([]);
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         { name: "Nobody" }
       );
@@ -79,7 +105,7 @@ describe("MongoDBManager", () => {
     it("filters out nulls from transformId", async () => {
       const docs = [{ _id: "123", name: "Alice" }, null];
       toArrayStub.resolves(docs);
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         {}
       );
@@ -89,7 +115,7 @@ describe("MongoDBManager", () => {
     it("returns handleDbError result on error", async () => {
       findStub.throws(new Error("fail"));
       await expect(
-        MongoDBManager.findItemsByCriteriaInCollection("users", {
+        MongoDBManager.findItemsInCollection("users", {
           name: "Alice",
         })
       ).rejects.toThrow("fail");
