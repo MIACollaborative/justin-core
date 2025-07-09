@@ -271,9 +271,9 @@ const findItemByIdInCollection = async (
  * @param criteria - A collection of property-value pairs to match. All property-value pairs must be matched.
  * @returns A `Promise` resolving with a item list if found, or an empty list if not found.
  */
-const findItemsByCriteriaInCollection = async (
+const findItemsInCollection = async (
   collectionName: string,
-  criteria: object | null
+  criteria: Record<string, any> | null
 ): Promise<Record<string, any>[] | null> => {
   ensureInitialized();
 
@@ -388,7 +388,7 @@ export const MongoDBManager = {
   ensureInitialized,
   getCollectionChangeReadable,
   findItemByIdInCollection,
-  findItemsByCriteriaInCollection,
+  findItemsInCollection,
   addItemToCollection,
   updateItemInCollection,
   getAllInCollection,

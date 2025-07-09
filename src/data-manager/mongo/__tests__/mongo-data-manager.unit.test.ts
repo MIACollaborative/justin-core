@@ -72,9 +72,9 @@ describe("MongoDBManager", () => {
     });
   });
 
-  describe("findItemsByCriteriaInCollection", () => {
+  describe("findItemsInCollection", () => {
     it("returns null if criteria is null", async () => {
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         null
       );
@@ -84,7 +84,7 @@ describe("MongoDBManager", () => {
     it("returns documents fitting the criteria", async () => {
       const docs = [{ _id: "123", name: "Alice" }];
       toArrayStub.resolves(docs);
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         { name: "Alice" }
       );
@@ -95,7 +95,7 @@ describe("MongoDBManager", () => {
 
     it("returns empty array if no documents found", async () => {
       toArrayStub.resolves([]);
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         { name: "Nobody" }
       );
@@ -105,7 +105,7 @@ describe("MongoDBManager", () => {
     it("filters out nulls from transformId", async () => {
       const docs = [{ _id: "123", name: "Alice" }, null];
       toArrayStub.resolves(docs);
-      const result = await MongoDBManager.findItemsByCriteriaInCollection(
+      const result = await MongoDBManager.findItemsInCollection(
         "users",
         {}
       );
@@ -115,7 +115,7 @@ describe("MongoDBManager", () => {
     it("returns handleDbError result on error", async () => {
       findStub.throws(new Error("fail"));
       await expect(
-        MongoDBManager.findItemsByCriteriaInCollection("users", {
+        MongoDBManager.findItemsInCollection("users", {
           name: "Alice",
         })
       ).rejects.toThrow("fail");
