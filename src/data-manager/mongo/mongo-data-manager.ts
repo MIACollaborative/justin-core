@@ -21,28 +21,26 @@ let _isConnected = false;
 
 /**
  * Sets the MongoDB database instance.
- * @returns A Promise that resolves when the database is initialized.
+ * @returns void
  */
 const _setDatabaseInstance = (db: mongoDB.Db): void => {
   _db = db;
 };
 
-// create setters for _client and _isConnected
+/**
+ * Sets the MongoDB client instance.
+ * @returns void
+ */
 const _setClient = (client: mongoDB.MongoClient): void => {
   _client = client;
 };
 
+/**
+ * Sets the MongoDB database connection status.
+ * @returns void
+ */
 const _setIsConnected = (isConnected: boolean): void => {
   _isConnected = isConnected;
-};
-
-
-/**
- * Gets the MongoDB database instance.
- * @returns A Promise that resolves when the database is initialized.
- */
-const getDatabaseInstance = (): mongoDB.Db | undefined => {
-  return _db;
 };
 
 /**
@@ -95,8 +93,8 @@ const close = async (): Promise<void> => {
  */
 const ensureInitialized = (): void => {
   // print all three variables
-  Log.dev(`MongoDBManager ensureInitialized: _client: ${_client}, _isConnected: ${_isConnected}, _db: ${_db}, getDatabaseInstance: ${getDatabaseInstance()}`);
-  if (!_client || !_isConnected || !getDatabaseInstance()) {
+  Log.dev(`MongoDBManager ensureInitialized: _client: ${_client}, _isConnected: ${_isConnected}, _db: ${_db}`);
+  if (!_client || !_isConnected || !_db) {
     const errorMessage = "MongoDB client not initialized";
     Log.error(errorMessage);
     throw new Error(errorMessage);
@@ -388,7 +386,6 @@ export const MongoDBManager = {
   close,
   transformId,
   ensureInitialized,
-  getDatabaseInstance,
   getCollectionChangeReadable,
   findItemByIdInCollection,
   findItemsByCriteriaInCollection,
