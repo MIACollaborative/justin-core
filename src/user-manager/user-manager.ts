@@ -96,7 +96,7 @@ const modifyUserUniqueIdentifier = async (
   userUniqueIdentifierValueNew: string
 ): Promise<JUser | null> => {
   const updatedUser: JUser | null =
-    (await DataManager.getInstance().updateItemInCollectionById(USERS, id, {
+    (await DataManager.getInstance().updateItemByIdInCollection(USERS, id, {
       uniqueIdentifier: userUniqueIdentifierValueNew,
     })) as JUser;
   return updatedUser;
@@ -148,7 +148,7 @@ const updateUserByUniqueIdentifier = async (
   } = updateData as { [key: string]: any };
 
   const updatedUser: JUser | null =
-    (await DataManager.getInstance().updateItemInCollectionById(USERS, theUser.id, dataToUpdate)) as JUser;
+    (await DataManager.getInstance().updateItemByIdInCollection(USERS, theUser.id, dataToUpdate)) as JUser;
 
   return updatedUser;
 };
@@ -336,7 +336,7 @@ const updateUser = async (
 ): Promise<JUser> => {
   _checkInitialization();
   const updatedUser =
-    (await DataManager.getInstance().updateItemInCollectionById(
+    (await DataManager.getInstance().updateItemByIdInCollection(
       USERS,
       userId,
       updatedData

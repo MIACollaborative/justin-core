@@ -147,7 +147,7 @@ class DataManager extends EventEmitter {
    * @param {object} updateObject - The update data.
    * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
    */
-  public async updateItemInCollectionById(
+  public async updateItemByIdInCollection(
     collectionName: string,
     id: string,
     updateObject: object

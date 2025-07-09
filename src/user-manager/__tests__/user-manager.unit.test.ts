@@ -35,7 +35,7 @@ describe("UserManager", () => {
       addItemToCollection: addStub,
       removeItemFromCollection: sinon.stub().resolves(),
       getAllInCollection: sinon.stub().resolves([fakeUser, fakeUser2]),
-      updateItemInCollectionById: updateStub,
+      updateItemByIdInCollection: updateStub,
       clearCollection: sinon.stub().resolves(),
       findItemsInCollectionByCriteria: findStub,
     } as any);
@@ -131,7 +131,7 @@ describe("UserManager", () => {
       expect(result).toEqual({ ...fakeUser, uniqueIdentifier: "new-uid" });
     });
 
-    it("should return null if updateItemInCollectionById returns null", async () => {
+    it("should return null if updateItemByIdInCollection returns null", async () => {
       updateStub.resolves(null);
       const result = await UserManager.modifyUserUniqueIdentifier(
         "1",
@@ -140,7 +140,7 @@ describe("UserManager", () => {
       expect(result).toBeNull();
     });
 
-    it("should throw if updateItemInCollectionById throws", async () => {
+    it("should throw if updateItemByIdInCollection throws", async () => {
       updateStub.rejects(new Error("fail"));
       await expect(
         UserManager.modifyUserUniqueIdentifier("1", "new-uid")
