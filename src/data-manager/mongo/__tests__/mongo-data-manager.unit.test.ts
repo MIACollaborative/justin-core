@@ -1,7 +1,8 @@
 import * as mongoDB from "mongodb";
 import sinon from "sinon";
-import { MongoDBManager } from "../mongo-data-manager";
+import { MongoDBManager, TestingMongoDBManager } from "../mongo-data-manager";
 import * as dataManagerHelpers from "../../data-manager.helpers";
+import { Log } from "../../../logger/logger-manager";
 
 describe("MongoDBManager", () => {
   let sandbox: sinon.SinonSandbox;
@@ -19,8 +20,14 @@ describe("MongoDBManager", () => {
     ensureInitializedStub = sandbox
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {
-        throw new Error("ensureInitialized called");
+        Log.dev("MongoDBManager ensureInitialized stub called");
       });
+
+    TestingMongoDBManager._setDatabaseInstance({
+      collection: () => fakeCollection,
+    } as unknown as mongoDB.Db); // Set a fake database instance for testing
+    TestingMongoDBManager._setClient({ connect: () => {}, close: () => {}, db: () => fakeDb } as unknown as mongoDB.MongoClient); // Set a fake client instance for testing
+    TestingMongoDBManager._setIsConnected(true); // Set connected state to true for testing
 
     handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
@@ -46,31 +53,27 @@ describe("MongoDBManager", () => {
   });
 
   // passing
-  /*
+  
   describe("ensureInitialized", () => {
     it("should not throw error if database is initialized", async () => {
+      // so, the stubbing is actually working if call it through MongoDBManager
       await MongoDBManager.ensureInitialized();
     });
 
-    it("should throw if MONGO_URL or MONGO_DB_NAME is missing", async () => {
+    it("should throw if database is not connected", async () => {
       sandbox.restore();
       sandbox = sinon.createSandbox();
 
-      (MongoDBManager as any)._db = null;
-      (MongoDBManager as any)._client = null;
-
-      delete process.env.MONGO_URL;
-      delete process.env.MONGO_DB_NAME;
-      // should match "MongoDB client not initialized"
-      
-      expect(() => MongoDBManager.ensureInitialized()).toThrow(
+      TestingMongoDBManager._setIsConnected(false); 
+      expect(() => {MongoDBManager.ensureInitialized()}).toThrow(
         /MongoDB client not initialized/
       );
     });
   });
-  */
+  
 
   describe("findItemsByCriteriaInCollection", () => {
+    
     it("returns null if criteria is null", async () => {
       const result = await MongoDBManager.findItemsByCriteriaInCollection(
         "users",

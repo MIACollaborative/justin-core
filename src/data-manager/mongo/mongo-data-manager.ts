@@ -20,6 +20,24 @@ let _client: mongoDB.MongoClient | undefined;
 let _isConnected = false;
 
 /**
+ * Sets the MongoDB database instance.
+ * @returns A Promise that resolves when the database is initialized.
+ */
+const _setDatabaseInstance = (db: mongoDB.Db): void => {
+  _db = db;
+};
+
+// create setters for _client and _isConnected
+const _setClient = (client: mongoDB.MongoClient): void => {
+  _client = client;
+};
+
+const _setIsConnected = (isConnected: boolean): void => {
+  _isConnected = isConnected;
+};
+
+
+/**
  * Gets the MongoDB database instance.
  * @returns A Promise that resolves when the database is initialized.
  */
@@ -76,6 +94,8 @@ const close = async (): Promise<void> => {
  * @throws Will throw an error if the MongoDB client is not initialized.
  */
 const ensureInitialized = (): void => {
+  // print all three variables
+  Log.dev(`MongoDBManager ensureInitialized: _client: ${_client}, _isConnected: ${_isConnected}, _db: ${_db}, getDatabaseInstance(): ${getDatabaseInstance()}`);
   if (!_client || !_isConnected || !getDatabaseInstance()) {
     const errorMessage = "MongoDB client not initialized";
     Log.error(errorMessage);
@@ -379,3 +399,17 @@ export const MongoDBManager = {
   clearCollection,
   isCollectionEmpty,
 };
+
+/**
+ * MongoDBManager provides additional utilities for testing.
+ *
+ * @namespace MongoDBManager
+ * @private
+ */
+export const TestingMongoDBManager = {
+  ...MongoDBManager,
+  _setDatabaseInstance,
+  _setClient,
+  _setIsConnected,
+};
+
