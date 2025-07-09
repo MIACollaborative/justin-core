@@ -17,12 +17,12 @@ describe("MongoDBManager", () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
+    jest.spyOn(console, "error").mockImplementation(() => {});
     ensureInitializedStub = sandbox
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {
         Log.dev("MongoDBManager ensureInitialized stub called");
       });
-
     toArrayStub = sandbox.stub();
     findStub = sandbox.stub().returns({ toArray: toArrayStub });
     fakeCollection = {
@@ -41,7 +41,7 @@ describe("MongoDBManager", () => {
       db: () => fakeDb,
     } as unknown as mongoDB.MongoClient);
     TestingMongoDBManager._setIsConnected(true);
-    
+
     handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
       .throws(new Error("fail"));
