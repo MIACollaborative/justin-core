@@ -286,6 +286,11 @@ class DataManager extends EventEmitter {
     collectionName: string,
     criteria: Record<string, any>
   ): Promise<T[] | null> {
+
+    if (!criteria) {
+      return null; // Return null if criteria is null
+    }
+    
     try {
       this.checkInitialization();
       const itemList = await this.db.findItemsInCollection(
