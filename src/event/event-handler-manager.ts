@@ -90,7 +90,7 @@ export class EventHandlerManager {
     if (!this.handlerMap.has(eventType)) {
       Log.warn(`No handlers found for event type "${eventType}".`);
       // TODO: get rid of this? Why throw an error for this?
-      //throw new Error(`No handlers found for event type "${eventType}".`);
+      throw new Error(`No handlers found for event type "${eventType}".`);
     }
     return this.handlerMap.get(eventType) ?? [];
   };

@@ -66,7 +66,7 @@ describe('EventHandlerManager', () => {
       
       sinon.assert.calledWith(
         loggerMocks.mockLogInfo,
-        `Event "${eventType}" registered and added to the event registry.`
+        `Event "${eventType}" registered with handlers: ${handlerNames} and added to the event registry.`
       );
     });
 

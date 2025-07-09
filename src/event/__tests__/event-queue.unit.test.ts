@@ -158,11 +158,8 @@ describe('Event Queue', () => {
       getHandlersForEventTypeStub.returns(['handler1']);
       addItemToCollectionStub.resolves();
       removeItemFromCollectionStub.resolves();
-      console.log('about to process event queue');
       await EventQueue.processEventQueue();
-      console.log('processed event queue');
       expect(getAllInCollectionStub.calledTwice).toBe(true);
-      console.log('getHandlersForEventTypeStub.args', getHandlersForEventTypeStub.args);
       expect(getHandlersForEventTypeStub.calledWith('TEST_EVENT')).toBe(true);
       expect(addItemToCollectionStub.called).toBe(true);
       expect(removeItemFromCollectionStub.calledWith('event_queue', 'event1')).toBe(true);
@@ -195,7 +192,7 @@ describe('Event Queue', () => {
 
       await Promise.all([firstPromise, secondPromise]);
 
-      expect(logInfoStub.calledWith('Event queue processing already in progress. Skipping trigger.')).toBe(true);
+      expect(logInfoStub.calledWith('Event queue processing already in progress. Skipping processing.')).toBe(true);
     });
 
     it('should handle processing errors gracefully', async () => {
@@ -245,7 +242,6 @@ describe('Event Queue', () => {
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      console.log('logErrorStub.calledWith', logErrorStub.args);
       expect(logErrorStub.calledWith(
         `Error during event queue processing: Error: Processing error`
       )).toBe(true);
@@ -335,8 +331,6 @@ describe('Event Queue', () => {
 
       await EventQueue.processEventQueue();
 
-      console.log('getTaskByNameStub.calledWith', getTaskByNameStub.args);
-      console.log('executeTaskStub.calledWith', executeTaskStub.args);
       expect(getTaskByNameStub.calledWith('task1')).toBe(true);
       expect(executeTaskStub.calledWith(mockTask, mockEvent, mockUser)).toBe(true);
     });

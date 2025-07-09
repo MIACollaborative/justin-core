@@ -124,8 +124,7 @@ describe('JustInWrapper Integration', () => {
       
       justIn.unregisterEventHandlers('TEST_EVENT');
       
-      const registeredHandlers = eventHandlerManager.getHandlersForEventType('TEST_EVENT');
-      expect(registeredHandlers).toEqual([]);
+      expect(() => eventHandlerManager.getHandlersForEventType('TEST_EVENT')).toThrow();
     });
   });
 

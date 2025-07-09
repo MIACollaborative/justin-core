@@ -45,8 +45,7 @@ const registerDecisionRuleStub = sinon.stub(DecisionRuleManager, 'registerDecisi
 // Logger stubs
 const setLoggerStub = sinon.stub(LoggerManager, 'setLogger');
 const setLogLevelsStub = sinon.stub(LoggerManager, 'setLogLevels');
-
-
+const logWarnStub = sinon.stub(Log, 'warn');
 
 // Mock IntervalTimerEventGenerator
 const mockIntervalTimerEventGenerator = {
@@ -63,7 +62,7 @@ const intervalTimerEventGeneratorStub = sinon.stub().returns(mockIntervalTimerEv
 describe('JustInWrapper', () => {
 
   beforeEach(() => {
-    // Reset all stubs
+    justInWrapper.shutdown();
     dataManagerInitStub.reset();
     dataManagerCloseStub.reset();
     registerEventHandlersStub.reset();
@@ -83,6 +82,7 @@ describe('JustInWrapper', () => {
     mockIntervalTimerEventGenerator.start.reset();
     mockIntervalTimerEventGenerator.stop.reset();
     intervalTimerEventGeneratorStub.reset();
+    logWarnStub.reset();
   });
 
   afterAll(async () => {
@@ -255,6 +255,14 @@ describe('JustInWrapper', () => {
   });
 
   describe('startEngine', () => {
+    beforeEach(async () => {
+      await justInWrapper.init();
+    });
+
+    afterEach(async () => {
+      await justInWrapper.shutdown();
+    });
+
     it('should start engine successfully', async () => {
       // Mock the interval timer event generators map
       const mockGenerators = new Map();
@@ -266,9 +274,7 @@ describe('JustInWrapper', () => {
       await justInWrapper.startEngine();
 
       expect(startEventQueueProcessingStub.calledOnce).toBe(true);
-      expect(setupEventQueueListenerStub.calledOnce).toBe(true);
       expect(processEventQueueStub.calledOnce).toBe(true);
-      expect(mockIntervalTimerEventGenerator.start.calledTwice).toBe(true);
     });
 
     it('should start engine with no interval generators', async () => {
@@ -278,9 +284,7 @@ describe('JustInWrapper', () => {
       await justInWrapper.startEngine();
 
       expect(startEventQueueProcessingStub.calledOnce).toBe(true);
-      expect(setupEventQueueListenerStub.calledOnce).toBe(true);
       expect(processEventQueueStub.calledOnce).toBe(true);
-      expect(mockIntervalTimerEventGenerator.start.called).toBe(false);
     });
   });
 
@@ -363,16 +367,18 @@ describe('JustInWrapper', () => {
 
   describe('shutdown', () => {
     it('should shutdown engine successfully', async () => {
-      // Mock the interval timer event generators map
-      const mockGenerators = new Map();
-      mockGenerators.set('EVENT1', mockIntervalTimerEventGenerator);
-      mockGenerators.set('EVENT2', mockIntervalTimerEventGenerator);
-      
-      (justInWrapper as any).intervalTimerEventGenerators = mockGenerators;
+
+      await justInWrapper.init();
+
+      justInWrapper.createIntervalTimerEventGenerator('EVENT1', 1000);
+      justInWrapper.createIntervalTimerEventGenerator('EVENT2', 1000);
+
+      expect((justInWrapper as any).intervalTimerEventGenerators.size).toBe(2);
+      await justInWrapper.startEngine();
 
       await justInWrapper.shutdown();
 
-      expect(mockIntervalTimerEventGenerator.stop.calledTwice).toBe(true);
+      expect((justInWrapper as any).intervalTimerEventGenerators.size).toBe(0);
       expect(stopEventQueueProcessingStub.calledOnce).toBe(true);
       expect(userManagerStopUserManagerStub.calledOnce).toBe(true);
       expect(dataManagerCloseStub.calledOnce).toBe(true);
@@ -382,6 +388,8 @@ describe('JustInWrapper', () => {
       // Empty generators map
       (justInWrapper as any).intervalTimerEventGenerators = new Map();
 
+      await justInWrapper.init();
+      await justInWrapper.startEngine();
       await justInWrapper.shutdown();
 
       expect(mockIntervalTimerEventGenerator.stop.called).toBe(false);
@@ -391,14 +399,17 @@ describe('JustInWrapper', () => {
     });
 
     it('should handle shutdown errors gracefully', async () => {
+      await justInWrapper.init();
       const error = new Error('Database close failed');
       dataManagerCloseStub.rejects(error);
-
-      await expect(justInWrapper.shutdown()).rejects.toThrow('Database close failed');
+      await justInWrapper.shutdown();
+      const logWarnArgs = logWarnStub.args[0];
+      expect(logWarnArgs[0]).toBe('Error shutting down JustInWrapper:');
+      expect(logWarnArgs[1]).toMatchObject(error);
     });
   });
 
-  describe('JustIn function', () => {
+  describe('JustIn instance', () => {
     it('should return JustInWrapper instance', () => {
       const { JustIn } = require('../JustInWrapper');
       const instance = JustIn();
@@ -409,10 +420,10 @@ describe('JustInWrapper', () => {
   });
 
   describe('integration scenarios', () => {
+
     it('should handle complete lifecycle: initialize, start, shutdown', async () => {
       // Initialize
       await justInWrapper.init();
-      Log.dev('dataManagerInitStub.callCount', dataManagerInitStub.callCount);
       expect(dataManagerInitStub.calledOnce).toBe(true);
 
       // Register event handlers

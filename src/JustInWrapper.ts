@@ -200,7 +200,6 @@ export class JustInWrapper {
     await publishEvent(eventType, generatedTimestamp, eventDetails);
   }
 
-
   /**
    * Sets up the event queue listener.
    */
@@ -239,8 +238,6 @@ export class JustInWrapper {
   public setLoggingLevels(levels: Partial<typeof logLevels>): void {
     setLogLevels(levels);
   }
-
-
 }
 
 export const JustIn = () => {
