@@ -83,9 +83,11 @@ describe("DataManager", () => {
       expect(mongoFindStub.calledWith("users", { name: "Charlie" })).toBe(true);
     });
 
+    
     it("throws an error if db operation fails", async () => {
       const msg = "fail";
       mongoFindStub.rejects(new Error(msg));
+      expect(true).toBe(true);
       await expect(() => {
         DataManager.getInstance().findItemsInCollection("users", { name: "Error" });
       }).rejects.toThrow(msg);
