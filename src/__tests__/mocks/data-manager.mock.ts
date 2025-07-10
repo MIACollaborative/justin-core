@@ -13,7 +13,7 @@ export const initializeDataManagerMock = () => {
     mockAddItemToCollection: sinon.stub(DataManager.prototype, 'addItemToCollection').resolves(),
     mockGetAllInCollection: sinon.stub(DataManager.prototype, 'getAllInCollection').resolves([]),
     mockRemoveItemFromCollection: sinon.stub(DataManager.prototype, 'removeItemFromCollection').resolves(true),
-    mockUpdateItemInCollectionById: sinon.stub(DataManager.prototype, 'updateItemInCollectionById').resolves(),
+    mockUpdateItemByIdInCollection: sinon.stub(DataManager.prototype, 'updateItemByIdInCollection').resolves(),
     mockClearCollection: sinon.stub(DataManager.prototype, 'clearCollection').resolves(),
     mockClient: { isConnected: true }, // Simulate a connected client
     resetDataManagerMocks: () => {
