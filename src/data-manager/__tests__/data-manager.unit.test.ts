@@ -83,12 +83,9 @@ describe("DataManager", () => {
       expect(mongoFindStub.calledWith("users", { name: "Charlie" })).toBe(true);
     });
 
-    it("handles errors and returns null", async () => {
-      const msg = "db error";
+    it("throws an error if db operation fails", async () => {
+      const msg = "fail";
       mongoFindStub.rejects(new Error(msg));
-      handleDbErrorStub = sandbox
-      .stub(dataManagerHelpers, "handleDbError")
-      .throws(new Error(msg));
       await expect(() => {
         DataManager.getInstance().findItemsInCollection("users", { name: "Error" });
       }).rejects.toThrow(msg);
