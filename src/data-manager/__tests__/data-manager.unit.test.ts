@@ -17,40 +17,20 @@ describe("DataManager", () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
-    // version 2: from justin-heartsteps
-    /*    
-    const dataManagerStub = sandbox.createStubInstance(DataManager);
-    dataManagerInstanceStub = sinon
-      .stub(DataManager, "getInstance")
-      .returns(dataManagerStub as any);
-    */
     checkInitStub = sandbox
       .stub(DataManager.prototype, "checkInitialization")
-      .callsFake(() => { });
+      .callsFake(() => {});
 
     mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
 
-    jest.spyOn(console, "error").mockImplementation(() => { });
+    jest.spyOn(console, "error").mockImplementation(() => {});
     handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
       .throws(new Error("fail"));
-    // version 1: I write it
-    /*
-    dataManager = DataManager.getInstance();
-    
-    checkInitStub = sinon
-      .stub(dataManager, "checkInitialization")
-      .callsFake(() => {});
-    
-    emitSpy = sinon.spy(dataManager, "emit");
-    */
   });
 
   afterEach(() => {
     sandbox.restore();
-    // Reset singleton for isolation
-    // @ts-ignore
-    //DataManager.instance = null;
   });
 
   it("should return true", async () => {
@@ -71,27 +51,32 @@ describe("DataManager", () => {
     it("returns documents if found", async () => {
       const docs = [{ _id: "1", name: "Alice" }];
       mongoFindStub.resolves(docs);
-      const result = await DataManager.getInstance().findItemsInCollection("users", { name: "Alice" });
+      const result = await DataManager.getInstance().findItemsInCollection(
+        "users",
+        { name: "Alice" }
+      );
       expect(result).toEqual(docs);
       expect(mongoFindStub.calledWith("users", { name: "Alice" })).toBe(true);
     });
 
     it("returns empty array if no documents found", async () => {
       mongoFindStub.resolves([]);
-      const result = await DataManager.getInstance().findItemsInCollection("users", { name: "Charlie" });
+      const result = await DataManager.getInstance().findItemsInCollection(
+        "users",
+        { name: "Charlie" }
+      );
       expect(result).toEqual([]);
       expect(mongoFindStub.calledWith("users", { name: "Charlie" })).toBe(true);
     });
 
-    
     it("throws an error if db operation fails", async () => {
       const msg = "fail";
       mongoFindStub.rejects(new Error(msg));
-      expect(true).toBe(true);
-      await expect(() => {
-        DataManager.getInstance().findItemsInCollection("users", { name: "Error" });
-      }).rejects.toThrow(msg);
+      await expect(
+        DataManager.getInstance().findItemsInCollection("users", {
+          name: "Error",
+        })
+      ).rejects.toThrow(msg);
     });
-
   });
 });
