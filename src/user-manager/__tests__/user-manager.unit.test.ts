@@ -52,7 +52,7 @@ describe("UserManager", () => {
 
     logInfoStub = sandbox.stub(Log, "info");
     logWarnStub = sandbox.stub(Log, "warn");
-    // Clear cache before each test
+    // Clear cache before each test tf  g  
     TestingUserManager._users.clear();
   });
 
@@ -154,7 +154,6 @@ describe("UserManager", () => {
 
   describe("updateUserByUniqueIdentifier", () => {
     it("should throw error if attempting to update uniqueIdentifier", async () => {
-      // with this message: Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier
 
       expect(UserManager.updateUserByUniqueIdentifier("abc", {
         name: "Updated Name",
