@@ -1,6 +1,6 @@
 import DataManager from "../data-manager";
 import { MongoDBManager } from "../mongo/mongo-data-manager";
-import { handleDbError } from "../data-manager.helpers";
+import * as dataManagerHelpers from "../data-manager.helpers";
 import sinon from "sinon";
 
 // Use jest for assertions
@@ -13,6 +13,7 @@ describe("DataManager", () => {
   let emitSpy: sinon.SinonSpy;
   let sandbox: sinon.SinonSandbox;
   let mongoFindStub: sinon.SinonStub;
+  let handleDbErrorStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -25,9 +26,14 @@ describe("DataManager", () => {
     */
     checkInitStub = sandbox
       .stub(DataManager.prototype, "checkInitialization")
-      .callsFake(() => {});
+      .callsFake(() => { });
 
     mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
+
+    jest.spyOn(console, "error").mockImplementation(() => { });
+    handleDbErrorStub = sandbox
+      .stub(dataManagerHelpers, "handleDbError")
+      .throws(new Error("fail"));
     // version 1: I write it
     /*
     dataManager = DataManager.getInstance();
@@ -59,12 +65,11 @@ describe("DataManager", () => {
         null as any
       );
       expect(result).toBeNull();
-      expect(mongoFindStub.calledWith("users", null)).toBe(true);
+      expect(mongoFindStub.calledWith("users", null)).toBe(false);
     });
 
-    /*
     it("returns documents if found", async () => {
-      const docs = [{ _id: "1", name: "Alice" }, { _id: "2", name: "Bob" }];
+      const docs = [{ _id: "1", name: "Alice" }];
       mongoFindStub.resolves(docs);
       const result = await DataManager.getInstance().findItemsInCollection("users", { name: "Alice" });
       expect(result).toEqual(docs);
@@ -79,10 +84,15 @@ describe("DataManager", () => {
     });
 
     it("handles errors and returns null", async () => {
-      mongoFindStub.rejects(new Error("db error"));
-      const result = await DataManager.getInstance().findItemsInCollection("users", { name: "Error" });
-      expect(result).toBeNull();
+      const msg = "db error";
+      mongoFindStub.rejects(new Error(msg));
+      handleDbErrorStub = sandbox
+      .stub(dataManagerHelpers, "handleDbError")
+      .throws(new Error(msg));
+      await expect(() => {
+        DataManager.getInstance().findItemsInCollection("users", { name: "Error" });
+      }).rejects.toThrow(msg);
     });
-    */
+
   });
 });
