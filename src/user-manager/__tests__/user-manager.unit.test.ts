@@ -3,54 +3,61 @@ import { UserManager, TestingUserManager } from "../user-manager";
 import { USERS } from "../../data-manager/data-manager.constants";
 import DataManager from "../../data-manager/data-manager";
 import * as dataManagerHelpers from "../../data-manager/data-manager.helpers";
-import { ChangeListenerManager } from "../../data-manager/change-listener.manager";
 import { Log } from "../../logger/logger-manager";
 
 const fakeUser = { id: "1", uniqueIdentifier: "abc", name: "Test User" };
 const fakeUser2 = { id: "2", uniqueIdentifier: "def", name: "Another User" };
 
 describe("UserManager", () => {
-  let dmStub: any, clmStub: any, logInfoStub: any, logWarnStub: any;
+  let logInfoStub: any, logWarnStub: any;
   let findStub: sinon.SinonStub;
   let updateStub: sinon.SinonStub;
-  let updateUniqueStub: sinon.SinonStub;
   let addStub: sinon.SinonStub;
   let handleDbErrorStub: sinon.SinonStub;
+  let sandbox: sinon.SinonSandbox;
+  let getInitializationStatusStub: sinon.SinonStub;
+  let checkInitializationStub: sinon.SinonStub;
+  let remoteItemFromCollectionStub: sinon.SinonStub;
+  let getAllInCollectionStub: sinon.SinonStub;
+  let initStub: sinon.SinonStub;
+  let clearCollectionStub: sinon.SinonStub;
 
   beforeEach(() => {
-    handleDbErrorStub = sinon
+    sandbox = sinon.createSandbox();
+
+    handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
       .throws(new Error("fail"));
-    addStub = sinon.stub().resolves(fakeUser);
-    findStub = sinon.stub().resolves([fakeUser]);
-    updateStub = sinon.stub().resolves(fakeUser);
-    updateUniqueStub = sinon.stub().resolves(fakeUser);
+
+    addStub = sandbox.stub(DataManager.prototype, "addItemToCollection").resolves(fakeUser);
+    findStub = sandbox.stub(DataManager.prototype, "findItemsInCollection").resolves([fakeUser]);
+    updateStub = sandbox.stub(DataManager.prototype, "updateItemByIdInCollection").resolves(fakeUser);
+    getInitializationStatusStub = sandbox.stub(DataManager.prototype, "getInitializationStatus").returns(true);
+    checkInitializationStub = sandbox
+      .stub(DataManager.prototype, "checkInitialization")
+      .resolves();
+    remoteItemFromCollectionStub = sandbox
+      .stub(DataManager.prototype, "removeItemFromCollection")
+      .resolves();
+    getAllInCollectionStub = sandbox
+      .stub(DataManager.prototype, "getAllInCollection")
+      .resolves([fakeUser, fakeUser2]);
+    initStub = sandbox
+      .stub(DataManager.prototype, "init")
+      .resolves();
+    clearCollectionStub = sandbox
+      .stub(DataManager.prototype, "clearCollection")
+      .resolves();
 
 
-    
-    dmStub = sinon.stub(DataManager, "getInstance").returns({
-      checkInitialization: sinon.stub().resolves(),
-      getInitializationStatus: sinon.stub().returns(true),
-      init: sinon.stub().resolves(),
-      addItemToCollection: addStub,
-      removeItemFromCollection: sinon.stub().resolves(),
-      getAllInCollection: sinon.stub().resolves([fakeUser, fakeUser2]),
-      updateItemByIdInCollection: updateStub,
-      clearCollection: sinon.stub().resolves(),
-      findItemsInCollection: findStub,
-    } as any);
-    clmStub = sinon.stub(ChangeListenerManager, "getInstance").returns({
-      addChangeListener: sinon.stub(),
-      removeChangeListener: sinon.stub(),
-    } as any);
-    logInfoStub = sinon.stub(Log, "info");
-    logWarnStub = sinon.stub(Log, "warn");
-    // Clear cache before each test
+    logInfoStub = sandbox.stub(Log, "info");
+    logWarnStub = sandbox.stub(Log, "warn");
+    // Clear cache before each test tf  g  
     TestingUserManager._users.clear();
   });
 
   afterEach(() => {
-    sinon.restore();
+    sandbox.restore();
   });
 
   describe("doesUserUniqueIdentifierExist", () => {
@@ -115,9 +122,6 @@ describe("UserManager", () => {
   });
 
   describe("modifyUserUniqueIdentifier", () => {
-    updateStub = sinon
-      .stub()
-      .resolves({ ...fakeUser, uniqueIdentifier: "new-uid" });
 
     it("should update the user's unique identifier and return the updated user", async () => {
       updateStub.resolves({ ...fakeUser, uniqueIdentifier: "new-uid" });
@@ -150,7 +154,6 @@ describe("UserManager", () => {
 
   describe("updateUserByUniqueIdentifier", () => {
     it("should throw error if attempting to update uniqueIdentifier", async () => {
-      // with this message: Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier
 
       expect(UserManager.updateUserByUniqueIdentifier("abc", {
         name: "Updated Name",

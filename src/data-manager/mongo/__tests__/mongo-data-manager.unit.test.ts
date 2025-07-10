@@ -8,7 +8,7 @@ describe("MongoDBManager", () => {
   let sandbox: sinon.SinonSandbox;
 
   let findStub: sinon.SinonStub;
-  let toArrayStub: sinon.SinonStub;
+  let findResultListStub: sinon.SinonStub;
   let ensureInitializedStub: sinon.SinonStub;
   let handleDbErrorStub: sinon.SinonStub;
   let fakeCollection: any;
@@ -23,8 +23,8 @@ describe("MongoDBManager", () => {
       .callsFake(() => {
         Log.dev("MongoDBManager ensureInitialized stub called");
       });
-    toArrayStub = sandbox.stub();
-    findStub = sandbox.stub().returns({ toArray: toArrayStub });
+    findResultListStub = sandbox.stub();
+    findStub = sandbox.stub().returns({ toArray: findResultListStub });
     fakeCollection = {
       find: findStub,
       updateOne: () => {},
@@ -52,8 +52,6 @@ describe("MongoDBManager", () => {
   afterEach(() => {
     sandbox.restore();
   });
-
-  // passing
 
   describe("ensureInitialized", () => {
     it("should not throw error if database is initialized", async () => {
@@ -83,18 +81,18 @@ describe("MongoDBManager", () => {
 
     it("returns documents fitting the criteria", async () => {
       const docs = [{ _id: "123", name: "Alice" }];
-      toArrayStub.resolves(docs);
+      findResultListStub.resolves(docs);
       const result = await MongoDBManager.findItemsInCollection(
         "users",
         { name: "Alice" }
       );
       expect(findStub.calledWith({ name: "Alice" })).toBe(true);
-      expect(toArrayStub.called).toBe(true);
+      expect(findResultListStub.called).toBe(true);
       expect(result).toEqual([{ name: "Alice", id: "123" }]);
     });
 
     it("returns empty array if no documents found", async () => {
-      toArrayStub.resolves([]);
+      findResultListStub.resolves([]);
       const result = await MongoDBManager.findItemsInCollection(
         "users",
         { name: "Nobody" }
@@ -104,7 +102,7 @@ describe("MongoDBManager", () => {
 
     it("filters out nulls from transformId", async () => {
       const docs = [{ _id: "123", name: "Alice" }, null];
-      toArrayStub.resolves(docs);
+      findResultListStub.resolves(docs);
       const result = await MongoDBManager.findItemsInCollection(
         "users",
         {}
