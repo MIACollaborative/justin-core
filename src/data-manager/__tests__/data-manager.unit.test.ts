@@ -7,10 +7,7 @@ import sinon from "sinon";
 
 describe("DataManager", () => {
   let dataManager: DataManager;
-  let dataManagerInstanceStub: sinon.SinonStub;
-  let dbStub: sinon.SinonStub;
   let checkInitStub: sinon.SinonStub;
-  let emitSpy: sinon.SinonSpy;
   let sandbox: sinon.SinonSandbox;
   let mongoFindStub: sinon.SinonStub;
   let handleDbErrorStub: sinon.SinonStub;
