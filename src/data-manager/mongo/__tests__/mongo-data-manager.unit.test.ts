@@ -143,5 +143,7 @@ describe("MongoDBManager", () => {
       expect(handleDbErrorStub.called).toBe(true);
       expect(findStub.calledWith({ name: "Alice" })).toBe(true);
     });
+
+    
   });
 });
