@@ -182,8 +182,6 @@ describe("UserManager", () => {
       ).rejects.toThrow("fail");
     });
 
-
-
     it("should throw if userId is null", async () => {
       // @ts-ignore
       await expect(UserManager.modifyUserUniqueIdentifier(null, "new-uid")).rejects.toThrow();
@@ -217,7 +215,7 @@ describe("UserManager", () => {
         name: "Updated Name",
         uniqueIdentifier: "should-not-update",
       })).rejects.toThrow(
-        "Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier"
+        "Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead."
       );
     });
 
@@ -244,6 +242,42 @@ describe("UserManager", () => {
         "User with uniqueIdentifier: notfound not found."
       );
     });
+
+
+    // start of additional tests. Don't delete this comment
+
+    it("should throw if uniqueIdentifier is null", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier(null, { name: "X" })).rejects.toThrow();
+    });
+
+    it("should throw if uniqueIdentifier is undefined", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier(undefined, { name: "X" })).rejects.toThrow();
+    });
+
+    it("should throw if updateData is null", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier("abc", null)).rejects.toThrow();
+    });
+
+    it("should throw if updateData is undefined", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier("abc", undefined)).rejects.toThrow();
+    });
+
+    it("should throw if updateData is empty object", async () => {
+      await expect(UserManager.updateUserByUniqueIdentifier("abc", {})).rejects.toThrow();
+    });
+
+    it("should update user with unrelated fields", async () => {
+      const updateData = { foo: "bar" };
+      updateStub.resolves({ ...fakeUser, ...updateData });
+      const result = await UserManager.updateUserByUniqueIdentifier(fakeUser.id, updateData);
+      expect(updateStub.calledOnceWith(USERS, fakeUser.id, updateData)).toBe(true);
+      expect(result).toEqual({ ...fakeUser, foo: "bar" });
+    });
+
   });
 
   describe("addUsersToDatabase", () => {

@@ -123,10 +123,23 @@ const modifyUserUniqueIdentifier = async (
  */
 const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
-  updateData: object
+  updateData: Record<string, any>
 ): Promise<JUser | null> => {
+
+  if (!userUniqueIdentifier || typeof userUniqueIdentifier !== "string") {
+    const msg = `Invalid uniqueIdentifier: ${userUniqueIdentifier}`;
+    Log.warn(msg);
+    throw new Error(msg);
+  }
+
   if ("uniqueIdentifier" in updateData) {
     const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
+    throw new Error(msg);
+  }
+
+  if (!updateData || typeof updateData !== "object" || Object.keys(updateData).length === 0 || Array.isArray(updateData)) {
+    const msg = `Invalid updateData: ${JSON.stringify(updateData)}. It must be a non-null and non-empty object and should not be an array.`;
+    Log.warn(msg);
     throw new Error(msg);
   }
 
