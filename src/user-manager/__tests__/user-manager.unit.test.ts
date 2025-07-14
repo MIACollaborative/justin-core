@@ -87,6 +87,37 @@ describe("UserManager", () => {
       });
       expect(result.result).toBe(false);
     });
+
+    it("returns false when input is an object with unrelated properties", () => {
+      const result = UserManager.doesUserUniqueIdentifierExist({
+        foo: "bar",
+      });
+      expect(result.result).toBe(false);
+    });
+
+    it("returns false when input is an empty array", () => {
+      // @ts-ignore
+      const result = UserManager.doesUserUniqueIdentifierExist([]);
+      expect(result.result).toBe(false);
+    });
+
+    it("returns false when input is a string", () => {
+      // @ts-ignore
+      const result = UserManager.doesUserUniqueIdentifierExist("abc");
+      expect(result.result).toBe(false);
+    });
+
+    it("returns false when input is a number", () => {
+      // @ts-ignore
+      const result = UserManager.doesUserUniqueIdentifierExist(123);
+      expect(result.result).toBe(false);
+    });
+
+    it("returns false when input is a boolean", () => {
+      // @ts-ignore
+      const result = UserManager.doesUserUniqueIdentifierExist(true);
+      expect(result.result).toBe(false);
+    });
   });
 
   describe("isUserUniqueIdentifierNew", () => {
@@ -150,6 +181,33 @@ describe("UserManager", () => {
         UserManager.modifyUserUniqueIdentifier("1", "new-uid")
       ).rejects.toThrow("fail");
     });
+
+
+
+    it("should throw if userId is null", async () => {
+      // @ts-ignore
+      await expect(UserManager.modifyUserUniqueIdentifier(null, "new-uid")).rejects.toThrow();
+    });
+
+    it("should throw if userId is undefined", async () => {
+      // @ts-ignore
+      await expect(UserManager.modifyUserUniqueIdentifier(undefined, "new-uid")).rejects.toThrow();
+    });
+
+    it("should throw if newUniqueIdentifier is null", async () => {
+      // @ts-ignore
+      await expect(UserManager.modifyUserUniqueIdentifier("1", null)).rejects.toThrow();
+    });
+
+    it("should throw if newUniqueIdentifier is undefined", async () => {
+      // @ts-ignore
+      await expect(UserManager.modifyUserUniqueIdentifier("1", undefined)).rejects.toThrow();
+    });
+
+    it("should throw if newUniqueIdentifier is empty string", async () => {
+      await expect(UserManager.modifyUserUniqueIdentifier("1", "")).rejects.toThrow();
+    });
+    
   });
 
   describe("updateUserByUniqueIdentifier", () => {

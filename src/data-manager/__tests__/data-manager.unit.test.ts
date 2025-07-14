@@ -30,10 +30,6 @@ describe("DataManager", () => {
     sandbox.restore();
   });
 
-  it("should return true", async () => {
-    expect(true).toBe(true);
-  });
-
   describe("findItemsInCollection", () => {
     it("returns null if collection name is falsy", async () => {
       const result = await DataManager.getInstance().findItemsInCollection("", {

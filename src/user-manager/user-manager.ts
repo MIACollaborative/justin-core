@@ -98,6 +98,13 @@ const modifyUserUniqueIdentifier = async (
   id: string,
   userUniqueIdentifierValueNew: string
 ): Promise<JUser | null> => {
+
+  if (!id || !userUniqueIdentifierValueNew) {
+    const msg = `Invalid parameters: id (${id}) and userUniqueIdentifierValueNew (${userUniqueIdentifierValueNew}) are required.`;
+    Log.warn(msg);
+    throw new Error(msg);
+  }
+
   const updatedUser: JUser | null =
     (await dm.updateItemByIdInCollection(USERS, id, {
       uniqueIdentifier: userUniqueIdentifierValueNew,
@@ -157,13 +164,20 @@ const updateUserByUniqueIdentifier = async (
 };
 
 /**
- * Confirm that unique identifier is present
+ * Confirm that unique identifier is present for a user.
  * @param {object} user - the user object.
  * @returns {boolean, string} An object containing the result (true if uniqueIdentifier exists, false otherwise) and message.
  */
 const doesUserUniqueIdentifierExist = (user: {
   [key: string]: any;
 }): { result: boolean; message: string } => {
+
+  if( typeof user !== "object" || user === null || Array.isArray(user) ) {
+    const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
+    Log.warn(msg);
+    return { result: false, message: msg };
+  }
+
   if (!user || !("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
     const msg = `User data is incomplete: uniqueIdentifier is required.`;
     Log.warn(msg);
