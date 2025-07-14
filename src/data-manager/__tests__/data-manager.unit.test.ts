@@ -38,6 +38,23 @@ describe("DataManager", () => {
   });
 
   describe("findItemsInCollection", () => {
+    it("returns null if collection name is falsy", async () => {
+      const result = await DataManager.getInstance().findItemsInCollection("", {
+        foo: "bar",
+      });
+      expect(result).toBeNull();
+      expect(mongoFindStub.called).toBe(false);
+    });
+
+    it("returns null if criteria is undefined", async () => {
+      const result = await DataManager.getInstance().findItemsInCollection(
+        "users",
+        undefined as any
+      );
+      expect(result).toBeNull();
+      expect(mongoFindStub.called).toBe(false);
+    });
+
     it("returns null if criteria is null", async () => {
       mongoFindStub.resolves(null);
       const result = await DataManager.getInstance().findItemsInCollection(
@@ -77,6 +94,27 @@ describe("DataManager", () => {
           name: "Error",
         })
       ).rejects.toThrow(msg);
+    });
+
+    it("returns null if MongoDBManager.findItemsInCollection returns null", async () => {
+      mongoFindStub.resolves(null);
+      const result = await DataManager.getInstance().findItemsInCollection(
+        "users",
+        { foo: "bar" }
+      );
+      expect(result).toBeNull();
+      expect(mongoFindStub.calledWith("users", { foo: "bar" })).toBe(true);
+    });
+
+    it("returns array if MongoDBManager.findItemsInCollection returns array", async () => {
+      const docs = [{ _id: "2", name: "Bob" }];
+      mongoFindStub.resolves(docs);
+      const result = await DataManager.getInstance().findItemsInCollection(
+        "users",
+        { name: "Bob" }
+      );
+      expect(result).toEqual(docs);
+      expect(mongoFindStub.calledWith("users", { name: "Bob" })).toBe(true);
     });
   });
 });
