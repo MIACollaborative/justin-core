@@ -13,7 +13,6 @@ describe("MongoDBManager", () => {
   let handleDbErrorStub: sinon.SinonStub;
   let fakeCollection: any;
   let fakeDb: any;
-  let mdStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -160,7 +159,6 @@ describe("MongoDBManager", () => {
     });
 
     it("throws if collection method throws", async () => {
-      // Simulate collection() throwing
       TestingMongoDBManager._setDatabaseInstance({
         collection: () => {
           throw new Error("collection fail");
