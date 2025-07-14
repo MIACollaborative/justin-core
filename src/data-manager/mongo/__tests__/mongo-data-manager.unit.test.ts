@@ -22,7 +22,8 @@ describe("MongoDBManager", () => {
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {
         Log.dev("MongoDBManager ensureInitialized stub called");
-      });
+      });    
+
     findResultListStub = sandbox.stub();
     findStub = sandbox.stub().returns({ toArray: findResultListStub });
     fakeCollection = {
