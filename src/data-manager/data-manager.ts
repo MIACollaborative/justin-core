@@ -288,7 +288,7 @@ class DataManager extends EventEmitter {
     criteria: Record<string, any>
   ): Promise<T[] | null> {
 
-    if (!criteria) {
+    if (!criteria || !collectionName) {
       return null; // Return null if criteria is null
     }
     

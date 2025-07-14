@@ -98,6 +98,13 @@ const modifyUserUniqueIdentifier = async (
   id: string,
   userUniqueIdentifierValueNew: string
 ): Promise<JUser | null> => {
+
+  if (!id || !userUniqueIdentifierValueNew) {
+    const msg = `Invalid parameters: id (${id}) and userUniqueIdentifierValueNew (${userUniqueIdentifierValueNew}) are required.`;
+    Log.warn(msg);
+    throw new Error(msg);
+  }
+
   const updatedUser: JUser | null =
     (await dm.updateItemByIdInCollection(USERS, id, {
       uniqueIdentifier: userUniqueIdentifierValueNew,
@@ -116,10 +123,23 @@ const modifyUserUniqueIdentifier = async (
  */
 const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
-  updateData: object
+  updateData: Record<string, any>
 ): Promise<JUser | null> => {
+
+  if (!userUniqueIdentifier || typeof userUniqueIdentifier !== "string") {
+    const msg = `Invalid uniqueIdentifier: ${userUniqueIdentifier}`;
+    Log.warn(msg);
+    throw new Error(msg);
+  }
+
   if ("uniqueIdentifier" in updateData) {
     const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
+    throw new Error(msg);
+  }
+
+  if (!updateData || typeof updateData !== "object" || Object.keys(updateData).length === 0 || Array.isArray(updateData)) {
+    const msg = `Invalid updateData: ${JSON.stringify(updateData)}. It must be a non-null and non-empty object and should not be an array.`;
+    Log.warn(msg);
     throw new Error(msg);
   }
 
@@ -157,15 +177,22 @@ const updateUserByUniqueIdentifier = async (
 };
 
 /**
- * Confirm that unique identifier is present
+ * Confirm that unique identifier is present for a user.
  * @param {object} user - the user object.
  * @returns {boolean, string} An object containing the result (true if uniqueIdentifier exists, false otherwise) and message.
  */
 const doesUserUniqueIdentifierExist = (user: {
   [key: string]: any;
 }): { result: boolean; message: string } => {
-  if (!user || !("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
-    const msg = `User data is incomplete: uniqueIdentifier is required.`;
+
+  if( typeof user !== "object" || !user || Array.isArray(user) ) {
+    const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
+    Log.warn(msg);
+    return { result: false, message: msg };
+  }
+
+  if (!("uniqueIdentifier" in user) || !user["uniqueIdentifier"]) {
+    const msg = `UniqueIdentifier is missing.`;
     Log.warn(msg);
     return { result: false, message: msg };
   }
@@ -225,6 +252,11 @@ export const addUsersToDatabase = async (
     let newUsers: object[] = [];
 
     for (const user of users) {
+      if (typeof user !== "object" || !user || Array.isArray(user)) {
+        const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
+        Log.warn(msg);
+        continue; // Skip invalid user
+      }
       const userUniqueIdentifierExist =
         await doesUserUniqueIdentifierExist(user);
       const userWithId = user as {
@@ -234,6 +266,9 @@ export const addUsersToDatabase = async (
       const userDataCheck = await isUserUniqueIdentifierNew(
         userWithId["uniqueIdentifier"]
       );
+      // print the two checks
+      Log.dev(`User unique identifier check: ${JSON.stringify(userUniqueIdentifierExist)}`);
+      Log.dev(`User data check: ${JSON.stringify(userDataCheck)}`);
       if (!userUniqueIdentifierExist["result"] || !userDataCheck["result"]) {
         Log.warn(
           `${userDataCheck["message"]} - User: ${JSON.stringify(userWithId)}`
