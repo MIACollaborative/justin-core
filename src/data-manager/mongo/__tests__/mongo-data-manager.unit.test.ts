@@ -22,7 +22,7 @@ describe("MongoDBManager", () => {
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {
         Log.dev("MongoDBManager ensureInitialized stub called");
-      });    
+      });
 
     findResultListStub = sandbox.stub();
     findStub = sandbox.stub().returns({ toArray: findResultListStub });
@@ -102,6 +102,21 @@ describe("MongoDBManager", () => {
   });
 
   describe("findItemsInCollection", () => {
+    it("returns null if collection name is falsy", async () => {
+      const result = await MongoDBManager.findItemsInCollection("", {
+        foo: "bar",
+      });
+      expect(result).toBeNull();
+    });
+
+    it("returns null if criteria is undefined", async () => {
+      const result = await MongoDBManager.findItemsInCollection(
+        "users",
+        undefined as any
+      );
+      expect(result).toBeNull();
+    });
+
     it("returns null if criteria is null", async () => {
       const result = await MongoDBManager.findItemsInCollection("users", null);
       expect(result).toBeNull();
@@ -144,6 +159,17 @@ describe("MongoDBManager", () => {
       expect(findStub.calledWith({ name: "Alice" })).toBe(true);
     });
 
-    
+    it("throws if collection method throws", async () => {
+      // Simulate collection() throwing
+      TestingMongoDBManager._setDatabaseInstance({
+        collection: () => {
+          throw new Error("collection fail");
+        },
+      } as unknown as mongoDB.Db);
+      await expect(
+        MongoDBManager.findItemsInCollection("users", { foo: "bar" })
+      ).rejects.toThrow("fail");
+      expect(handleDbErrorStub.called).toBe(true);
+    });
   });
 });

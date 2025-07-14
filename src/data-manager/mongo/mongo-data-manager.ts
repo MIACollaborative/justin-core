@@ -277,7 +277,7 @@ const findItemsInCollection = async (
 ): Promise<Record<string, any>[] | null> => {
   ensureInitialized();
 
-  if (!criteria) return null;
+  if (!criteria || !collectionName) return null;
 
   try {
     const foundDocList = await _db!
