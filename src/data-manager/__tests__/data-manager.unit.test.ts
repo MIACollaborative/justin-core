@@ -20,7 +20,7 @@ describe("DataManager", () => {
 
     mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
 
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    sandbox.stub(console, "error").callsFake(() => {});
     handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
       .throws(new Error("fail"));
@@ -31,7 +31,7 @@ describe("DataManager", () => {
   });
 
   describe("findItemsInCollection", () => {
-    it("returns null if collection name is falsy", async () => {
+    it("returns null if collection name is an empty string", async () => {
       const result = await DataManager.getInstance().findItemsInCollection("", {
         foo: "bar",
       });
