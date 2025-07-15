@@ -405,6 +405,9 @@ export const MongoDBManager = {
  */
 export const TestingMongoDBManager = {
   ...MongoDBManager,
+  _db,
+  _client,
+  _isConnected,
   _setDatabaseInstance,
   _setClient,
   _setIsConnected,
