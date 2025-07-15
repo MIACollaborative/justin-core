@@ -16,7 +16,7 @@ describe("MongoDBManager", () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
-    jest.spyOn(console, "error").mockImplementation(() => {});
+    sandbox.stub(console, "error").callsFake(() => {});
     ensureInitializedStub = sandbox
       .stub(MongoDBManager, "ensureInitialized")
       .callsFake(() => {
@@ -101,7 +101,7 @@ describe("MongoDBManager", () => {
   });
 
   describe("findItemsInCollection", () => {
-    it("returns null if collection name is falsy", async () => {
+    it("returns null if collection name is an empty string", async () => {
       const result = await MongoDBManager.findItemsInCollection("", {
         foo: "bar",
       });
