@@ -59,7 +59,7 @@ export class JustInWrapper {
   /**
    * Deletes the singleton instance of JustInWrapper.
    */
-  protected static killInstance(): void {
+  public static killInstance(): void {
     if (JustInWrapper.instance) {
       JustInWrapper.instance = null;
     }
