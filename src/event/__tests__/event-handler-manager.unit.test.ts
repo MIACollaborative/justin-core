@@ -83,7 +83,7 @@ describe('EventHandlerManager', () => {
       ).rejects.toThrow(`Event "${eventType}" already registered.`);
 
       sinon.assert.calledWith(
-        loggerMocks.mockLogWarn,
+        loggerMocks.mockLogError,
         `Event registration failed.Event "${eventType}" already registered.`
       );
     });
@@ -195,12 +195,10 @@ describe('EventHandlerManager', () => {
     it('should throw error for non-existent event type', () => {
       const nonExistentEvent = 'NON_EXISTENT_EVENT';
 
-      expect(() => {
-        eventHandlerManager.getHandlersForEventType(nonExistentEvent);
-      }).toThrow(`No handlers found for event type "${nonExistentEvent}".`);
+      expect(eventHandlerManager.getHandlersForEventType(nonExistentEvent).length).toBe(0);
 
       sinon.assert.calledWith(
-        loggerMocks.mockLogWarn,
+        loggerMocks.mockLogError,
         `No handlers found for event type "${nonExistentEvent}".`
       );
     });

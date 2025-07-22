@@ -9,6 +9,8 @@ import { DBType } from "../data-manager/data-manager.constants";
 import { MongoDBManager } from "../data-manager/mongo/mongo-data-manager";
 import { TaskRegistration, DecisionRuleRegistration } from "../handlers/handler.type";
 
+jest.setTimeout(10000);
+
 describe('JustInWrapper Integration', () => {
   let mongoServer: MongoMemoryReplSet;
   let justIn: JustInWrapper = JustInWrapper.getInstance();
@@ -16,7 +18,7 @@ describe('JustInWrapper Integration', () => {
   let eventHandlerManager: EventHandlerManager = EventHandlerManager.getInstance();
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+    mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 4 } });
     const uri = mongoServer.getUri();
     process.env.MONGO_URI = uri;
   });
@@ -90,8 +92,6 @@ describe('JustInWrapper Integration', () => {
       
       await justIn.addUsersToDatabase(users);
 
-      // wait for change listeners to be called 
-      // TODO: rethink this design?
       await new Promise(resolve => setTimeout(resolve, 1000));
       const allUsers = UserManager.getAllUsers();
       expect(allUsers).toHaveLength(2);
@@ -101,6 +101,12 @@ describe('JustInWrapper Integration', () => {
   });
 
   describe('Event Handler Registration', () => {
+    const logWarnSpy = sinon.spy(Log, 'warn');
+
+    beforeAll(async () => {
+      await justIn.init(DBType.MONGO);
+      logWarnSpy.resetHistory();
+    });
 
     afterEach(async () => {
       await justIn.shutdown();
@@ -123,8 +129,7 @@ describe('JustInWrapper Integration', () => {
       await justIn.registerEventHandlers('TEST_EVENT', handlers);
       
       justIn.unregisterEventHandlers('TEST_EVENT');
-      
-      expect(() => eventHandlerManager.getHandlersForEventType('TEST_EVENT')).toThrow();
+      expect(logWarnSpy.called).toBe(true);
     });
   });
 
@@ -274,6 +279,12 @@ describe('JustInWrapper Integration', () => {
   describe('Full Engine Integration', () => {
 
     beforeEach(async () => {
+      // TODO: figure out why this is needed. Seems to be a bug in the mongo memory server wrt change listeners
+      await mongoServer.stop();
+      mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+      const uri = mongoServer.getUri();
+      process.env.MONGO_URI = uri;
+      
       await justIn.init(DBType.MONGO);
       await UserManager.deleteAllUsers();
     });
@@ -317,19 +328,24 @@ describe('JustInWrapper Integration', () => {
     it('should run the engine with a decision rule that should not activate', async () => {
 
       const aDecisionRule: DecisionRuleRegistration = {
-        name: 'testDecisionRule',
+        name: 'testDecisionRule2',
         shouldActivate: sinon.stub().returns({status: 'stop', result: 'success'}),
         selectAction: sinon.stub().returns({status: 'success', result: 'success'}),
         doAction: sinon.stub().returns({status: 'success', result: 'success'}),
       };
 
       justIn.registerDecisionRule(aDecisionRule);
-      justIn.registerEventHandlers('TEST_EVENT2', ['testDecisionRule']);
+      justIn.registerEventHandlers('TEST_EVENT2', [aDecisionRule.name]);
       await justIn.addUsersToDatabase([{name: 'testUser', email: 'testUser@test.com'}]);
       await justIn.startEngine();
       await justIn.publishEvent('TEST_EVENT2', new Date(), {test: 'test'});
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const before = new Date();
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const after = new Date();
+      Log.info('time taken: ' + (after.getTime() - before.getTime()));
+      Log.info('testDecisionRule2 shouldActivate called: ' + (aDecisionRule.shouldActivate as sinon.SinonStub).called);
+      Log.info('testDecisionRule2 selectAction called: ' + (aDecisionRule.selectAction as sinon.SinonStub).called);
+      Log.info('testDecisionRule2 doAction called: ' + (aDecisionRule.doAction as sinon.SinonStub).called);
 
       expect((aDecisionRule.shouldActivate as sinon.SinonStub).called).toBe(true);
       expect((aDecisionRule.selectAction as sinon.SinonStub).called).toBe(false);

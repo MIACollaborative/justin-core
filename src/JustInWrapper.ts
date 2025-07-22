@@ -90,7 +90,7 @@ export class JustInWrapper {
     Log.info('JustInWrapper initialized successfully.');
   }
   /**
-   * Shuts down data manager, user manager, and event queue, clearing all events.
+   * Shuts down data manager, user manager, and event queue.
    * Clears all interval timer event generators and event handlers.
    * This should be called when the application is shutting down.
    */
@@ -121,7 +121,6 @@ export class JustInWrapper {
     Log.info('Starting engine...');
 
     await startEventQueueProcessing();
-    //setupEventQueueListener();
 
     this.intervalTimerEventGenerators.forEach((eventGenerator, eventTypeName) => {
       Log.info(`Starting interval timer event generator for event type: ${eventTypeName}`);

@@ -34,8 +34,8 @@ export class EventHandlerManager {
     overwriteExisting: boolean = false
   ): Promise<void> => {
     this.validateEventHandlerParams(eventType, handlerNames);
-    if (this.handlerMap.has(eventType) && !overwriteExisting) {
-      Log.warn(`Event registration failed.Event "${eventType}" already registered.`);
+    if (this.hasHandlersForEventType(eventType) && !overwriteExisting) {
+      Log.error(`Event registration failed.Event "${eventType}" already registered.`);
       throw new Error(`Event "${eventType}" already registered.`);
     } else {
       this.handlerMap.set(eventType, handlerNames);
@@ -49,7 +49,7 @@ export class EventHandlerManager {
    * @param {string} eventType - The event type to unregister.
    */
   public unregisterEventHandlers = (eventType: string): void => {
-    if (this.handlerMap.has(eventType)) {
+    if (this.hasHandlersForEventType(eventType)) {
       this.handlerMap.delete(eventType);
       Log.info(`Event "${eventType}" unregistered.`);
     } else {
@@ -87,10 +87,9 @@ export class EventHandlerManager {
    * @returns {string[]} The handler names for the event type.
    */
   public getHandlersForEventType = (eventType: string): string[] => {
-    if (!this.handlerMap.has(eventType)) {
-      Log.warn(`No handlers found for event type "${eventType}".`);
-      // TODO: get rid of this? Why throw an error for this?
-      throw new Error(`No handlers found for event type "${eventType}".`);
+    if (!this.hasHandlersForEventType(eventType)) {
+      Log.error(`No handlers found for event type "${eventType}".`);
+      return [];
     }
     return this.handlerMap.get(eventType) ?? [];
   };
