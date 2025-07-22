@@ -77,7 +77,17 @@ describe('JustInWrapper Integration', () => {
   });
 
   describe('User Management', () => {
-
+    beforeEach(async () => {
+      // TODO: figure out why this is needed. Seems to be a bug in the mongo memory server wrt change listeners
+      await mongoServer.stop();
+      mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+      const uri = mongoServer.getUri();
+      process.env.MONGO_URI = uri;
+      
+      await justIn.init(DBType.MONGO);
+      await UserManager.deleteAllUsers();
+    });
+    
     afterEach(async () => {
       await justIn.shutdown();
     });

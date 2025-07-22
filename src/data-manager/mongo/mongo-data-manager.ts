@@ -36,7 +36,6 @@ const init = async (): Promise<void> => {
   try {
     await _client.connect();
     Log.dev(`MongoDBManager connected to ${uri}`);
-    Log.dev(`MongoDBManager timeoutMS: ${_client.options.serverSelectionTimeoutMS}`);
     _isConnected = true;
     _db = _client.db(dbName);
     Log.dev(`MongoDBManager initialized with database ${dbName}`);
