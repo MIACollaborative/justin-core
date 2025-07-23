@@ -90,7 +90,7 @@ export const addUsersToDatabase = async (
     const dataManager = dm;
     let addedUsers = [];
     for (const user of users) {
-      const addedUser = await dm.addItemToCollection(USERS, user);
+      const addedUser = await createUser(user);
       addedUsers.push(addedUser);
     }
     return addedUsers;
