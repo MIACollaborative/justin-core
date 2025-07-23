@@ -128,9 +128,10 @@ export class ChangeListenerManager extends EventEmitter {
    * `ChangeListenerManager` and does not override the default `EventEmitter` behavior.
    */
   public clearChangeListeners(): void {
-    for (const { stream, cleanup } of this.changeListeners.values()) {
+    for (const { stream, cleanup, collectionName, changeType } of this.changeListeners.values()) {
       cleanup();
       stream.destroy();
+      Log.info(`Change listener for ${collectionName}:${changeType} removed.`);
     }
     this.changeListeners.clear();
     Log.info(`All custom change listeners removed.`);

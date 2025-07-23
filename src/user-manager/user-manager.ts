@@ -36,13 +36,9 @@ export const _checkInitialization = (): void => {
  * @returns {Promise<void>} Resolves when initialization is complete.
  */
 const init = async (): Promise<void> => {
-  Log.info('Entering UserManager.init, about to init dm');
   await dm.init();
-  Log.info('In UserManager.init, after dm.init');
   await loadUsers();
-  Log.info('In UserManager.init, after loadUsers');
   setupChangeListeners();
-  Log.info('In UserManager.init, after setupChangeListeners');
 };
 
 /**
@@ -94,7 +90,7 @@ export const addUsersToDatabase = async (
     const dataManager = dm;
     let addedUsers = [];
     for (const user of users) {
-      const addedUser = await dm.addItemToCollection(USERS, user);
+      const addedUser = await createUser(user);
       addedUsers.push(addedUser);
     }
     return addedUsers;
@@ -118,6 +114,7 @@ const createUser = async (initialData: object = {}): Promise<JUser> => {
     throw new Error('Failed to create user: result is null');
   }
   _users.set(addedUser.id, addedUser);
+  Log.info('User created:', addedUser);
   return addedUser;
 };
 
