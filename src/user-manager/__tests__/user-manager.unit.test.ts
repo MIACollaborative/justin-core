@@ -69,6 +69,14 @@ describe("UserManager", () => {
     sandbox.restore();
   });
 
+  describe("init", () => {
+    
+
+
+  });
+
+
+
 
   describe("isIdentifierUnique", () => {
     it("returns false and message if identifier already exists", async () => {
