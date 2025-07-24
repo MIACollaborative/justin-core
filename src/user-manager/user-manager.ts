@@ -67,23 +67,6 @@ const refreshCache = async (): Promise<void> => {
   });
 };
 
-
-
-/**
- * Ensures that the DataManager has been initialized before any user
- * management operation can proceed.
- *
- * @throws Error if DataManager is not initialized.
- * @private
- */
-export const _checkInitialization = (): void => {
-  if (!dm.getInitializationStatus()) {
-    throw new Error("UserManager has not been initialized");
-  }
-};
-
-
-
 /**
  * Transforms a document to use `id` instead of `_id`.
  * @param {any} doc - The raw document from the database.
@@ -125,6 +108,25 @@ const setupChangeListeners = (): void => {
     }
   );
 };
+
+
+
+/**
+ * Ensures that the DataManager has been initialized before any user
+ * management operation can proceed.
+ *
+ * @throws Error if DataManager is not initialized.
+ * @private
+ */
+export const _checkInitialization = (): void => {
+  if (!dm.getInitializationStatus()) {
+    throw new Error("UserManager has not been initialized");
+  }
+};
+
+
+
+
 
 /**
  * Modify the uniqueIdentifier of a user
@@ -435,7 +437,6 @@ export const UserManager = {
   createUser,
   addUsersToDatabase,
   deleteUser,
-  refreshCache,
   modifyUserUniqueIdentifier,
   updateUserByUniqueIdentifier,
   doesUserUniqueIdentifierExist,
@@ -456,5 +457,6 @@ export const UserManager = {
 export const TestingUserManager = {
   ...UserManager,
   _checkInitialization,
+  refreshCache,
   _users, // Exposes the in-memory cache for testing purposes
 };
