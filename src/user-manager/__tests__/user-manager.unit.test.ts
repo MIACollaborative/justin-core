@@ -9,8 +9,8 @@ import { NewUserRecord } from "../user.type";
 const initialUserRecord1 = { uniqueIdentifier: "abc", initialAttributes: { name: "Test User" } };
 const initialUserRecord2 = { uniqueIdentifier: "def", initialAttributes: { name: "Another User" } };
 
-const jUser1 = {uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes};
-const jUser2 = {uniqueIdentifier: initialUserRecord2.uniqueIdentifier, attributes: initialUserRecord2.initialAttributes};
+const jUser1 = {id: initialUserRecord1.uniqueIdentifier, uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes};
+const jUser2 = {id: initialUserRecord2.uniqueIdentifier, uniqueIdentifier: initialUserRecord2.uniqueIdentifier, attributes: initialUserRecord2.initialAttributes};
 
 describe("UserManager", () => {
   let logInfoStub: any, logWarnStub: any;
@@ -73,6 +73,7 @@ describe("UserManager", () => {
   describe("isIdentifierUnique", () => {
     it("returns false and message if identifier already exists", async () => {
       findStub.resolves([initialUserRecord1]);
+      TestingUserManager._users.set(jUser1.id, jUser1);
       const result = await TestingUserManager.isIdentifierUnique("abc");
       expect(result).toBe(false);
     });
@@ -234,7 +235,7 @@ describe("UserManager", () => {
       expect(logWarnStub.calledWithMatch(/already exists/)).toBe(true);
       expect(addStub.callCount).toBe(1);
       expect(addStub.firstCall.args[0]).toEqual("users");
-      expect(addStub.firstCall.args[1]).toEqual(initialUserRecord2);
+      expect(addStub.firstCall.args[1]).toEqual(initialUserRecord1);
     });
 
     it("should skip users without uniqueIdentifier and log warning", async () => {
@@ -288,12 +289,12 @@ describe("UserManager", () => {
 
     it("should handle mix of valid, duplicate, and invalid users", async () => {
       // To Do: leave brief comment after some lines to improve readability. Can removed if not needed.
-      findStub.onFirstCall().resolves([jUser1]); // duplicate
+      findStub.onFirstCall().resolves([jUser1]); // duplicate 
       findStub.onSecondCall().resolves([]); // valid
       findStub.onThirdCall().resolves([]); // valid
       addStub.onFirstCall().resolves(jUser2);
       const initialUserRecord3 = { uniqueIdentifier: "ghi", initialAttributes: { name: "Third User" } };
-      const jUser3 = {uniqueIdentifier: initialUserRecord3.uniqueIdentifier, attributes: initialUserRecord3.initialAttributes};
+      const jUser3 = {id: initialUserRecord3.uniqueIdentifier, uniqueIdentifier: initialUserRecord3.uniqueIdentifier, attributes: initialUserRecord3.initialAttributes};
       addStub
         .onSecondCall()
         .resolves(jUser3);

@@ -139,8 +139,8 @@ describe('Event Queue', () => {
   describe('processEventQueue', () => {
     it('should process events successfully', async () => {
       const mockUsers: JUser[] = [
-        { id: 'user1', uniqueIdentifier: 'user1-unique', name: 'User 1' } as JUser,
-        { id: 'user2', uniqueIdentifier: 'user2-unique', name: 'User 2' } as JUser,
+        { id: 'user1', uniqueIdentifier: 'user1-unique', attributes:{name: 'User 1'} } as JUser,
+        { id: 'user2', uniqueIdentifier: 'user2-unique', attributes:{name: 'User 2'} } as JUser,
       ];
 
       const mockEvents: JEvent[] = [
@@ -196,7 +196,7 @@ describe('Event Queue', () => {
     });
 
     it('should handle processing errors gracefully', async () => {
-      const mockUsers: JUser[] = [{ id: 'user1', uniqueIdentifier: 'user1-unique', name: 'User 1' } as JUser];
+      const mockUsers: JUser[] = [{ id: 'user1', uniqueIdentifier: 'user1-unique', attributes:{name: 'User 1'} } as JUser];
       const mockEvents: JEvent[] = [
         {
           id: 'event1',
@@ -317,7 +317,7 @@ describe('Event Queue', () => {
         generatedTimestamp: new Date(),
       } as JEvent;
 
-      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', name: 'User 1' } as JUser;
+      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', attributes:{name: 'User 1'} } as JUser;
       const mockTask = { name: 'task1' } as Task;
 
       getHandlersForEventTypeStub.returns(['task1']);
@@ -342,7 +342,7 @@ describe('Event Queue', () => {
         generatedTimestamp: new Date(),
       } as JEvent;
 
-      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', name: 'User 1' } as JUser;
+      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', attributes:{name: 'User 1'} } as JUser;
       const mockDecisionRule = { name: 'rule1' } as DecisionRule;
 
       getHandlersForEventTypeStub.returns(['rule1']);
@@ -367,7 +367,7 @@ describe('Event Queue', () => {
         generatedTimestamp: new Date(),
       } as JEvent;
 
-      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', name: 'User 1' } as JUser;
+      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', attributes:{name: 'User 1'} } as JUser;
 
       getHandlersForEventTypeStub.returns(['unknown_handler']);
       getTaskByNameStub.returns(undefined);
@@ -391,7 +391,7 @@ describe('Event Queue', () => {
         generatedTimestamp: new Date(),
       } as JEvent;
 
-      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', name: 'User 1' } as JUser;
+      const mockUser: JUser = { id: 'user1', uniqueIdentifier: 'user1-unique', attributes:{name: 'User 1'} } as JUser;
       const mockTask = { name: 'task1' } as Task;
 
       getHandlersForEventTypeStub.returns(['task1']);

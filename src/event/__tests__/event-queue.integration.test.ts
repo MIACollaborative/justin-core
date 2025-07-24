@@ -104,11 +104,11 @@ describe('Event Queue Integration', () => {
       const args = executeTaskStub.args;
       expect(args[0][0]).toMatchObject(mockTask);
       expect(args[0][1]).toMatchObject(processedEvent);
-      expect(args[0][2]).toMatchObject({uniqueIdentifier: user1!.uniqueIdentifier, attributes: user1!.initialAttributes});
+      expect(args[0][2]).toMatchObject(user1!);
       expect(args[1][0]).toMatchObject(mockTask);
       expect(args[1][1]).toMatchObject(processedEvent);
-      expect(args[1][2]).toMatchObject({uniqueIdentifier: user2!.uniqueIdentifier, attributes: user2!.initialAttributes});
-      
+      expect(args[1][2]).toMatchObject(user2!);
+
       // Verify lifecycle methods were called
       const beArgs = mockTask.beforeExecution.args;
       expect(beArgs[0][0]).toMatchObject(processedEvent);

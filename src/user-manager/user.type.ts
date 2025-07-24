@@ -1,7 +1,7 @@
 export type JUser = {
   id: string;
   uniqueIdentifier: string;
-  [key: string]: any;
+  attributes: Record<string, any>;
 };
 
 export type NewUserRecord = {
