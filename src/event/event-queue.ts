@@ -41,6 +41,7 @@ export const publishEvent = async (
     const eventInstance: JEvent = {
       eventType,
       generatedTimestamp,
+      publishedTimestamp: new Date(),
       eventDetails,
     };
 
