@@ -24,6 +24,7 @@ import { Logger } from './logger/logger.interface';
 import { UserManager } from './user-manager/user-manager';
 import { IntervalTimerEventGenerator } from './event/interval-timer-event-generator';
 import { IntervalTimerEventGeneratorOptions } from './event/event.type';
+import { NewUserRecord } from './user-manager/user.type';
 
 
 /**
@@ -144,7 +145,7 @@ export class JustInWrapper {
     Log.info('Engine stopped and cleared of all events.');
   }
 
-  public async addUsersToDatabase(users: object[]) : Promise<void> {
+  public async addUsersToDatabase(users: NewUserRecord[]) : Promise<void> {
     await UserManager.addUsers(users);
   }
 

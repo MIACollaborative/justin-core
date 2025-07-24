@@ -371,14 +371,14 @@ export const UserManager = {
   init,
   addUser,
   addUsers,
-  deleteUser: deleteUserById,
+  deleteUserById,
   updateUserByUniqueIdentifier,
   getAllUsers,
   getUserByUniqueIdentifier,
-  updateUser: updateUserById,
+  updateUserById,
   deleteUserByUniqueIdentifier,
   deleteAllUsers,
-  shutdown: shutdown,
+  shutdown,
 };
 
 /**
