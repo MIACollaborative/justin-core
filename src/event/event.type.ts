@@ -7,13 +7,11 @@ import {
 } from '../handlers/handler.type';
 
 export type JEvent = {
-  id: string;
+  id?: string;
   eventType: string;
-  name: string;
-  procedures: Array<DecisionRule['name'] | Task['name']>;
-  timestamp?: Date;
+  generatedTimestamp: Date;
+  publishedTimestamp?: Date;
   eventDetails?: Record<string, any>;
-  interval?: number;
 };
 
 export type RegisterJEvent = Omit<JEvent, 'id'>;
@@ -28,5 +26,11 @@ export type RecordResultData = {
   event: string;
   name: string;
   steps: StepRecord[];
+};
+
+export type IntervalTimerEventGeneratorOptions = {
+  simulatedStartDate?: Date;
+  simulatedTickDurationInMs?: number;
+  simulatedTickCountMax?: number;
 };
 

@@ -60,7 +60,6 @@ const init = async (): Promise<void> => {
   try {
     await _client.connect();
     Log.dev(`MongoDBManager connected to ${uri}`);
-    Log.dev(`MongoDBManager timeoutMS: ${(_client as any).timeoutMS}`);
     _isConnected = true;
     _db = _client.db(dbName);
     Log.dev(`MongoDBManager initialized with database ${dbName}`);
@@ -81,7 +80,7 @@ const close = async (): Promise<void> => {
   try {
     await _client!.close();
     _isConnected = false;
-    Log.dev("MongoDBManager connection closed");
+    Log.dev('MongoDBManager MongoDB client connection closed');
   } catch (error) {
     handleDbError("Error closing MongoDBManager connection", error);
   }
@@ -161,7 +160,7 @@ const getCollectionChangeReadable = (
         (nextDoc as InsertedOrUpatedDocRecord).fullDocument
       );
     }
-
+    Log.dev(`Pushing to stream: ${JSON.stringify(normalizedDoc)}`);
     collectionChangeReadable.push(normalizedDoc);
   };
 
