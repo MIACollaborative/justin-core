@@ -25,7 +25,7 @@ const clm = ChangeListenerManager.getInstance();
  */
 const init = async (): Promise<void> => {
   await dm.init();
-  await loadUsers();
+  await refreshCache();
   setupChangeListeners();
 };
 
@@ -48,6 +48,23 @@ const shutdown = () => {
     USERS,
     CollectionChangeType.DELETE
   );
+};
+
+
+/**
+ * Loads all users from the database into the in-memory cache.
+ *
+ * @returns {Promise<void>} Resolves when users are loaded into the cache.
+ */
+const refreshCache = async (): Promise<void> => {
+  _checkInitialization();
+  _users.clear();
+  const userDocs =
+    (await dm.getAllInCollection<JUser>(USERS)) || [];
+  userDocs.forEach((user: any) => {
+    const jUser: JUser = transformUserDocument(user);
+    _users.set(jUser.id, jUser);
+  });
 };
 
 
@@ -346,21 +363,7 @@ const deleteUser = async (userId: string): Promise<void> => {
   _users.delete(userId);
 };
 
-/**
- * Loads all users from the database into the in-memory cache.
- *
- * @returns {Promise<void>} Resolves when users are loaded into the cache.
- */
-const loadUsers = async (): Promise<void> => {
-  _checkInitialization();
-  _users.clear();
-  const userDocs =
-    (await dm.getAllInCollection<JUser>(USERS)) || [];
-  userDocs.forEach((user: any) => {
-    const jUser: JUser = transformUserDocument(user);
-    _users.set(jUser.id, jUser);
-  });
-};
+
 
 /**
  * Retrieves all cached users.
@@ -432,7 +435,7 @@ export const UserManager = {
   createUser,
   addUsersToDatabase,
   deleteUser,
-  loadUsers,
+  refreshCache,
   modifyUserUniqueIdentifier,
   updateUserByUniqueIdentifier,
   doesUserUniqueIdentifierExist,
