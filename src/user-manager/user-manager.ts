@@ -162,7 +162,7 @@ const updateUserByUniqueIdentifier = async (
 
   const {
     id,
-    uniqueIdentifier,
+    uniqueIdentifier: _,
     ...dataToUpdate
   } = updateData as { [key: string]: any };
 
