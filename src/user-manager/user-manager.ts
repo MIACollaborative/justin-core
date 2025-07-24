@@ -5,7 +5,7 @@ import { JUser } from "./user.type";
 import { handleDbError } from "../data-manager/data-manager.helpers";
 import { CollectionChangeType } from "../data-manager/data-manager.type";
 import { Log } from "../logger/logger-manager";
-
+import { NewUserRecord } from "./user.type";
 /**
  * @type {Map<string, JUser>} _users - In-memory cache for user data.
  * This Map enables quick lookups, insertions, and deletions by `id`.
@@ -132,7 +132,7 @@ export const _checkInitialization = (): void => {
  * @throws {Error} If no user is provided or if the user fails validation.
  */
 export const addUser = async (
-  user: object
+  user: NewUserRecord
 ): Promise<(JUser | null)> => {
   if (!user || typeof user !== "object" || Array.isArray(user)) {
     const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
@@ -141,20 +141,16 @@ export const addUser = async (
   }
 
   const userUniqueIdentifierExist = await doesUserUniqueIdentifierExist(user);
-  const userWithId = user as {
-    uniqueIdentifier: string;
-    [key: string]: any;
-  };
   const userDataCheck = await isUserUniqueIdentifierNew(
-    userWithId["uniqueIdentifier"]
+    user["uniqueIdentifier"]
   );
   if (!userUniqueIdentifierExist["result"] || !userDataCheck["result"]) {
     Log.warn(
-      `${userDataCheck["message"]} - User: ${JSON.stringify(userWithId)}`
+      `${userDataCheck["message"]} - User: ${JSON.stringify(user)}`
     );
     return null;
   }
-  
+
   try {
     const addedUser = (await dm.addItemToCollection(
       USERS,
@@ -167,6 +163,35 @@ export const addUser = async (
 };
 
 
+
+/**
+ * Adds multiple users to the Users collection in a single operation.
+ * @param {NewUserRecord[]} users - An array of user objects to add.
+ * @returns {Promise<(JUser | null)[]>} Resolves with the added users or null if the operation fails.
+ * @throws {Error} If no users are provided or if any user fails validation.
+ */
+export const addUsers = async (
+  users: NewUserRecord[]
+): Promise<(JUser | null)[]> => {
+
+  if (!Array.isArray(users) || users.length === 0) {
+    throw new Error("No users provided for insertion.");
+  }
+
+  try {
+    let addedUsers: JUser[] = [];
+
+    for (const user of users) {
+      const addedUser = await addUser(user);
+      if (addedUser) {
+        addedUsers.push(addedUser);
+      }
+    }
+    return addedUsers;
+  } catch (error) {
+    return handleDbError("Failed to add users:", error);
+  }
+};
 
 
 
@@ -477,7 +502,7 @@ const deleteAllUsers = async (): Promise<void> => {
 export const UserManager = {
   init,
   createUser,
-  addUsersToDatabase,
+  addUsersToDatabase: addUsers,
   deleteUser,
   modifyUserUniqueIdentifier,
   updateUserByUniqueIdentifier,

@@ -3,3 +3,8 @@ export type JUser = {
   uniqueIdentifier: string;
   [key: string]: any;
 };
+
+export type NewUserRecord = {
+  uniqueIdentifier: string,
+  initialAttributes: Record<string, any>
+}
