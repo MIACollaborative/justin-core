@@ -70,9 +70,54 @@ describe("UserManager", () => {
   });
 
   describe("init", () => {
-    
+    it("should call DataManager.init and populate _users cache", async () => {
+      // Arrange
+      getAllInCollectionStub.resolves([jUser1, jUser2]);
+      // Act
+      await TestingUserManager.init();
+      // Assert
+      expect(initStub.calledOnce).toBe(true);
+      expect(getAllInCollectionStub.calledOnceWith(USERS)).toBe(true);
+      expect(TestingUserManager._users.size).toBe(2);
+      expect(TestingUserManager._users.get(jUser1.id)).toBeDefined();
+      expect(TestingUserManager._users.get(jUser2.id)).toBeDefined();
+    });
 
+    it("should not re-initialize if already initialized", async () => {
+      // Arrange
+      getInitializationStatusStub.returns(true);
+      // Act
+      await TestingUserManager.init();
+      // Assert
+      expect(initStub.notCalled).toBe(true);
+      expect(getAllInCollectionStub.notCalled).toBe(true);
+    });
 
+    it("should clear _users cache before populating", async () => {
+      // Arrange
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      getAllInCollectionStub.resolves([initialUserRecord2]);
+      // Act
+      await TestingUserManager.init();
+      // Assert
+      expect(TestingUserManager._users.size).toBe(1);
+      expect(TestingUserManager._users.get(jUser2.id)).toBeDefined();
+      expect(TestingUserManager._users.get(jUser1.id)).toBeUndefined();
+    });
+
+    it("should throw if DataManager.init throws", async () => {
+      // Arrange
+      initStub.rejects(new Error("init failed"));
+      // Act & Assert
+      await expect(TestingUserManager.init()).rejects.toThrow("init failed");
+    });
+
+    it("should throw if getAllInCollection throws", async () => {
+      // Arrange
+      getAllInCollectionStub.rejects(new Error("db error"));
+      // Act & Assert
+      await expect(TestingUserManager.init()).rejects.toThrow("db error");
+    });
   });
 
 
