@@ -17,6 +17,42 @@ const dm = DataManager.getInstance();
 const clm = ChangeListenerManager.getInstance();
 
 /**
+ * Initializes the UserManager by initializing the DataManager,
+ * loading users into the cache, and setting up listeners for
+ * user-related database changes.
+ *
+ * @returns {Promise<void>} Resolves when initialization is complete.
+ */
+const init = async (): Promise<void> => {
+  await dm.init();
+  await loadUsers();
+  setupChangeListeners();
+};
+
+
+/**
+ * Shuts down the UserManager by removing all change listeners
+ *
+ * @returns {void}
+ */
+const shutdown = () => {
+  clm.removeChangeListener(
+    USERS,
+    CollectionChangeType.INSERT
+  );
+  clm.removeChangeListener(
+    USERS,
+    CollectionChangeType.UPDATE
+  );
+  clm.removeChangeListener(
+    USERS,
+    CollectionChangeType.DELETE
+  );
+};
+
+
+
+/**
  * Ensures that the DataManager has been initialized before any user
  * management operation can proceed.
  *
@@ -29,18 +65,7 @@ export const _checkInitialization = (): void => {
   }
 };
 
-/**
- * Initializes the UserManager by initializing the DataManager,
- * loading users into the cache, and setting up listeners for
- * user-related database changes.
- *
- * @returns {Promise<void>} Resolves when initialization is complete.
- */
-const init = async (): Promise<void> => {
-  await dm.init();
-  await loadUsers();
-  setupChangeListeners();
-};
+
 
 /**
  * Transforms a document to use `id` instead of `_id`.
@@ -394,20 +419,7 @@ const deleteAllUsers = async (): Promise<void> => {
   _users.clear();
 };
 
-const stopUserManager = () => {
-  clm.removeChangeListener(
-    USERS,
-    CollectionChangeType.INSERT
-  );
-  clm.removeChangeListener(
-    USERS,
-    CollectionChangeType.UPDATE
-  );
-  clm.removeChangeListener(
-    USERS,
-    CollectionChangeType.DELETE
-  );
-};
+
 
 /**
  * UserManager provides methods for managing users.
@@ -429,7 +441,7 @@ export const UserManager = {
   getUser,
   updateUser,
   deleteAllUsers,
-  stopUserManager,
+  shutdown: shutdown,
 };
 
 /**

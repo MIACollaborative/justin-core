@@ -101,7 +101,7 @@ export class JustInWrapper {
         return;
       }
       await this.stopEngine();
-      UserManager.stopUserManager();
+      UserManager.shutdown();
       await this.dataManager.close();
       this.intervalTimerEventGenerators.clear();
       this.eventHandlerManager.clearEventHandlers();
