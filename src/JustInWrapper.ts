@@ -145,7 +145,7 @@ export class JustInWrapper {
   }
 
   public async addUsersToDatabase(users: object[]) : Promise<void> {
-    await UserManager.addUsersToDatabase(users);
+    await UserManager.addUsers(users);
   }
 
   /**

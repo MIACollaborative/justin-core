@@ -369,7 +369,8 @@ const isIdentifierUnique = async (
  */
 export const UserManager = {
   init,
-  addUsersToDatabase: addUsers,
+  addUser,
+  addUsers,
   deleteUser: deleteUserById,
   updateUserByUniqueIdentifier,
   getAllUsers,

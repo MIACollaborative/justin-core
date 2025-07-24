@@ -80,8 +80,8 @@ describe('Event Queue Integration', () => {
       getTaskByNameStub.returns(mockTask as any);
       
       // Create test users
-      const user1 = await UserManager.createUser({ name: 'Test User 1' });
-      const user2 = await UserManager.createUser({ name: 'Test User 2' });
+      const user1 = await UserManager.addUser({ name: 'Test User 1' });
+      const user2 = await UserManager.addUser({ name: 'Test User 2' });
       
       // Publish an event
       const eventDetails = { testData: 'value' };
@@ -132,7 +132,7 @@ describe('Event Queue Integration', () => {
       getTaskByNameStub.returns(mockTask as any);
       
       // Create test user
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
       
       // Publish multiple events
       await EventQueue.publishEvent('TEST_EVENT', new Date(), { id: 1 });
@@ -153,7 +153,7 @@ describe('Event Queue Integration', () => {
 
     it('should skip events without handlers', async () => {
       // Create test user
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
       
       // Publish event without registering handlers
       await EventQueue.publishEvent('UNHANDLED_EVENT', new Date());
@@ -184,7 +184,7 @@ describe('Event Queue Integration', () => {
       getDecisionRuleByNameStub.returns(mockDecisionRule as any);
       
       // Create test user
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
       
       // Publish an event
       await EventQueue.publishEvent('TEST_EVENT', new Date());
@@ -219,7 +219,7 @@ describe('Event Queue Integration', () => {
       executeTaskStub.rejects(new Error('Task execution failed'));
       
       // Create test user
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
       
       // Publish an event
       await EventQueue.publishEvent('TEST_EVENT', new Date());
@@ -247,7 +247,7 @@ describe('Event Queue Integration', () => {
       };
       getTaskByNameStub.returns(mockTask as any);
       
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
 
       const addItemToCollectionStub = sinon.stub(dataManager, 'addItemToCollection');
       addItemToCollectionStub.withArgs('archived_events').rejects(new Error('Archive failed')); // Allow other calls to go through normally
@@ -310,7 +310,7 @@ describe('Event Queue Integration', () => {
       getTaskByNameStub.returns(mockTask as any);
       
       // Create test user
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
       
       // Setup listener
       EventQueue.setupEventQueueListener();
@@ -355,7 +355,7 @@ describe('Event Queue Integration', () => {
       getDecisionRuleByNameStub.withArgs('rule1').returns(mockDecisionRule as any);
       
       // Create test user
-      await UserManager.createUser({ name: 'Test User' });
+      await UserManager.addUser({ name: 'Test User' });
       
       // Publish an event
       await EventQueue.publishEvent('MIXED_EVENT', new Date());

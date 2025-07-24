@@ -28,7 +28,7 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 
 // UserManager stubs
 const userManagerInitStub = sinon.stub(UserManager, 'init');
-const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsersToDatabase');
+const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
 const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
 // EventQueue stubs

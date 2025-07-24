@@ -295,18 +295,18 @@ describe("UserManager", () => {
     });
   });
 
-  describe("addUsersToDatabase", () => {
+  describe("addUsers", () => {
     it("should throw error if users is not an array", async () => {
       // @ts-ignore
-      await expect(UserManager.addUsersToDatabase(null)).rejects.toThrow(/No users provided/);
+      await expect(UserManager.addUsers(null)).rejects.toThrow(/No users provided/);
       // @ts-ignore
-      await expect(UserManager.addUsersToDatabase(undefined)).rejects.toThrow(/No users provided/);
+      await expect(UserManager.addUsers(undefined)).rejects.toThrow(/No users provided/);
       // @ts-ignore
-      await expect(UserManager.addUsersToDatabase("not-an-array")).rejects.toThrow(/No users provided/);
+      await expect(UserManager.addUsers("not-an-array")).rejects.toThrow(/No users provided/);
       // @ts-ignore
-      await expect(UserManager.addUsersToDatabase(123)).rejects.toThrow(/No users provided/);
+      await expect(UserManager.addUsers(123)).rejects.toThrow(/No users provided/);
       // @ts-ignore
-      await expect(UserManager.addUsersToDatabase({})).rejects.toThrow(/No users provided/);
+      await expect(UserManager.addUsers({})).rejects.toThrow(/No users provided/);
     });
 
 
@@ -315,7 +315,7 @@ describe("UserManager", () => {
       addStub.onFirstCall().resolves(fakeUser);
       addStub.onSecondCall().resolves(fakeUser2);
       const users = [fakeUser, fakeUser2];
-      const result = await UserManager.addUsersToDatabase(users);
+      const result = await UserManager.addUsers(users);
       expect(addStub.callCount).toBe(2);
       expect(result[0]).toEqual(fakeUser);
       expect(result[1]).toEqual(fakeUser2);
@@ -325,7 +325,7 @@ describe("UserManager", () => {
       findStub.resolves([]);
       addStub.resolves(fakeUser2);
       const users = [null, undefined, 123, "string", fakeUser2];
-      const result = await UserManager.addUsersToDatabase(users as any);
+      const result = await UserManager.addUsers(users as any);
       expect(logWarnStub.callCount).toBeGreaterThanOrEqual(1);
       expect(addStub.callCount).toBe(1);
       expect(result).toEqual([fakeUser2]);
@@ -336,7 +336,7 @@ describe("UserManager", () => {
       findStub.onSecondCall().resolves([]); // new
       addStub.onFirstCall().resolves(fakeUser2);
       const users = [fakeUser, fakeUser2];
-      const result = await UserManager.addUsersToDatabase(users);
+      const result = await UserManager.addUsers(users);
       expect(result).toEqual([fakeUser2]);
       expect(addStub.callCount).toBe(1);
     });
@@ -346,7 +346,7 @@ describe("UserManager", () => {
       findStub.onSecondCall().resolves([]);
       addStub.onFirstCall().resolves(fakeUser2);
       const users = [fakeUser, fakeUser2];
-      await expect(UserManager.addUsersToDatabase(users)).resolves.toEqual([
+      await expect(UserManager.addUsers(users)).resolves.toEqual([
         fakeUser2,
       ]);
       expect(logWarnStub.called).toBe(true);
@@ -361,7 +361,7 @@ describe("UserManager", () => {
       const userWithoutUid = { id: "3", name: "No UID" };
       addStub.resolves(fakeUser2);
       const users = [userWithoutUid, fakeUser2];
-      const result = await UserManager.addUsersToDatabase(users);
+      const result = await UserManager.addUsers(users);
       expect(logWarnStub.called).toBe(true);
       expect(logWarnStub.calledWithMatch(/UniqueIdentifier is missing/)).toBe(
         true
@@ -379,7 +379,7 @@ describe("UserManager", () => {
       };
       addStub.resolves(fakeUser2);
       const users = [userWithEmptyUid, fakeUser2];
-      const result = await UserManager.addUsersToDatabase(users);
+      const result = await UserManager.addUsers(users);
       expect(logWarnStub.called).toBe(true);
       expect(logWarnStub.calledWithMatch(/UniqueIdentifier is missing/)).toBe(
         true
@@ -389,7 +389,7 @@ describe("UserManager", () => {
     });
 
     it("should throw error if users array is empty", async () => {
-      await expect(UserManager.addUsersToDatabase([])).rejects.toThrow(
+      await expect(UserManager.addUsers([])).rejects.toThrow(
         /No users provided/
       );
     });
@@ -399,7 +399,7 @@ describe("UserManager", () => {
       addStub.onFirstCall().resolves(fakeUser);
       addStub.onSecondCall().rejects(new Error("fail"));
       const users = [fakeUser, fakeUser2];
-      await expect(UserManager.addUsersToDatabase(users)).rejects.toThrow(
+      await expect(UserManager.addUsers(users)).rejects.toThrow(
         "fail"
       );
       expect(addStub.callCount).toBe(2);
@@ -422,7 +422,7 @@ describe("UserManager", () => {
         {}, // invalid
         null, // invalid
       ];
-      const result = await UserManager.addUsersToDatabase(users as any);
+      const result = await UserManager.addUsers(users as any);
       expect(result.length).toBe(2);
       expect(addStub.callCount).toBe(2);
       expect(logWarnStub.callCount).toBeGreaterThanOrEqual(2);
