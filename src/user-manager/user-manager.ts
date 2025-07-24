@@ -134,6 +134,8 @@ export const _checkInitialization = (): void => {
 export const addUser = async (
   user: NewUserRecord
 ): Promise<(JUser | null)> => {
+    _checkInitialization();
+    
   if (!user || typeof user !== "object" || Array.isArray(user)) {
     const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
     Log.warn(msg);
@@ -152,9 +154,11 @@ export const addUser = async (
   }
 
   try {
+    const {uniqueIdentifier, initialAttributes } = user;
+    const convertedUser: object = {uniqueIdentifier, attributes: initialAttributes};
     const addedUser = (await dm.addItemToCollection(
       USERS,
-      user
+      convertedUser
     )) as JUser;
     return addedUser;
   } catch (error) {
@@ -173,6 +177,8 @@ export const addUser = async (
 export const addUsers = async (
   users: NewUserRecord[]
 ): Promise<(JUser | null)[]> => {
+
+
 
   if (!Array.isArray(users) || users.length === 0) {
     throw new Error("No users provided for insertion.");
@@ -193,36 +199,10 @@ export const addUsers = async (
   }
 };
 
-
-
-/**
- * Modify the uniqueIdentifier of a user
- * @param {string} id - the user id.
- * @param {string} userUniqueIdentifierValueNew - the new uniqueIdentifier value.
- * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
- */
-const modifyUserUniqueIdentifier = async (
-  id: string,
-  userUniqueIdentifierValueNew: string
-): Promise<JUser | null> => {
-
-  if (!id || !userUniqueIdentifierValueNew) {
-    const msg = `Invalid parameters: id (${id}) and userUniqueIdentifierValueNew (${userUniqueIdentifierValueNew}) are required.`;
-    Log.warn(msg);
-    throw new Error(msg);
-  }
-
-  const updatedUser: JUser | null =
-    (await dm.updateItemByIdInCollection(USERS, id, {
-      uniqueIdentifier: userUniqueIdentifierValueNew,
-    })) as JUser;
-  return updatedUser;
-};
-
 /**
  * Update the properties of a user by uniqueIdentifier
  * @param {string} userUniqueIdentifier - the uniqueIdentifier value.
- * @param {object} updateData - the data to update.
+ * @param {object} attributesToUpdate - the data to update.
  * @returns {Promise<JUser | null>} Resolves with the updated JUser or `null` on error.
  * @throws {Error} If trying to update the uniqueIdentifier field directly.
  * If the user with the given uniqueIdentifier does not exist.
@@ -230,7 +210,7 @@ const modifyUserUniqueIdentifier = async (
  */
 const updateUserByUniqueIdentifier = async (
   userUniqueIdentifier: string,
-  updateData: Record<string, any>
+  attributesToUpdate: Record<string, any>
 ): Promise<JUser | null> => {
 
   if (!userUniqueIdentifier || typeof userUniqueIdentifier !== "string") {
@@ -239,13 +219,13 @@ const updateUserByUniqueIdentifier = async (
     throw new Error(msg);
   }
 
-  if ("uniqueIdentifier" in updateData) {
+  if ("uniqueIdentifier" in attributesToUpdate) {
     const msg = `Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead.`;
     throw new Error(msg);
   }
 
-  if (!updateData || typeof updateData !== "object" || Object.keys(updateData).length === 0 || Array.isArray(updateData)) {
-    const msg = `Invalid updateData: ${JSON.stringify(updateData)}. It must be a non-null and non-empty object and should not be an array.`;
+  if (!attributesToUpdate || typeof attributesToUpdate !== "object" || Object.keys(attributesToUpdate).length === 0 || Array.isArray(attributesToUpdate)) {
+    const msg = `Invalid updateData: ${JSON.stringify(attributesToUpdate)}. It must be a non-null and non-empty object and should not be an array.`;
     Log.warn(msg);
     throw new Error(msg);
   }
@@ -273,15 +253,72 @@ const updateUserByUniqueIdentifier = async (
 
   const {
     id,
-    uniqueIdentifier: _,
+    uniqueIdentifier,
     ...dataToUpdate
-  } = updateData as { [key: string]: any };
+  } = attributesToUpdate as { [key: string]: any };
 
-  const updatedUser: JUser | null =
-    (await dm.updateItemByIdInCollection(USERS, theUser.id, dataToUpdate)) as JUser;
+  const updatedUser: JUser  | null = await updateUserById(theUser.id, dataToUpdate);
 
   return updatedUser;
 };
+
+
+/**
+ * Updates a user's data in both the database and the in-memory cache.
+ *
+ * @param {string} userId - The user's ID.
+ * @param {object} attributesToUpdate - New data to update.
+ * @returns {Promise<JUser>} Resolves to the updated user.
+ */
+const updateUserById = async (
+  userId: string,
+  attributesToUpdate: object
+): Promise<JUser> => {
+  _checkInitialization();
+  const updatedUser =
+    (await dm.updateItemByIdInCollection(
+      USERS,
+      userId,
+      attributesToUpdate
+    )) as JUser;
+  if (!updatedUser) {
+    throw new Error(`Failed to update user: ${userId}`);
+  }
+  _users.set(updatedUser.id, updatedUser);
+  return updatedUser;
+};
+
+
+
+
+
+
+
+/**
+ * Modify the uniqueIdentifier of a user
+ * @param {string} id - the user id.
+ * @param {string} userUniqueIdentifierValueNew - the new uniqueIdentifier value.
+ * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
+ */
+const modifyUserUniqueIdentifier = async (
+  id: string,
+  userUniqueIdentifierValueNew: string
+): Promise<JUser | null> => {
+
+  if (!id || !userUniqueIdentifierValueNew) {
+    const msg = `Invalid parameters: id (${id}) and userUniqueIdentifierValueNew (${userUniqueIdentifierValueNew}) are required.`;
+    Log.warn(msg);
+    throw new Error(msg);
+  }
+
+  const updatedUser: JUser | null =
+    (await dm.updateItemByIdInCollection(USERS, id, {
+      uniqueIdentifier: userUniqueIdentifierValueNew,
+    })) as JUser;
+  return updatedUser;
+};
+
+
 
 /**
  * Confirm that unique identifier is present for a user.
@@ -455,30 +492,7 @@ const getUser = (userId: string): JUser | null => {
   return _users.get(userId) || null;
 };
 
-/**
- * Updates a user's data in both the database and the in-memory cache.
- *
- * @param {string} userId - The user's ID.
- * @param {object} updatedData - New data to update.
- * @returns {Promise<JUser>} Resolves to the updated user.
- */
-const updateUser = async (
-  userId: string,
-  updatedData: object
-): Promise<JUser> => {
-  _checkInitialization();
-  const updatedUser =
-    (await dm.updateItemByIdInCollection(
-      USERS,
-      userId,
-      updatedData
-    )) as JUser;
-  if (!updatedUser) {
-    throw new Error(`Failed to update user: ${userId}`);
-  }
-  _users.set(updatedUser.id, updatedUser);
-  return updatedUser;
-};
+
 
 /**
  * Deletes all users from the database and clears the in-memory cache.
@@ -510,7 +524,7 @@ export const UserManager = {
   isUserUniqueIdentifierNew,
   getAllUsers,
   getUser,
-  updateUser,
+  updateUser: updateUserById,
   deleteAllUsers,
   shutdown: shutdown,
 };
