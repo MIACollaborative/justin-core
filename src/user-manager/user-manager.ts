@@ -109,8 +109,6 @@ const setupChangeListeners = (): void => {
   );
 };
 
-
-
 /**
  * Ensures that the DataManager has been initialized before any user
  * management operation can proceed.
@@ -121,6 +119,50 @@ const setupChangeListeners = (): void => {
 export const _checkInitialization = (): void => {
   if (!dm.getInitializationStatus()) {
     throw new Error("UserManager has not been initialized");
+  }
+};
+
+
+
+
+/**
+ * Adds one user to the Users collection in a single operation.
+ * @param {object} user - The user object to add.
+ * @returns {Promise<JUser | null>} Resolves with the added user or null if the operation fails.
+ * @throws {Error} If no user is provided or if the user fails validation.
+ */
+export const addUser = async (
+  user: object
+): Promise<(JUser | null)> => {
+  if (!user || typeof user !== "object" || Array.isArray(user)) {
+    const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
+    Log.warn(msg);
+    return null;
+  }
+
+  const userUniqueIdentifierExist = await doesUserUniqueIdentifierExist(user);
+  const userWithId = user as {
+    uniqueIdentifier: string;
+    [key: string]: any;
+  };
+  const userDataCheck = await isUserUniqueIdentifierNew(
+    userWithId["uniqueIdentifier"]
+  );
+  if (!userUniqueIdentifierExist["result"] || !userDataCheck["result"]) {
+    Log.warn(
+      `${userDataCheck["message"]} - User: ${JSON.stringify(userWithId)}`
+    );
+    return null;
+  }
+  
+  try {
+    const addedUser = (await dm.addItemToCollection(
+      USERS,
+      user
+    )) as JUser;
+    return addedUser;
+  } catch (error) {
+    return handleDbError("Failed to add users:", error);
   }
 };
 
@@ -225,7 +267,7 @@ const doesUserUniqueIdentifierExist = (user: {
   [key: string]: any;
 }): { result: boolean; message: string } => {
 
-  if( typeof user !== "object" || !user || Array.isArray(user) ) {
+  if (typeof user !== "object" || !user || Array.isArray(user)) {
     const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
     Log.warn(msg);
     return { result: false, message: msg };
