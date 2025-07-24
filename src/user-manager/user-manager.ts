@@ -142,6 +142,12 @@ export const addUser = async (
     return null;
   }
 
+  if ( !user.uniqueIdentifier ) {
+    const msg = `UniqueIdentifier is missing`;
+    Log.warn(msg);
+    return null;
+  }
+
   const userDataCheck = await isIdentifierUnique(user["uniqueIdentifier"]);
 
   if (!userDataCheck) {
@@ -237,7 +243,6 @@ const updateUserByUniqueIdentifier = async (
 
   if (!userUniqueIdentifier || typeof userUniqueIdentifier !== "string") {
     const msg = `Invalid uniqueIdentifier: ${userUniqueIdentifier}`;
-    Log.warn(msg);
     throw new Error(msg);
   }
 
@@ -248,11 +253,15 @@ const updateUserByUniqueIdentifier = async (
 
   if (!attributesToUpdate || typeof attributesToUpdate !== "object" || Object.keys(attributesToUpdate).length === 0 || Array.isArray(attributesToUpdate)) {
     const msg = `Invalid updateData: ${JSON.stringify(attributesToUpdate)}. It must be a non-null and non-empty object and should not be an array.`;
-    Log.warn(msg);
     throw new Error(msg);
   }
   
   const theUser: JUser = await getUserByUniqueIdentifier(userUniqueIdentifier) as JUser;
+
+  if (!theUser) {
+    const msg = `User with uniqueIdentifier (${userUniqueIdentifier}) not found.`;
+    throw new Error(msg);
+  }
 
   const {
     id,
