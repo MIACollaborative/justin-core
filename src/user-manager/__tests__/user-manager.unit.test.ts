@@ -242,7 +242,7 @@ describe("UserManager", () => {
     it("should skip users without uniqueIdentifier and log warning", async () => {
       findStub.resolves([]);
       const userWithoutUid = { id: "3", name: "No UID" };
-      addStub.resolves(initialUserRecord2);
+      addStub.resolves(jUser2);
       const userRecordList: NewUserRecord[] = [userWithoutUid as any, initialUserRecord2];
       const result = await UserManager.addUsers(userRecordList);
       expect(logWarnStub.called).toBe(true);

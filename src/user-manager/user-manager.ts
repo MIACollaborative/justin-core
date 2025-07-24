@@ -183,8 +183,6 @@ export const addUsers = async (
   users: NewUserRecord[]
 ): Promise<(JUser | null)[]> => {
 
-
-
   if (!Array.isArray(users) || users.length === 0) {
     throw new Error("No users provided for insertion.");
   }
