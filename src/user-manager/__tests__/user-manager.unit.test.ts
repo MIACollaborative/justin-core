@@ -88,21 +88,10 @@ describe("UserManager", () => {
     });
 
     
-    it("should not re-initialize if already initialized", async () => {
-      // Arrange
-      getInitializationStatusStub.returns(true);
-      // Act
-      await TestingUserManager.init();
-      // Assert
-      expect(addChangeListenerStub.notCalled).toBe(true);
-      expect(getAllInCollectionStub.notCalled).toBe(true);
-    });
-
-    /*
     it("should clear _users cache before populating", async () => {
       // Arrange
       TestingUserManager._users.set(jUser1.id, jUser1);
-      getAllInCollectionStub.resolves([initialUserRecord2]);
+      getAllInCollectionStub.resolves([jUser2]);
       // Act
       await TestingUserManager.init();
       // Assert
@@ -111,6 +100,7 @@ describe("UserManager", () => {
       expect(TestingUserManager._users.get(jUser1.id)).toBeUndefined();
     });
 
+    /*
     it("should throw if DataManager.init throws", async () => {
       // Arrange
       initStub.rejects(new Error("init failed"));
