@@ -1,0 +1,16 @@
+{
+  "entryPoints": ["./src/index.ts"],
+  "entryPointStrategy": "expand",
+  "out": "../justin-docs/docs/typeDoc",
+  "plugin": ["typedoc-plugin-markdown"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": false,
+  "excludeInternal": true,
+  "includeVersion": true,
+  "readme": "none",
+  "hideBreadcrumbs": true,
+  "hidePageTitle": true,
+  "sort": ["required-first", "alphabetical"]
+}
