@@ -108,13 +108,13 @@ describe("UserManager", () => {
 
     it("should call setupChangeListeners", async() => {
       const setupChangeListenerStub = sandbox.stub(TestingUserManager, "setupChangeListeners").resolves();
-  
-      getAllInCollectionStub.resolves([jUser1, jUser2]);
+      const refreshCacheStub = sandbox.stub(TestingUserManager, "refreshCache").resolves();
       await TestingUserManager.init();
-      //expect(addChangeListenerStub.called).toBe(true);
-      expect(setupChangeListenerStub.called).toBe(true);
-    });
 
+      expect(initStub.called).toBe(true); // this pass
+      expect(refreshCacheStub.called).toBe(true); // this doesn't pass, why?
+      expect(setupChangeListenerStub.called).toBe(true); // this doesn't pass, why?
+    });
   });
 
 
