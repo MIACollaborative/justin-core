@@ -1,0 +1,25 @@
+{
+  "id": "intro",
+  "title": "Intro",
+  "description": "The justin-core package is a lightweight, event-driven framework for building Just-In-Time Adaptive Interventions (JITAIs). It helps research app developers define, schedule, and deliver adaptive interventions using events, decision rules, and tasks.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/intro",
+  "permalink": "/docs/intro",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/intro.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "id": "intro",
+    "title": "Intro",
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "Writing Custom Handlers",
+    "permalink": "/docs/handlers"
+  }
+}
