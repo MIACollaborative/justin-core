@@ -400,5 +400,6 @@ export const TestingUserManager = {
   refreshCache,
   deleteUserById,
   isIdentifierUnique,
+  setupChangeListeners,
   _users, // Exposes the in-memory cache for testing purposes
 };
