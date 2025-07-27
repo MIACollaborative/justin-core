@@ -395,6 +395,7 @@ export const UserManager = {
  * @private
  */
 export const TestingUserManager = {
+  /*
   init: UserManager.init,
   addUser: UserManager.addUser,
   addUsers: UserManager.addUsers,
@@ -406,6 +407,8 @@ export const TestingUserManager = {
   deleteUserByUniqueIdentifier: UserManager.deleteUserByUniqueIdentifier,
   deleteAllUsers: UserManager.deleteAllUsers,
   shutdown: UserManager.shutdown,
+  */
+ ...UserManager,
   refreshCache,
   isIdentifierUnique,
   setupChangeListeners,
