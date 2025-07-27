@@ -154,7 +154,7 @@ describe("UserManager", () => {
   });
 
   describe("transformUserDocument", () => {
-    it("should call getInitializationStatus", async () => {
+    it("should convert _id to id", async () => {
       const jUser3Document = { _id: "3", uniqueIdentifier: "ghi", attributes: { name: "Third User" } };
       const result = TestingUserManager.transformUserDocument(jUser3Document);
       const { _id, ...jUser3WithoutId } = jUser3Document;
@@ -173,113 +173,60 @@ describe("UserManager", () => {
     });
   });
 
-
-
-
-
-  describe("isIdentifierUnique", () => {
-    it("returns false and message if identifier already exists", async () => {
-      findStub.resolves([initialUserRecord1]);
-      TestingUserManager._users.set(jUser1.id, jUser1);
-      const result = await TestingUserManager.isIdentifierUnique("abc");
-      expect(result).toBe(false);
-    });
-    it("returns true and message if identifier is new", async () => {
-      findStub.resolves([]);
-      const result = await TestingUserManager.isIdentifierUnique("new-uid");
-      expect(result).toBe(true);
-    });
-    it("throw an error if identifier is null", async () => {
-      // @ts-ignore
-      await expect(() => TestingUserManager.isIdentifierUnique(null)).rejects.toThrow();
-    });
-    it("throw an error if identifier is undefined", async () => {
-      // @ts-ignore
-      await expect(() => TestingUserManager.isIdentifierUnique(undefined)).rejects.toThrow();
-    });
-    it("throw an error if identifier is empty string", async () => {
-      await expect(() => TestingUserManager.isIdentifierUnique("")).rejects.toThrow();
+  describe("_checkInitialization", () => {
+    it("should call getInitializationStatus", async () => {
+      await TestingUserManager._checkInitialization();
+      expect(getInitializationStatusStub.called).toBe(true);
     });
   });
 
-  describe("updateUserByUniqueIdentifier", () => {
-    it("should throw if uniqueIdentifier is null", async () => {
+  describe("addUser", () => {
+
+    it("should throw if not initialized", async () => {
+      getInitializationStatusStub.returns(false);
+      await expect(UserManager.addUser(initialUserRecord1)).rejects.toThrow("UserManager has not been initialized");
+    });
+
+    it("should log warning and return null if user is invalid", async () => {
+      getInitializationStatusStub.returns(true);
       // @ts-ignore
-      await expect(UserManager.updateUserByUniqueIdentifier(null, { name: "X" })
-      ).rejects.toThrow();
+      const result = await UserManager.addUser(null);
+      expect(logWarnStub.called).toBe(true);
+      expect(result).toBeNull();
     });
 
-    it("should throw if uniqueIdentifier is undefined", async () => {
+    it("should log warning and return null if uniqueIdentifier is missing", async () => {
+      getInitializationStatusStub.returns(true);
       // @ts-ignore
-      await expect(UserManager.updateUserByUniqueIdentifier(undefined, { name: "X" })
-      ).rejects.toThrow();
+      const result = await UserManager.addUser({ initialAttributes: { name: "No UID" } });
+      expect(logWarnStub.calledWithMatch(/UniqueIdentifier is missing/)).toBe(true);
+      expect(result).toBeNull();
     });
 
-    it("should throw if updateData is null", async () => {
-      // @ts-ignore
-      await expect(UserManager.updateUserByUniqueIdentifier("abc", null)
-      ).rejects.toThrow();
+    it("should log warning and return null if identifier is not unique", async () => {
+      getInitializationStatusStub.returns(true);
+      sandbox.stub(TestingUserManager, "isIdentifierUnique").resolves(false);
+      const result = await TestingUserManager.addUser(initialUserRecord1);
+      expect(logWarnStub.calledWithMatch(/not unique/)).toBe(true);
+      expect(result).toBeNull();
     });
 
-    it("should throw if updateData is undefined", async () => {
-      // @ts-ignore
-      await expect(UserManager.updateUserByUniqueIdentifier("abc", undefined)
-      ).rejects.toThrow();
+    it("should add user and return added user if valid and unique", async () => {
+      getInitializationStatusStub.returns(true);
+      sandbox.stub(TestingUserManager, "isIdentifierUnique").resolves(true);
+      addStub.resolves(jUser1);
+      const result = await UserManager.addUser(initialUserRecord1);
+      expect(addStub.calledOnceWith(USERS, { uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes })).toBe(true);
+      expect(result).toEqual(jUser1);
+      expect(TestingUserManager._users.get(jUser1.id)).toEqual(jUser1);
     });
 
-    it("should throw if updateData is empty object", async () => {
-      await expect(
-        UserManager.updateUserByUniqueIdentifier("abc", {})
-      ).rejects.toThrow();
-    });
-    it("should throw error if attempting to update uniqueIdentifier", async () => {
-      expect(
-        UserManager.updateUserByUniqueIdentifier("abc", {
-          name: "Updated Name",
-          uniqueIdentifier: "should-not-update",
-        })
-      ).rejects.toThrow(
-        "Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead."
-      );
-    });
-
-    it("should update user by unique identifier when user exists", async () => {
-      TestingUserManager._users.set(jUser1.id, jUser1);
-      const updateData = { name: "Updated Name" };
-      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
-      const result = await UserManager.updateUserByUniqueIdentifier(
-        initialUserRecord1.uniqueIdentifier,
-        {
-          name: "Updated Name",
-        }
-      );
-      expect(updateStub.calledOnceWith(USERS, initialUserRecord1.uniqueIdentifier, updateData)).toBe(
-        true
-      );
-      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
-    });
-
-    it("should throw error if user not found by unique identifier", async () => {
-      //TestingUserManager._users.set(jUser1.id, jUser1);
-      await expect(
-        UserManager.updateUserByUniqueIdentifier("notfound", {
-          name: "No User",
-        })
-      ).rejects.toThrow("User with uniqueIdentifier (notfound) not found.");
-    });
-
-    it("should update user with unrelated fields", async () => {
-      TestingUserManager._users.set(jUser1.id, jUser1);
-      const updateData = { foo: "bar" };
-      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
-      const result = await UserManager.updateUserByUniqueIdentifier(
-        jUser1.uniqueIdentifier,
-        updateData
-      );
-      expect(updateStub.calledOnceWith(USERS, jUser1.uniqueIdentifier, updateData)).toBe(
-        true
-      );
-      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+    it("should handle error from addItemToCollection", async () => {
+      getInitializationStatusStub.returns(true);
+      sandbox.stub(TestingUserManager, "isIdentifierUnique").resolves(true);
+      addStub.rejects(new Error("db error"));
+      const result = await UserManager.addUser(initialUserRecord1);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -419,4 +366,112 @@ describe("UserManager", () => {
       expect(logWarnStub.callCount).toBeGreaterThanOrEqual(2);
     });
   });
+
+  describe("isIdentifierUnique", () => {
+    it("returns false and message if identifier already exists", async () => {
+      findStub.resolves([initialUserRecord1]);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      const result = await TestingUserManager.isIdentifierUnique("abc");
+      expect(result).toBe(false);
+    });
+    it("returns true and message if identifier is new", async () => {
+      findStub.resolves([]);
+      const result = await TestingUserManager.isIdentifierUnique("new-uid");
+      expect(result).toBe(true);
+    });
+    it("throw an error if identifier is null", async () => {
+      // @ts-ignore
+      await expect(() => TestingUserManager.isIdentifierUnique(null)).rejects.toThrow();
+    });
+    it("throw an error if identifier is undefined", async () => {
+      // @ts-ignore
+      await expect(() => TestingUserManager.isIdentifierUnique(undefined)).rejects.toThrow();
+    });
+    it("throw an error if identifier is empty string", async () => {
+      await expect(() => TestingUserManager.isIdentifierUnique("")).rejects.toThrow();
+    });
+  });
+
+  describe("updateUserByUniqueIdentifier", () => {
+    it("should throw if uniqueIdentifier is null", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier(null, { name: "X" })
+      ).rejects.toThrow();
+    });
+
+    it("should throw if uniqueIdentifier is undefined", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier(undefined, { name: "X" })
+      ).rejects.toThrow();
+    });
+
+    it("should throw if updateData is null", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier("abc", null)
+      ).rejects.toThrow();
+    });
+
+    it("should throw if updateData is undefined", async () => {
+      // @ts-ignore
+      await expect(UserManager.updateUserByUniqueIdentifier("abc", undefined)
+      ).rejects.toThrow();
+    });
+
+    it("should throw if updateData is empty object", async () => {
+      await expect(
+        UserManager.updateUserByUniqueIdentifier("abc", {})
+      ).rejects.toThrow();
+    });
+    it("should throw error if attempting to update uniqueIdentifier", async () => {
+      expect(
+        UserManager.updateUserByUniqueIdentifier("abc", {
+          name: "Updated Name",
+          uniqueIdentifier: "should-not-update",
+        })
+      ).rejects.toThrow(
+        "Cannot update uniqueIdentifier field using updateUserByUniqueIdentifier. Use modifyUserUniqueIdentifier instead."
+      );
+    });
+
+    it("should update user by unique identifier when user exists", async () => {
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      const updateData = { name: "Updated Name" };
+      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      const result = await UserManager.updateUserByUniqueIdentifier(
+        initialUserRecord1.uniqueIdentifier,
+        {
+          name: "Updated Name",
+        }
+      );
+      expect(updateStub.calledOnceWith(USERS, initialUserRecord1.uniqueIdentifier, updateData)).toBe(
+        true
+      );
+      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+    });
+
+    it("should throw error if user not found by unique identifier", async () => {
+      //TestingUserManager._users.set(jUser1.id, jUser1);
+      await expect(
+        UserManager.updateUserByUniqueIdentifier("notfound", {
+          name: "No User",
+        })
+      ).rejects.toThrow("User with uniqueIdentifier (notfound) not found.");
+    });
+
+    it("should update user with unrelated fields", async () => {
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      const updateData = { foo: "bar" };
+      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      const result = await UserManager.updateUserByUniqueIdentifier(
+        jUser1.uniqueIdentifier,
+        updateData
+      );
+      expect(updateStub.calledOnceWith(USERS, jUser1.uniqueIdentifier, updateData)).toBe(
+        true
+      );
+      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+    });
+  });
+
+
 });
