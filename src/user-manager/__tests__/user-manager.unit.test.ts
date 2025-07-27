@@ -114,7 +114,7 @@ describe("UserManager", () => {
     });
 
     it("should throw if addChangeListener throws", async () => {
-      addChangeListenerStub.rejects(new Error("change listener error"));
+      addChangeListenerStub.throws(new Error("change listener error"));
       await expect(TestingUserManager.init()).rejects.toThrow("change listener error");
     });
   });
