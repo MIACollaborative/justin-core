@@ -134,7 +134,7 @@ export const _checkInitialization = (): void => {
 export const addUser = async (
   user: NewUserRecord
 ): Promise<(JUser | null)> => {
-    _checkInitialization();
+  _checkInitialization();
 
   if (!user || typeof user !== "object" || Array.isArray(user)) {
     const msg = `Invalid user data: ${JSON.stringify(user)}. It must be a non-null object and should not be an array.`;
@@ -142,7 +142,7 @@ export const addUser = async (
     return null;
   }
 
-  if ( !user.uniqueIdentifier ) {
+  if (!user.uniqueIdentifier) {
     const msg = `UniqueIdentifier is missing`;
     Log.warn(msg);
     return null;
@@ -158,8 +158,8 @@ export const addUser = async (
   }
 
   try {
-    const {uniqueIdentifier, initialAttributes } = user;
-    const convertedUser: object = {uniqueIdentifier, attributes: initialAttributes};
+    const { uniqueIdentifier, initialAttributes } = user;
+    const convertedUser: object = { uniqueIdentifier, attributes: initialAttributes };
     const addedUser = (await dm.addItemToCollection(
       USERS,
       convertedUser
@@ -253,7 +253,7 @@ const updateUserByUniqueIdentifier = async (
     const msg = `Invalid updateData: ${JSON.stringify(attributesToUpdate)}. It must be a non-null and non-empty object and should not be an array.`;
     throw new Error(msg);
   }
-  
+
   const theUser: JUser = await getUserByUniqueIdentifier(userUniqueIdentifier) as JUser;
 
   if (!theUser) {
@@ -267,7 +267,7 @@ const updateUserByUniqueIdentifier = async (
     ...dataToUpdate
   } = attributesToUpdate as { [key: string]: any };
 
-  const updatedUser: JUser  | null = await updateUserById(theUser.id, dataToUpdate);
+  const updatedUser: JUser | null = await updateUserById(theUser.id, dataToUpdate);
 
   return updatedUser;
 };
@@ -355,7 +355,7 @@ const isIdentifierUnique = async (
     throw new Error(msg);
   }
 
-  const existingUser:JUser | null = await getUserByUniqueIdentifier(userUniqueIdentifier) as JUser;
+  const existingUser: JUser | null = await getUserByUniqueIdentifier(userUniqueIdentifier) as JUser;
 
   if (existingUser) {
     const msg = `User with unique identifier (${userUniqueIdentifier}) already exists.`;
@@ -408,7 +408,9 @@ export const TestingUserManager = {
   deleteAllUsers: UserManager.deleteAllUsers,
   shutdown: UserManager.shutdown,
   */
- ...UserManager,
+  ...UserManager,
+  transformUserDocument,
+  _checkInitialization,
   refreshCache,
   isIdentifierUnique,
   setupChangeListeners,

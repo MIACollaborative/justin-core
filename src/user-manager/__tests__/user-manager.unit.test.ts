@@ -7,6 +7,8 @@ import { Log } from "../../logger/logger-manager";
 import { NewUserRecord } from "../user.type";
 import { ChangeListenerManager } from "../../data-manager/change-listener.manager";
 import { CollectionChangeType } from "../../data-manager/data-manager.type";
+import * as UserManagerModule from "../user-manager";
+
 
 const initialUserRecord1 = { uniqueIdentifier: "abc", initialAttributes: { name: "Test User" } };
 const initialUserRecord2 = { uniqueIdentifier: "def", initialAttributes: { name: "Another User" } };
@@ -39,13 +41,13 @@ describe("UserManager", () => {
 
     addStub = sandbox
       .stub(DataManager.prototype, "addItemToCollection")
-      .resolves(initialUserRecord1);
+      .resolves(jUser1);
     findStub = sandbox
       .stub(DataManager.prototype, "findItemsInCollection")
-      .resolves([initialUserRecord1]);
+      .resolves([jUser1]);
     updateStub = sandbox
       .stub(DataManager.prototype, "updateItemByIdInCollection")
-      .resolves(initialUserRecord1);
+      .resolves(jUser1);
     getInitializationStatusStub = sandbox
       .stub(DataManager.prototype, "getInitializationStatus")
       .returns(true);
@@ -57,7 +59,7 @@ describe("UserManager", () => {
       .resolves();
     getAllInCollectionStub = sandbox
       .stub(DataManager.prototype, "getAllInCollection")
-      .resolves([initialUserRecord1, initialUserRecord2]);
+      .resolves([jUser1, jUser2]);
     initStub = sandbox.stub(DataManager.prototype, "init").resolves();
 
     clearCollectionStub = sandbox
@@ -80,14 +82,9 @@ describe("UserManager", () => {
   });
 
   describe("init", () => {
-    it("should call DataManager.init and populate _users cache", async () => {
-      getAllInCollectionStub.resolves([jUser1, jUser2]);
+    it("should call DataManager.init", async () => {
       await TestingUserManager.init();
       expect(initStub.calledOnce).toBe(true);
-      expect(getAllInCollectionStub.calledOnceWith(USERS)).toBe(true);
-      expect(TestingUserManager._users.size).toBe(2);
-      expect(TestingUserManager._users.get(jUser1.id)).toBeDefined();
-      expect(TestingUserManager._users.get(jUser2.id)).toBeDefined();
     });
 
     it("should clear _users cache before populating", async () => {
@@ -136,6 +133,32 @@ describe("UserManager", () => {
     it("should throw if removeChangeListener throws", () => {
       removeChangeListenerStub.throws(new Error("change listener error"));
       expect(() => TestingUserManager.shutdown()).toThrow("change listener error");
+    });
+  });
+
+  describe("refreshCache", () => {
+    it("should call getInitializationStatus", async () => {
+      await TestingUserManager.refreshCache();
+      expect(getInitializationStatusStub.called).toBe(true);
+    });
+
+    it("should reload _users cache", async () => {
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      getAllInCollectionStub.resolves([jUser1, jUser2]);
+      await TestingUserManager.init();
+      expect(getAllInCollectionStub.calledOnceWith(USERS)).toBe(true);
+      expect(TestingUserManager._users.size).toBe(2);
+      expect(TestingUserManager._users.get(jUser1.id)).toBeDefined();
+      expect(TestingUserManager._users.get(jUser2.id)).toBeDefined();
+    });
+  });
+
+  describe("transformUserDocument", () => {
+    it("should call getInitializationStatus", async () => {
+      const jUser3Document = { _id: "3", uniqueIdentifier: "ghi", attributes: { name: "Third User" } };
+      const result = TestingUserManager.transformUserDocument(jUser3Document);
+      const {_id, ...jUser3WithoutId } = jUser3Document;
+      expect(result).toMatchObject({ ...jUser3WithoutId, id: jUser3Document._id });
     });
   });
 
