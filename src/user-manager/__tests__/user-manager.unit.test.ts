@@ -133,9 +133,9 @@ describe("UserManager", () => {
       expect(removeChangeListenerStub.getCall(2).args).toEqual([USERS, CollectionChangeType.DELETE]);
     });
 
-    it("should throw if removeChangeListener throws", async () => {
+    it("should throw if removeChangeListener throws", () => {
       removeChangeListenerStub.throws(new Error("change listener error"));
-      expect(TestingUserManager.shutdown()).toThrow("change listener error");
+      expect(() => TestingUserManager.shutdown()).toThrow("change listener error");
     });
   });
 
