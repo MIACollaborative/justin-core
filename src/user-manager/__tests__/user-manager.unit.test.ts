@@ -157,8 +157,19 @@ describe("UserManager", () => {
     it("should call getInitializationStatus", async () => {
       const jUser3Document = { _id: "3", uniqueIdentifier: "ghi", attributes: { name: "Third User" } };
       const result = TestingUserManager.transformUserDocument(jUser3Document);
-      const {_id, ...jUser3WithoutId } = jUser3Document;
+      const { _id, ...jUser3WithoutId } = jUser3Document;
       expect(result).toMatchObject({ ...jUser3WithoutId, id: jUser3Document._id });
+    });
+  });
+
+
+  describe("setupChangeListeners", () => {
+    it("should call addChangeListener three times", async () => {
+      await TestingUserManager.setupChangeListeners();
+      expect(addChangeListenerStub.callCount).toBe(3);
+      expect(addChangeListenerStub.getCall(0).args).toEqual([USERS, CollectionChangeType.INSERT, expect.any(Function)]);
+      expect(addChangeListenerStub.getCall(1).args).toEqual([USERS, CollectionChangeType.UPDATE, expect.any(Function)]);
+      expect(addChangeListenerStub.getCall(2).args).toEqual([USERS, CollectionChangeType.DELETE, expect.any(Function)]);
     });
   });
 
