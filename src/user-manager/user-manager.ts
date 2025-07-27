@@ -395,10 +395,18 @@ export const UserManager = {
  * @private
  */
 export const TestingUserManager = {
-  ...UserManager,
-  _checkInitialization,
+  init: UserManager.init,
+  addUser: UserManager.addUser,
+  addUsers: UserManager.addUsers,
+  deleteUserById: UserManager.deleteUserById,
+  updateUserByUniqueIdentifier: UserManager.updateUserByUniqueIdentifier,
+  getAllUsers: UserManager.getAllUsers,
+  getUserByUniqueIdentifier: UserManager.getUserByUniqueIdentifier,
+  updateUserById: UserManager.updateUserById,
+  deleteUserByUniqueIdentifier: UserManager.deleteUserByUniqueIdentifier,
+  deleteAllUsers: UserManager.deleteAllUsers,
+  shutdown: UserManager.shutdown,
   refreshCache,
-  deleteUserById,
   isIdentifierUnique,
   setupChangeListeners,
   _users, // Exposes the in-memory cache for testing purposes
