@@ -6,12 +6,13 @@ import * as dataManagerHelpers from "../../data-manager/data-manager.helpers";
 import { Log } from "../../logger/logger-manager";
 import { NewUserRecord } from "../user.type";
 import { ChangeListenerManager } from "../../data-manager/change-listener.manager";
+import { CollectionChangeType } from "../../data-manager/data-manager.type";
 
 const initialUserRecord1 = { uniqueIdentifier: "abc", initialAttributes: { name: "Test User" } };
 const initialUserRecord2 = { uniqueIdentifier: "def", initialAttributes: { name: "Another User" } };
 
-const jUser1 = {id: initialUserRecord1.uniqueIdentifier, uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes};
-const jUser2 = {id: initialUserRecord2.uniqueIdentifier, uniqueIdentifier: initialUserRecord2.uniqueIdentifier, attributes: initialUserRecord2.initialAttributes};
+const jUser1 = { id: initialUserRecord1.uniqueIdentifier, uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes };
+const jUser2 = { id: initialUserRecord2.uniqueIdentifier, uniqueIdentifier: initialUserRecord2.uniqueIdentifier, attributes: initialUserRecord2.initialAttributes };
 
 describe("UserManager", () => {
   let logInfoStub: any, logWarnStub: any;
@@ -27,6 +28,7 @@ describe("UserManager", () => {
   let initStub: sinon.SinonStub;
   let clearCollectionStub: sinon.SinonStub;
   let addChangeListenerStub: sinon.SinonStub;
+  let removeChangeListenerStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -64,6 +66,7 @@ describe("UserManager", () => {
 
     // Stubs for ChangeListeners
     addChangeListenerStub = sandbox.stub(ChangeListenerManager.prototype, "addChangeListener").resolves();
+    removeChangeListenerStub = sandbox.stub(ChangeListenerManager.prototype, "removeChangeListener").resolves();
 
 
     logInfoStub = sandbox.stub(Log, "info");
@@ -86,7 +89,7 @@ describe("UserManager", () => {
       expect(TestingUserManager._users.get(jUser1.id)).toBeDefined();
       expect(TestingUserManager._users.get(jUser2.id)).toBeDefined();
     });
-    
+
     it("should clear _users cache before populating", async () => {
       TestingUserManager._users.set(jUser1.id, jUser1);
       getAllInCollectionStub.resolves([jUser2]);
@@ -96,13 +99,13 @@ describe("UserManager", () => {
       expect(TestingUserManager._users.get(jUser1.id)).toBeUndefined();
     });
 
-    it("should call getAllInCollection and addChangeListener", async() => {
+    it("should call getAllInCollection and addChangeListener", async () => {
       await TestingUserManager.init();
       expect(initStub.called).toBe(true);
       expect(getAllInCollectionStub.called).toBe(true);
       expect(addChangeListenerStub.called).toBe(true);
     });
-    
+
     it("should throw if DataManager.init throws", async () => {
       initStub.rejects(new Error("init failed"));
       await expect(TestingUserManager.init()).rejects.toThrow("init failed");
@@ -118,6 +121,24 @@ describe("UserManager", () => {
       await expect(TestingUserManager.init()).rejects.toThrow("change listener error");
     });
   });
+
+  describe("shutdown", () => {
+    it("should call removeChangeListener", async () => {
+      await TestingUserManager.shutdown();
+      expect(removeChangeListenerStub.called).toBe(true);
+      // call three times
+      expect(removeChangeListenerStub.callCount).toBe(3);
+      expect(removeChangeListenerStub.getCall(0).args).toEqual([USERS, CollectionChangeType.INSERT]);
+      expect(removeChangeListenerStub.getCall(1).args).toEqual([USERS, CollectionChangeType.UPDATE]);
+      expect(removeChangeListenerStub.getCall(2).args).toEqual([USERS, CollectionChangeType.DELETE]);
+    });
+
+    it("should throw if removeChangeListener throws", async () => {
+      removeChangeListenerStub.throws(new Error("change listener error"));
+      expect(TestingUserManager.shutdown()).toThrow("change listener error");
+    });
+  });
+
 
 
 
@@ -347,7 +368,7 @@ describe("UserManager", () => {
       findStub.onThirdCall().resolves([]); // valid
       addStub.onFirstCall().resolves(jUser2);
       const initialUserRecord3 = { uniqueIdentifier: "ghi", initialAttributes: { name: "Third User" } };
-      const jUser3 = {id: initialUserRecord3.uniqueIdentifier, uniqueIdentifier: initialUserRecord3.uniqueIdentifier, attributes: initialUserRecord3.initialAttributes};
+      const jUser3 = { id: initialUserRecord3.uniqueIdentifier, uniqueIdentifier: initialUserRecord3.uniqueIdentifier, attributes: initialUserRecord3.initialAttributes };
       addStub
         .onSecondCall()
         .resolves(jUser3);
