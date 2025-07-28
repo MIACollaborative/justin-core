@@ -11,6 +11,7 @@ describe("DataManager", () => {
   let sandbox: sinon.SinonSandbox;
   let mongoFindStub: sinon.SinonStub;
   let handleDbErrorStub: sinon.SinonStub;
+  let emitStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -19,6 +20,13 @@ describe("DataManager", () => {
       .callsFake(() => {});
 
     mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
+
+    emitStub = sandbox
+      .stub(DataManager.prototype, "emit")
+      .callsFake((eventName: string | symbol, ...args: any[]) => {
+        console.log("emit called");
+        return true;
+      });
 
     sandbox.stub(console, "error").callsFake(() => {});
     handleDbErrorStub = sandbox
@@ -64,13 +72,14 @@ describe("DataManager", () => {
   });
 
   describe("init", () => {
-
     it("should initialize DataManager and set isInitialized to true", async () => {
       const instance = DataManager.getInstance();
       // Stub db.init to resolve
       const dbInitStub = sandbox.stub(instance["db"], "init").resolves();
       // Stub addChangeListener
-      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
+      const addChangeListenerStub = sandbox
+        .stub(instance["changeListenerManager"], "addChangeListener")
+        .resolves();
       await instance.init();
       expect(instance.getInitializationStatus()).toBe(true);
       expect(dbInitStub.calledOnce).toBe(true);
@@ -79,14 +88,18 @@ describe("DataManager", () => {
 
     it("should handle error from db.init", async () => {
       // force init to get called in case the instance still exist (possibly from other tests)
-      sandbox.stub(DataManager.prototype, "getInitializationStatus").returns(false);
+      sandbox
+        .stub(DataManager.prototype, "getInitializationStatus")
+        .returns(false);
 
       const instance = DataManager.getInstance();
       // Stub db.init to resolve
       const dbInitStub = sandbox.stub(instance["db"], "init").resolves();
       // Stub addChangeListener
       dbInitStub.rejects(new Error("Database initialization failed"));
-      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
+      const addChangeListenerStub = sandbox
+        .stub(instance["changeListenerManager"], "addChangeListener")
+        .resolves();
       await expect(instance.init()).rejects.toThrow();
       expect(dbInitStub.calledOnce).toBe(true);
       expect(addChangeListenerStub.calledOnce).toBe(false);
@@ -104,6 +117,17 @@ describe("DataManager", () => {
       const instance = DataManager.getInstance();
       // @ts-ignore
       await expect(instance.init("NOT_MONGO" as any)).rejects.toThrow();
+    });
+  });
+
+  describe("handleEventsQueueInsert", () => {
+    it("should emit an event with data", async () => {
+      const instance = DataManager.getInstance();
+      const eventData = { type: "test", payload: {} };
+      await (instance as any).handleEventsQueueInsert(eventData);
+      // check that the emit method was called with the correct event name and data
+      expect(emitStub.called).toBe(true);
+      expect(emitStub.calledWith('eventAdded', eventData)).toBe(true);
     });
   });
 
@@ -188,5 +212,3 @@ describe("DataManager", () => {
     });
   });
 });
-
-
