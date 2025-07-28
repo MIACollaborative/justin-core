@@ -274,28 +274,34 @@ describe("UserManager", () => {
 
   });
 
-  describe("isIdentifierUnique", () => {
-    it("returns false and message if identifier already exists", async () => {
-      findStub.resolves([initialUserRecord1]);
+  describe("getAllUsers", () => {
+    it("should get all users", async () => {
+      getInitializationStatusStub.returns(true);
       TestingUserManager._users.set(jUser1.id, jUser1);
-      const result = await TestingUserManager.isIdentifierUnique("abc");
-      expect(result).toBe(false);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      getAllInCollectionStub.resolves([jUser1, jUser2]);
+      const result = await TestingUserManager.getAllUsers();
+      expect(result).toEqual([jUser1, jUser2]);
     });
-    it("returns true and message if identifier is new", async () => {
-      findStub.resolves([]);
-      const result = await TestingUserManager.isIdentifierUnique("new-uid");
-      expect(result).toBe(true);
+  });
+
+  describe("getUserByUniqueIdentifier", () => {
+    it("should get the user with a specific uniqueIdentifier", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      const result1 = await UserManager.getUserByUniqueIdentifier(jUser1.uniqueIdentifier);
+      expect(result1).toEqual(jUser1);
+      const result2 = await UserManager.getUserByUniqueIdentifier(jUser2.uniqueIdentifier);
+      expect(result2).toEqual(jUser2);
     });
-    it("throw an error if identifier is null", async () => {
-      // @ts-ignore
-      await expect(() => TestingUserManager.isIdentifierUnique(null)).rejects.toThrow();
-    });
-    it("throw an error if identifier is undefined", async () => {
-      // @ts-ignore
-      await expect(() => TestingUserManager.isIdentifierUnique(undefined)).rejects.toThrow();
-    });
-    it("throw an error if identifier is empty string", async () => {
-      await expect(() => TestingUserManager.isIdentifierUnique("")).rejects.toThrow();
+
+    it("should return null if user with specific uniqueIdentifier does not exist", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      const result1 = await UserManager.getUserByUniqueIdentifier("XYZ");
+      expect(result1).toEqual(null);
     });
   });
 
@@ -344,7 +350,7 @@ describe("UserManager", () => {
       TestingUserManager._users.set(jUser1.id, jUser1);
       const updateData = { name: "Updated Name" };
       updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
-      const result = await UserManager.updateUserByUniqueIdentifier(
+      const result = await TestingUserManager.updateUserByUniqueIdentifier(
         initialUserRecord1.uniqueIdentifier,
         {
           name: "Updated Name",
@@ -379,6 +385,77 @@ describe("UserManager", () => {
       expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
     });
   });
+
+  describe("updateUserById", () => {
+    it("should update user by id when user exists", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      const updateData = { name: "Updated Name" };
+      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      const result = await TestingUserManager.updateUserById(jUser1.id, updateData);
+      expect(updateStub.calledOnceWith(USERS, jUser1.id, updateData)).toBe(true);
+      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+    });
+
+    it("should throw error if user not found by id", async () => {
+      getInitializationStatusStub.returns(true);
+      updateStub.resolves(null);
+      await expect(
+        UserManager.updateUserById("notfound", { name: "No User" })
+      ).rejects.toThrow("Failed to update user: notfound");
+    });
+  });
+
+  describe("deleteUserById", () => {
+    it("should delete user by id when user exists", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      const result = await TestingUserManager.deleteUserById(jUser1.id);
+      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, jUser1.id)).toBe(true);
+      expect(result).toBeUndefined();
+    });
+
+    it("should not delete a user by id when user does not exist", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      remoteItemFromCollectionStub.resolves(false);
+      
+      const result = await TestingUserManager.deleteUserById("nonexistent-id");
+      expect(TestingUserManager._users.size).toBe(2);
+      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, "nonexistent-id")).toBe(true);
+    });
+  });
+
+
+
+
+  describe("isIdentifierUnique", () => {
+    it("returns false and message if identifier already exists", async () => {
+      findStub.resolves([initialUserRecord1]);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      const result = await TestingUserManager.isIdentifierUnique("abc");
+      expect(result).toBe(false);
+    });
+    it("returns true and message if identifier is new", async () => {
+      findStub.resolves([]);
+      const result = await TestingUserManager.isIdentifierUnique("new-uid");
+      expect(result).toBe(true);
+    });
+    it("throw an error if identifier is null", async () => {
+      // @ts-ignore
+      await expect(() => TestingUserManager.isIdentifierUnique(null)).rejects.toThrow();
+    });
+    it("throw an error if identifier is undefined", async () => {
+      // @ts-ignore
+      await expect(() => TestingUserManager.isIdentifierUnique(undefined)).rejects.toThrow();
+    });
+    it("throw an error if identifier is empty string", async () => {
+      await expect(() => TestingUserManager.isIdentifierUnique("")).rejects.toThrow();
+    });
+  });
+
+
 
 
 });

@@ -298,6 +298,17 @@ const updateUserById = async (
   return updatedUser;
 };
 
+/**
+ * Deletes a user by ID from both the database and the in-memory cache.
+ *
+ * @param {string} userId - The user's ID.
+ * @returns {Promise<void>} Resolves when deletion is complete.
+ */
+const deleteUserById = async (userId: string): Promise<void> => {
+  _checkInitialization();
+  await dm.removeItemFromCollection(USERS, userId);
+  _users.delete(userId);
+};
 
 
 /**
@@ -312,17 +323,7 @@ const deleteUserByUniqueIdentifier = async (uniqueIdentifier: string): Promise<v
   _users.delete(theUser.id);
 };
 
-/**
- * Deletes a user by ID from both the database and the in-memory cache.
- *
- * @param {string} userId - The user's ID.
- * @returns {Promise<void>} Resolves when deletion is complete.
- */
-const deleteUserById = async (userId: string): Promise<void> => {
-  _checkInitialization();
-  await dm.removeItemFromCollection(USERS, userId);
-  _users.delete(userId);
-};
+
 
 /**
  * Deletes all users from the database and clears the in-memory cache.
