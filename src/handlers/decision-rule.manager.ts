@@ -8,8 +8,8 @@ import {
 import { Log } from '../logger/logger-manager';
 import { JEvent } from '../event/event.type';
 import { JUser } from '../user-manager/user.type';
-import { recordResult } from '../event/record-result';
 import { executeStep } from './steps.helpers';
+import {handleDecisionRuleResult} from "./result-recorder";
 
 const decisionRules: Map<string, DecisionRule> = new Map();
 
@@ -100,7 +100,7 @@ export async function executeDecisionRule(
       timestamp: new Date(),
     });
   } finally {
-      recordResult({
+    handleDecisionRuleResult({
         event,
         name: rule.name,
         steps: results,
