@@ -164,8 +164,8 @@ describe('Event Queue', () => {
       expect(addItemToCollectionStub.called).toBe(true);
       expect(removeItemFromCollectionStub.calledWith('event_queue', 'event1')).toBe(true);
 
-      expect(logInfoStub.calledWith('Starting event queue processing.')).toBe(true);
-      expect(logInfoStub.calledWith('Finished processing event queue.')).toBe(true);
+      expect(logDevStub.calledWith('Starting event queue processing.')).toBe(true);
+      expect(logDevStub.calledWith('Finished processing event queue.')).toBe(true);
     });
 
     it('should skip processing when queue is empty', async () => {
@@ -177,7 +177,7 @@ describe('Event Queue', () => {
       expect(getAllInCollectionStub.calledOnce).toBe(true);
       expect(getHandlersForEventTypeStub.called).toBe(false);
 
-      expect(logInfoStub.calledWith('No events left in the queue. Pausing processing.')).toBe(true);
+      expect(logDevStub.calledWith('No events left in the queue. Pausing processing.')).toBe(true);
     });
 
     it('should skip processing when already in progress', async () => {
@@ -230,7 +230,7 @@ describe('Event Queue', () => {
       expect(addChangeListenerStub.firstCall.args[1]).toBe(CollectionChangeType.INSERT);
 
       expect(logDevStub.calledWith('Setting up event queue listener.')).toBe(true);
-      expect(logInfoStub.calledWith('Event queue listener set up successfully.')).toBe(true);
+      expect(logDevStub.calledWith('Event queue listener set up successfully.')).toBe(true);
     });
 
     it('should handle errors during initial processing', async () => {
@@ -264,7 +264,7 @@ describe('Event Queue', () => {
     it('should start queue processing', async () => {
       EventQueue.setShouldProcessQueue(false);
       await EventQueue.startEventQueueProcessing();
-      expect(logInfoStub.calledWith('Event queue processing started.')).toBe(true);
+      expect(logDevStub.calledWith('Event queue processing started.')).toBe(true);
     });
   });
 

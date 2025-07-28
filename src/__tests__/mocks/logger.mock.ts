@@ -3,17 +3,20 @@ import { Log } from '../../logger/logger-manager';
 
 export const initializeLoggerMocks = () => {
   const loggerMocks = {
+    mockLogDev: sinon.stub(Log, 'dev'),
     mockLogInfo: sinon.stub(Log, 'info'),
     mockLogWarn: sinon.stub(Log, 'warn'),
     mockLogError: sinon.stub(Log, 'error'),
     mockLogHandlerResults: sinon.stub(Log, 'handlerResult'),
     resetLoggerMocks: () => {
+      loggerMocks.mockLogDev.resetHistory();
       loggerMocks.mockLogInfo.resetHistory();
       loggerMocks.mockLogWarn.resetHistory();
       loggerMocks.mockLogError.resetHistory();
       loggerMocks.mockLogHandlerResults.resetHistory();
     },
     restoreLoggerMocks: () => {
+      loggerMocks.mockLogDev.restore();
       loggerMocks.mockLogInfo.restore();
       loggerMocks.mockLogWarn.restore();
       loggerMocks.mockLogError.restore();

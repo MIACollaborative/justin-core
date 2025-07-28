@@ -67,7 +67,7 @@ export const processEventQueue = async (): Promise<void> => {
   isProcessingQueue = true;
 
   try {
-    Log.info('Starting event queue processing.');
+    Log.dev('Starting event queue processing.');
 
     while (shouldProcessQueue) {
       const users = UserManager.getAllUsers();
@@ -76,7 +76,7 @@ export const processEventQueue = async (): Promise<void> => {
       )) as JEvent[];
 
       if (!events || events.length === 0) {
-        Log.info('No events left in the queue. Pausing processing.');
+        Log.dev('No events left in the queue. Pausing processing.');
         break;
       }
 
@@ -111,7 +111,7 @@ export const processEventQueue = async (): Promise<void> => {
       }
     }
 
-    Log.info('Finished processing event queue.');
+    Log.dev('Finished processing event queue.');
   } catch (error) {
     Log.error(`Error during event queue processing: ${error}`);
   } finally {
@@ -139,7 +139,7 @@ export const setupEventQueueListener = async (): Promise<void> => {
     
     await processEventQueue();
 
-    Log.info('Event queue listener set up successfully.');
+    Log.dev('Event queue listener set up successfully.');
   } catch (error) {
     Log.error(`Error setting up event queue listener: ${error}`);
   }
@@ -239,7 +239,7 @@ export const stopEventQueueProcessing = (): void => {
 export const startEventQueueProcessing = async (): Promise<void> => {
   await setupEventQueueListener();
   shouldProcessQueue = true;
-  Log.info('Event queue processing started.');
+  Log.dev('Event queue processing started.');
 };
 
 /**
