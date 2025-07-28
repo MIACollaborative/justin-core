@@ -77,10 +77,24 @@ describe("DataManager", () => {
       expect(addChangeListenerStub.calledOnce).toBe(true);
     });
 
+    it("should handle error from db.init", async () => {
+      // force init to get called in case the instance still exist (possibly from other tests)
+      sandbox.stub(DataManager.prototype, "getInitializationStatus").returns(false);
+
+      const instance = DataManager.getInstance();
+      // Stub db.init to resolve
+      const dbInitStub = sandbox.stub(instance["db"], "init").resolves();
+      // Stub addChangeListener
+      dbInitStub.rejects(new Error("Database initialization failed"));
+      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
+      await expect(instance.init()).rejects.toThrow();
+      expect(dbInitStub.calledOnce).toBe(true);
+      expect(addChangeListenerStub.calledOnce).toBe(false);
+    });
+
     it("should not re-initialize if already initialized and dbType is MONGO", async () => {
       const instance = DataManager.getInstance();
       instance["isInitialized"] = true;
-      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
       const dbInitStub = sandbox.stub(instance["db"], "init");
       await instance.init();
       expect(dbInitStub.called).toBe(false);
@@ -91,19 +105,6 @@ describe("DataManager", () => {
       // @ts-ignore
       await expect(instance.init("NOT_MONGO" as any)).rejects.toThrow();
     });
-
-    it("should handle error from db.init", async () => {
-      const instance = DataManager.getInstance();
-      //instance["isInitialized"] = true;
-      const dbInitStub = sandbox.stub(instance["db"], "init");
-      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
-      //dbInitStub.throws(new Error("db error"));
-      const result = await instance.init();
-      expect(dbInitStub.called).toBe(true); // not pass, why?
-    });
-
-
-
   });
 
   describe("findItemsInCollection", () => {
