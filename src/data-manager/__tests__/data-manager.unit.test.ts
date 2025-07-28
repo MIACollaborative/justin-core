@@ -125,9 +125,20 @@ describe("DataManager", () => {
       const instance = DataManager.getInstance();
       const eventData = { type: "test", payload: {} };
       await (instance as any).handleEventsQueueInsert(eventData);
-      // check that the emit method was called with the correct event name and data
       expect(emitStub.called).toBe(true);
-      expect(emitStub.calledWith('eventAdded', eventData)).toBe(true);
+      expect(emitStub.calledWith("eventAdded", eventData)).toBe(true);
+    });
+  });
+
+  describe("getInitializationStatus", () => {
+    it("should return the initialization status", async () => {
+      const instance = DataManager.getInstance();
+
+      (instance as any).isInitialized = true;
+      expect(instance.getInitializationStatus()).toBe(true);
+
+      (instance as any).isInitialized = false;
+      expect(instance.getInitializationStatus()).toBe(false);
     });
   });
 
