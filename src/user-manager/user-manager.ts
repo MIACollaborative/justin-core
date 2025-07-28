@@ -396,19 +396,6 @@ export const UserManager = {
  * @private
  */
 export const TestingUserManager = {
-  /*
-  init: UserManager.init,
-  addUser: UserManager.addUser,
-  addUsers: UserManager.addUsers,
-  deleteUserById: UserManager.deleteUserById,
-  updateUserByUniqueIdentifier: UserManager.updateUserByUniqueIdentifier,
-  getAllUsers: UserManager.getAllUsers,
-  getUserByUniqueIdentifier: UserManager.getUserByUniqueIdentifier,
-  updateUserById: UserManager.updateUserById,
-  deleteUserByUniqueIdentifier: UserManager.deleteUserByUniqueIdentifier,
-  deleteAllUsers: UserManager.deleteAllUsers,
-  shutdown: UserManager.shutdown,
-  */
   ...UserManager,
   transformUserDocument,
   _checkInitialization,
