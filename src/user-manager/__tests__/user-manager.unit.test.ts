@@ -7,7 +7,6 @@ import { Log } from "../../logger/logger-manager";
 import { NewUserRecord } from "../user.type";
 import { ChangeListenerManager } from "../../data-manager/change-listener.manager";
 import { CollectionChangeType } from "../../data-manager/data-manager.type";
-import * as UserManagerModule from "../user-manager";
 
 
 const initialUserRecord1 = { uniqueIdentifier: "abc", initialAttributes: { name: "Test User" } };

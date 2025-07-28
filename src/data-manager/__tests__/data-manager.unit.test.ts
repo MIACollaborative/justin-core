@@ -2,6 +2,7 @@ import DataManager from "../data-manager";
 import { MongoDBManager } from "../mongo/mongo-data-manager";
 import * as dataManagerHelpers from "../data-manager.helpers";
 import sinon from "sinon";
+import { ChangeListenerManager } from "../change-listener.manager";
 
 // Use jest for assertions
 
@@ -11,6 +12,8 @@ describe("DataManager", () => {
   let sandbox: sinon.SinonSandbox;
   let mongoFindStub: sinon.SinonStub;
   let handleDbErrorStub: sinon.SinonStub;
+  let emitStub: sinon.SinonStub;
+  let clearChangeListenersStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -20,6 +23,17 @@ describe("DataManager", () => {
 
     mongoFindStub = sandbox.stub(MongoDBManager, "findItemsInCollection");
 
+    emitStub = sandbox
+      .stub(DataManager.prototype, "emit")
+      .callsFake((eventName: string | symbol, ...args: any[]) => {
+        console.log("emit called");
+        return true;
+      });
+
+
+    // clearChangeListeners
+    clearChangeListenersStub = sandbox.stub(ChangeListenerManager.prototype, "clearChangeListeners").callsFake(() => {});
+
     sandbox.stub(console, "error").callsFake(() => {});
     handleDbErrorStub = sandbox
       .stub(dataManagerHelpers, "handleDbError")
@@ -28,6 +42,142 @@ describe("DataManager", () => {
 
   afterEach(() => {
     sandbox.restore();
+  });
+
+  describe("getInstance", () => {
+    it("should return a DataManager instance", () => {
+      const instance = DataManager.getInstance();
+      expect(instance).toBeInstanceOf(DataManager);
+    });
+
+    it("should return the same instance on multiple calls", () => {
+      const instance1 = DataManager.getInstance();
+      const instance2 = DataManager.getInstance();
+      expect(instance1).toBe(instance2);
+    });
+
+    it("should create a new instance after killInstance is called", () => {
+      const instance1 = DataManager.getInstance();
+      // kill the singleton
+      // @ts-ignore
+      DataManager.killInstance();
+      const instance2 = DataManager.getInstance();
+      expect(instance2).toBeInstanceOf(DataManager);
+      expect(instance2).not.toBe(instance1);
+    });
+  });
+
+  describe("killInstance", () => {
+    it("should set DataManager.instance to null", () => {
+      const instance1 = DataManager.getInstance();
+      // @ts-ignore
+      DataManager.killInstance();
+      // @ts-ignore
+      expect((DataManager as any).instance).toBeNull();
+    });
+  });
+
+  describe("init", () => {
+    it("should initialize DataManager and set isInitialized to true", async () => {
+      const instance = DataManager.getInstance();
+      // Stub db.init to resolve
+      const dbInitStub = sandbox.stub(instance["db"], "init").resolves();
+      // Stub addChangeListener
+      const addChangeListenerStub = sandbox
+        .stub(instance["changeListenerManager"], "addChangeListener")
+        .resolves();
+      await instance.init();
+      expect(instance.getInitializationStatus()).toBe(true);
+      expect(dbInitStub.calledOnce).toBe(true);
+      expect(addChangeListenerStub.calledOnce).toBe(true);
+    });
+
+    it("should handle error from db.init", async () => {
+      // force init to get called in case the instance still exist (possibly from other tests)
+      sandbox
+        .stub(DataManager.prototype, "getInitializationStatus")
+        .returns(false);
+
+      const instance = DataManager.getInstance();
+      // Stub db.init to resolve
+      const dbInitStub = sandbox.stub(instance["db"], "init").resolves();
+      // Stub addChangeListener
+      dbInitStub.rejects(new Error("Database initialization failed"));
+      const addChangeListenerStub = sandbox
+        .stub(instance["changeListenerManager"], "addChangeListener")
+        .resolves();
+      await expect(instance.init()).rejects.toThrow();
+      expect(dbInitStub.calledOnce).toBe(true);
+      expect(addChangeListenerStub.calledOnce).toBe(false);
+    });
+
+    it("should not re-initialize if already initialized and dbType is MONGO", async () => {
+      const instance = DataManager.getInstance();
+      instance["isInitialized"] = true;
+      const dbInitStub = sandbox.stub(instance["db"], "init");
+      await instance.init();
+      expect(dbInitStub.called).toBe(false);
+    });
+
+    it("should throw error if dbType is not MONGO", async () => {
+      const instance = DataManager.getInstance();
+      // @ts-ignore
+      await expect(instance.init("NOT_MONGO" as any)).rejects.toThrow();
+    });
+  });
+
+  describe("handleEventsQueueInsert", () => {
+    it("should emit an event with data", async () => {
+      const instance = DataManager.getInstance();
+      const eventData = { type: "test", payload: {} };
+      await (instance as any).handleEventsQueueInsert(eventData);
+      expect(emitStub.called).toBe(true);
+      expect(emitStub.calledWith("eventAdded", eventData)).toBe(true);
+    });
+  });
+
+  describe("getInitializationStatus", () => {
+    it("should return the initialization status", async () => {
+      const instance = DataManager.getInstance();
+
+      (instance as any).isInitialized = true;
+      expect(instance.getInitializationStatus()).toBe(true);
+
+      (instance as any).isInitialized = false;
+      expect(instance.getInitializationStatus()).toBe(false);
+    });
+  });
+
+
+  describe("close", () => {
+    it("should call necessary methods", async () => {
+      const instance = DataManager.getInstance();
+      const dbCloseStub = sandbox.stub(instance["db"], "close").resolves();
+      
+      await instance.close();
+      
+      expect(checkInitStub.called).toBe(true);
+      expect(clearChangeListenersStub.called).toBe(true);
+      expect(dbCloseStub.called).toBe(true);
+      expect(instance.getInitializationStatus()).toBe(false);
+    });
+  });
+
+  describe("checkInitialization", () => {
+    it("should return undefined if isInitialized is true, or throw an error if not", async () => {
+      const instance = DataManager.getInstance();
+
+      // restore, otherwise it will always pass and return undefined.
+      checkInitStub.restore();
+
+      (instance as any).isInitialized = true;
+      console.log(`(instance as any).isInitialized: ${(instance as any).isInitialized}`);
+      expect(instance.checkInitialization()).toBeUndefined();
+
+      (instance as any).isInitialized = false;
+      console.log(`(instance as any).isInitialized: ${(instance as any).isInitialized}`);
+      expect(() => instance.checkInitialization()).toThrow();
+    });
   });
 
   describe("findItemsInCollection", () => {
