@@ -427,7 +427,42 @@ describe("UserManager", () => {
     });
   });
 
+  describe("deleteUserByUniqueIdentifier", () => {
+    it("should delete user by unique identifier when user exists", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      const result = await TestingUserManager.deleteUserByUniqueIdentifier(jUser1.uniqueIdentifier);
+      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, jUser1.uniqueIdentifier)).toBe(true);
+      expect(result).toBeUndefined();
+      // _users cache should be updated
+      expect(TestingUserManager._users.has(jUser1.id)).toBe(false);
+      expect(TestingUserManager._users.has(jUser2.id)).toBe(true);
 
+    });
+
+    it("should not delete a user by unique identifier when user does not exist", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      remoteItemFromCollectionStub.resolves(false);
+      
+      await TestingUserManager.deleteUserById("nonexistent-id");
+      expect(TestingUserManager._users.size).toBe(2);
+      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, "nonexistent-id")).toBe(true);
+    });
+  });
+
+  describe("deleteAllUsers", () => {
+    it("should delete all users", async () => {
+      getInitializationStatusStub.returns(true);
+      TestingUserManager._users.set(jUser1.id, jUser1);
+      TestingUserManager._users.set(jUser2.id, jUser2);
+      await TestingUserManager.deleteAllUsers();
+      expect(TestingUserManager._users.keys.length).toBe(0);
+      expect(clearCollectionStub.called).toBe(true);
+    });
+  });
 
 
   describe("isIdentifierUnique", () => {
