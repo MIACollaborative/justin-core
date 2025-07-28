@@ -1,0 +1,29 @@
+{
+  "id": "concepts/handlers",
+  "title": "Decision Rules and Tasks",
+  "description": "There are two types of Event Handlers in JustIn: Decision Rules, which are capable of executing multiple actions and contain logic for deciding among those actions, and Tasks, which always execute the same action(s) when activated.",
+  "source": "@site/docs/concepts/handlers.md",
+  "sourceDirName": "concepts",
+  "slug": "/concepts/handlers",
+  "permalink": "/docs/next/concepts/handlers",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/concepts/handlers.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "handlers",
+    "title": "Decision Rules and Tasks",
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Overview",
+    "permalink": "/docs/next/concepts/overview"
+  },
+  "next": {
+    "title": "JEvents",
+    "permalink": "/docs/next/concepts/events"
+  }
+}

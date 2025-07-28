@@ -29,12 +29,12 @@ export default {
       "classic",
       {
         "docs": {
-          "sidebarPath": "/Users/jadrubio/Desktop/npm/justin-core/docs/sidebars.ts",
+          "sidebarPath": "/Users/mwnewman/code/mia/justin/justin-core/docs/sidebars.ts",
           "editUrl": "https://github.com/your-org/justin-docs/edit/main/"
         },
         "blog": false,
         "theme": {
-          "customCss": "/Users/jadrubio/Desktop/npm/justin-core/docs/src/css/custom.css"
+          "customCss": "/Users/mwnewman/code/mia/justin/justin-core/docs/src/css/custom.css"
         }
       }
     ]
@@ -48,6 +48,13 @@ export default {
         "src": "img/justin-logo.png"
       },
       "items": [
+        {
+          "type": "docsVersionDropdown",
+          "position": "right",
+          "dropdownActiveClassDisabled": true,
+          "dropdownItemsBefore": [],
+          "dropdownItemsAfter": []
+        },
         {
           "type": "docSidebar",
           "sidebarId": "tutorialSidebar",

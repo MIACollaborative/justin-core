@@ -2,23 +2,23 @@
   "id": "typeDoc/README",
   "title": "README",
   "description": "justin-core v0.1.0",
-  "source": "@site/docs/typeDoc/README.md",
+  "source": "@site/versioned_docs/version-0.1.0/typeDoc/README.md",
   "sourceDirName": "typeDoc",
   "slug": "/typeDoc/",
-  "permalink": "/docs/next/typeDoc/",
+  "permalink": "/docs/typeDoc/",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/typeDoc/README.md",
+  "editUrl": "https://github.com/your-org/justin-docs/edit/main/versioned_docs/version-0.1.0/typeDoc/README.md",
   "tags": [],
-  "version": "current",
+  "version": "0.1.0",
   "frontMatter": {},
   "sidebar": "tutorialSidebar",
   "previous": {
     "title": "Exported Types",
-    "permalink": "/docs/next/reference/types"
+    "permalink": "/docs/types"
   },
   "next": {
     "title": "default",
-    "permalink": "/docs/next/typeDoc/functions/default"
+    "permalink": "/docs/typeDoc/functions/default"
   }
 }

@@ -44,55 +44,133 @@ export default [
   },
   {
     path: '/docs',
-    component: ComponentCreator('/docs', 'd9d'),
+    component: ComponentCreator('/docs', 'df3'),
     routes: [
       {
+        path: '/docs/next',
+        component: ComponentCreator('/docs/next', '8cd'),
+        routes: [
+          {
+            path: '/docs/next',
+            component: ComponentCreator('/docs/next', '41a'),
+            routes: [
+              {
+                path: '/docs/next/concepts/events',
+                component: ComponentCreator('/docs/next/concepts/events', 'eb2'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/concepts/handlers',
+                component: ComponentCreator('/docs/next/concepts/handlers', '525'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/concepts/overview',
+                component: ComponentCreator('/docs/next/concepts/overview', 'e3c'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/concepts/users',
+                component: ComponentCreator('/docs/next/concepts/users', '49c'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/intro',
+                component: ComponentCreator('/docs/next/intro', 'ad0'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/reference/types',
+                component: ComponentCreator('/docs/next/reference/types', 'b72'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/roadmap',
+                component: ComponentCreator('/docs/next/roadmap', '260'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/typeDoc/',
+                component: ComponentCreator('/docs/next/typeDoc/', '66e'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/typeDoc/functions/default',
+                component: ComponentCreator('/docs/next/typeDoc/functions/default', 'cb4'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/typeDoc/variables/Log',
+                component: ComponentCreator('/docs/next/typeDoc/variables/Log', 'c17'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/next/using',
+                component: ComponentCreator('/docs/next/using', 'bda'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              }
+            ]
+          }
+        ]
+      },
+      {
         path: '/docs',
-        component: ComponentCreator('/docs', 'e4f'),
+        component: ComponentCreator('/docs', 'a2a'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', 'a8e'),
+            component: ComponentCreator('/docs', '7c5'),
             routes: [
               {
                 path: '/docs/concepts',
-                component: ComponentCreator('/docs/concepts', '27f'),
+                component: ComponentCreator('/docs/concepts', '50f'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/handlers',
-                component: ComponentCreator('/docs/handlers', '7b1'),
+                component: ComponentCreator('/docs/handlers', '4ed'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/intro',
-                component: ComponentCreator('/docs/intro', '61d'),
+                component: ComponentCreator('/docs/intro', 'c78'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/typeDoc/',
-                component: ComponentCreator('/docs/typeDoc/', '7af'),
+                component: ComponentCreator('/docs/typeDoc/', '7b9'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/typeDoc/functions/default',
-                component: ComponentCreator('/docs/typeDoc/functions/default', '554'),
+                component: ComponentCreator('/docs/typeDoc/functions/default', '909'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/typeDoc/variables/Log',
-                component: ComponentCreator('/docs/typeDoc/variables/Log', '994'),
+                component: ComponentCreator('/docs/typeDoc/variables/Log', '8ab'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },
               {
                 path: '/docs/types',
-                component: ComponentCreator('/docs/types', '91a'),
+                component: ComponentCreator('/docs/types', '3d2'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               }
