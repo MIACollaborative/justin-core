@@ -94,7 +94,8 @@ describe('DecisionRuleManager', () => {
 
     const mockUser: JUser = {
       id: 'user123',
-      preferredName: 'Test User',
+      uniqueIdentifier: 'user123',
+      attributes: {preferredName: 'Test User'},
     };
 
     it('should log success and record results when all steps succeed', async () => {

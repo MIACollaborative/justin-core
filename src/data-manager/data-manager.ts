@@ -55,7 +55,7 @@ class DataManager extends EventEmitter {
   public async init(dbType: DBType = DBType.MONGO): Promise<void> {
     Log.dev('Entering DM.init, isInitialized:', this.isInitialized);
     try {
-      if (this.isInitialized && dbType === DBType.MONGO) return;
+      if (this.getInitializationStatus() && dbType === DBType.MONGO) return;
       if (dbType !== DBType.MONGO) {
         throw new Error('MongoDB is the only supported DB type');
       }
@@ -109,6 +109,7 @@ class DataManager extends EventEmitter {
   }
 
   public checkInitialization(): void {
+    Log.dev('Checking DataManager initialization status:', this.isInitialized);
     if (!this.isInitialized) {
       throw new Error('DataManager has not been initialized');
     }
@@ -152,7 +153,7 @@ class DataManager extends EventEmitter {
    * @param {object} updateObject - The update data.
    * @returns {Promise<object | null>} Resolves with the updated item or `null` on error.
    */
-  public async updateItemInCollectionById(
+  public async updateItemByIdInCollection(
     collectionName: string,
     id: string,
     updateObject: object
@@ -264,7 +265,7 @@ class DataManager extends EventEmitter {
    * @param {string} id - The ID of the item to find.
    * @returns {Promise<T | null>} Resolves with the found item of type `T` or `null` if not found or on error.
    */
-  public async findItemInCollectionById<T>(
+  public async findItemByIdInCollection<T>(
     collectionName: string,
     id: string
   ): Promise<T | null> {
@@ -275,6 +276,38 @@ class DataManager extends EventEmitter {
     } catch (error) {
       return handleDbError(
         `Failed to find item by ID in collection: ${collectionName}`,
+        error
+      ) as null;
+    }
+  }
+
+    /**
+   * Finds items by criteria in a specified collection.
+   * @template T - The expected type of the item in the collection.
+   * @param {string} collectionName - The name of the collection.
+   * @param {object} criteria - An object containing the key-value pair to search for. An empty object will return all items.
+   *                            If `null`, it will return `null`.
+   * @returns {Promise<T[] | null>} Resolves with the found item of type `T` or `null` if not found or on error.
+   */
+  public async findItemsInCollection<T>(
+    collectionName: string,
+    criteria: Record<string, any>
+  ): Promise<T[] | null> {
+
+    if (!criteria || !collectionName) {
+      return null; // Return null if criteria is null
+    }
+    
+    try {
+      this.checkInitialization();
+      const itemList = await this.db.findItemsInCollection(
+        collectionName,
+        criteria
+      );
+      return itemList as T[] | null;
+    } catch (error) {
+      return handleDbError(
+        `Failed to find items by criteria: ${criteria} in collection: ${collectionName}`,
         error
       ) as null;
     }

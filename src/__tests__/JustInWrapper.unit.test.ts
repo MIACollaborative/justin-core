@@ -28,8 +28,8 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 
 // UserManager stubs
 const userManagerInitStub = sinon.stub(UserManager, 'init');
-const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsersToDatabase');
-const userManagerStopUserManagerStub = sinon.stub(UserManager, 'stopUserManager');
+const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
+const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
 // EventQueue stubs
 const publishEventStub = sinon.stub(EventQueue, 'publishEvent');
@@ -171,7 +171,7 @@ describe('JustInWrapper', () => {
 
   describe('addUsersToDatabase', () => {
     it('should add users to database successfully', async () => {
-      const users = [{ name: 'User 1' }, { name: 'User 2' }];
+      const users = [{ uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } }, { uniqueIdentifier: 'user2', initialAttributes: { name: 'User 2'} }];
 
       await justInWrapper.addUsersToDatabase(users);
 

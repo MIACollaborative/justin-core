@@ -1,4 +1,10 @@
 export type JUser = {
   id: string;
-  [key: string]: any;
+  uniqueIdentifier: string;
+  attributes: Record<string, any>;
 };
+
+export type NewUserRecord = {
+  uniqueIdentifier: string,
+  initialAttributes: Record<string, any>
+}

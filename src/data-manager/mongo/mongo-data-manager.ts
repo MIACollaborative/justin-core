@@ -1,23 +1,47 @@
-import * as mongoDB from 'mongodb';
-import { Readable } from 'stream';
-import { CollectionChangeType } from '../data-manager.type';
-import { NO_ID } from '../data-manager.constants';
+import * as mongoDB from "mongodb";
+import { Readable } from "stream";
+import { CollectionChangeType } from "../data-manager.type";
+import { NO_ID } from "../data-manager.constants";
 import {
   DeletedDocRecord,
   InsertedOrUpatedDocRecord,
   WithId,
-} from './mongo-data-manager.type';
-import { Log } from '../../logger/logger-manager';
-import { handleDbError } from '../data-manager.helpers';
-import { toObjectId } from './mongo.helpers';
+} from "./mongo-data-manager.type";
+import { Log } from "../../logger/logger-manager";
+import { handleDbError } from "../data-manager.helpers";
+import { toObjectId } from "./mongo.helpers";
 
 const DEFAULT_MONGO_URI =
-  'mongodb://127.0.0.1:27017?retryWrites=true&w=majority';
-const DEFAULT_DB_NAME = 'justin';
+  "mongodb://127.0.0.1:27017?retryWrites=true&w=majority";
+const DEFAULT_DB_NAME = "justin";
 
 let _db: mongoDB.Db | undefined;
 let _client: mongoDB.MongoClient | undefined;
 let _isConnected = false;
+
+/**
+ * Sets the MongoDB database instance.
+ * @returns void
+ */
+const _setDatabaseInstance = (db: mongoDB.Db): void => {
+  _db = db;
+};
+
+/**
+ * Sets the MongoDB client instance.
+ * @returns void
+ */
+const _setClient = (client: mongoDB.MongoClient): void => {
+  _client = client;
+};
+
+/**
+ * Sets the MongoDB database connection status.
+ * @returns void
+ */
+const _setIsConnected = (isConnected: boolean): void => {
+  _isConnected = isConnected;
+};
 
 /**
  * Initializes the MongoDB connection.
@@ -40,7 +64,7 @@ const init = async (): Promise<void> => {
     _db = _client.db(dbName);
     Log.dev(`MongoDBManager initialized with database ${dbName}`);
   } catch (error) {
-    Log.error('Failed to connect to MongoDB', error);
+    Log.error("Failed to connect to MongoDB", error);
     throw error;
   }
 };
@@ -58,7 +82,7 @@ const close = async (): Promise<void> => {
     _isConnected = false;
     Log.dev('MongoDBManager MongoDB client connection closed');
   } catch (error) {
-    handleDbError('Error closing MongoDBManager connection', error);
+    handleDbError("Error closing MongoDBManager connection", error);
   }
 };
 
@@ -67,8 +91,10 @@ const close = async (): Promise<void> => {
  * @throws Will throw an error if the MongoDB client is not initialized.
  */
 const ensureInitialized = (): void => {
+  // print all three variables
+  Log.dev(`MongoDBManager ensureInitialized: _client: ${_client}, _isConnected: ${_isConnected}, _db: ${_db}`);
   if (!_client || !_isConnected || !_db) {
-    const errorMessage = 'MongoDB client not initialized';
+    const errorMessage = "MongoDB client not initialized";
     Log.error(errorMessage);
     throw new Error(errorMessage);
   }
@@ -100,7 +126,7 @@ const getCollectionChangeReadable = (
   const filterList = [{ $match: { operationType: changeType } }];
   const options =
     changeType === CollectionChangeType.UPDATE
-      ? { fullDocument: 'updateLookup' }
+      ? { fullDocument: "updateLookup" }
       : {};
   const changeStream = _db!
     .collection(collectionName)
@@ -115,8 +141,8 @@ const getCollectionChangeReadable = (
   };
 
   const handleStreamError = (error: unknown) => {
-    Log.error('Change stream error', error);
-    collectionChangeReadable.emit('error', error);
+    Log.error("Change stream error", error);
+    collectionChangeReadable.emit("error", error);
     throw error;
   };
 
@@ -138,11 +164,11 @@ const getCollectionChangeReadable = (
     collectionChangeReadable.push(normalizedDoc);
   };
 
-  changeStream.on('change', pushToStream);
-  changeStream.on('close', handleStreamClose);
-  changeStream.on('error', handleStreamError);
+  changeStream.on("change", pushToStream);
+  changeStream.on("close", handleStreamClose);
+  changeStream.on("error", handleStreamError);
 
-  collectionChangeReadable.on('close', () => changeStream.close());
+  collectionChangeReadable.on("close", () => changeStream.close());
 
   return collectionChangeReadable;
 };
@@ -173,7 +199,6 @@ const addItemToCollection = async (
   }
 };
 
-
 /**
  * Updates an item by ID in a specified collection and returns the updated item.
  * @param collectionName - The name of the collection.
@@ -199,7 +224,6 @@ const updateItemInCollection = async (
       const updatedItem = await _db!
         .collection(collectionName)
         .findOne({ _id: objectId });
-      Log.info(`Update succeeded for item with id ${id} in ${collectionName}`);
       return transformId(updatedItem);
     } else {
       Log.warn(`Update failed for item with id ${id} in ${collectionName}`);
@@ -235,6 +259,38 @@ const findItemByIdInCollection = async (
   } catch (error) {
     return handleDbError(
       `Error finding item with id ${id} in ${collectionName}`,
+      error
+    );
+  }
+};
+
+/**
+ * Finds items by property-value pair in a specified collection.
+ * @param collectionName - The name of the collection.
+ * @param criteria - A collection of property-value pairs to match. All property-value pairs must be matched. An empty object will return all items.
+ * @returns A `Promise` resolving with a item list if found, or an empty list if not found.
+ */
+const findItemsInCollection = async (
+  collectionName: string,
+  criteria: Record<string, any> | null
+): Promise<Record<string, any>[] | null> => {
+  ensureInitialized();
+
+  if (!criteria || !collectionName) return null;
+
+  try {
+    const foundDocList = await _db!
+      .collection(collectionName)
+      .find(criteria);
+
+    const docList = await foundDocList.toArray();
+    const transformedList = docList
+      .map(transformId)
+      .filter((doc) => doc !== null);
+    return transformedList;
+  } catch (error) {
+    return handleDbError(
+      `Error finding item with criteria ${criteria} in ${collectionName}`,
       error
     );
   }
@@ -312,7 +368,9 @@ const clearCollection = async (collectionName: string): Promise<void> => {
 const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
   ensureInitialized();
   try {
-    const count = await _db!.collection(collectionName).countDocuments({});
+    const count = await _db!
+      .collection(collectionName)
+      .countDocuments({});
     return count === 0;
   } catch (error) {
     return handleDbError(
@@ -325,8 +383,11 @@ const isCollectionEmpty = async (collectionName: string): Promise<boolean> => {
 export const MongoDBManager = {
   init,
   close,
+  transformId,
+  ensureInitialized,
   getCollectionChangeReadable,
   findItemByIdInCollection,
+  findItemsInCollection,
   addItemToCollection,
   updateItemInCollection,
   getAllInCollection,
@@ -334,3 +395,17 @@ export const MongoDBManager = {
   clearCollection,
   isCollectionEmpty,
 };
+
+/**
+ * TestingMongoDBManager provides additional utilities for testing.
+ *
+ * @namespace TestingMongoDBManager
+ * @private
+ */
+export const TestingMongoDBManager = {
+  ...MongoDBManager,
+  _setDatabaseInstance,
+  _setClient,
+  _setIsConnected,
+};
+

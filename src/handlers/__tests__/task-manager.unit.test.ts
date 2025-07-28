@@ -34,7 +34,10 @@ describe('Task Manager', () => {
 
   const mockUser: JUser = {
     id: 'user123',
-    preferredName: 'Test User',
+    uniqueIdentifier: 'user123',
+    attributes: { 
+      preferredName: 'Test User' 
+    }
   };
 
   beforeEach(() => {
