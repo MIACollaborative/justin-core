@@ -30,6 +30,82 @@ describe("DataManager", () => {
     sandbox.restore();
   });
 
+  describe("getInstance", () => {
+    it("should return a DataManager instance", () => {
+      const instance = DataManager.getInstance();
+      expect(instance).toBeInstanceOf(DataManager);
+    });
+
+    it("should return the same instance on multiple calls", () => {
+      const instance1 = DataManager.getInstance();
+      const instance2 = DataManager.getInstance();
+      expect(instance1).toBe(instance2);
+    });
+
+    it("should create a new instance after killInstance is called", () => {
+      const instance1 = DataManager.getInstance();
+      // kill the singleton
+      // @ts-ignore
+      DataManager.killInstance();
+      const instance2 = DataManager.getInstance();
+      expect(instance2).toBeInstanceOf(DataManager);
+      expect(instance2).not.toBe(instance1);
+    });
+  });
+
+  describe("killInstance", () => {
+    it("should set DataManager.instance to null", () => {
+      const instance1 = DataManager.getInstance();
+      // @ts-ignore
+      DataManager.killInstance();
+      // @ts-ignore
+      expect((DataManager as any).instance).toBeNull();
+    });
+  });
+
+  describe("init", () => {
+
+    it("should initialize DataManager and set isInitialized to true", async () => {
+      const instance = DataManager.getInstance();
+      // Stub db.init to resolve
+      const dbInitStub = sandbox.stub(instance["db"], "init").resolves();
+      // Stub addChangeListener
+      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
+      await instance.init();
+      expect(instance.getInitializationStatus()).toBe(true);
+      expect(dbInitStub.calledOnce).toBe(true);
+      expect(addChangeListenerStub.calledOnce).toBe(true);
+    });
+
+    it("should not re-initialize if already initialized and dbType is MONGO", async () => {
+      const instance = DataManager.getInstance();
+      instance["isInitialized"] = true;
+      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
+      const dbInitStub = sandbox.stub(instance["db"], "init");
+      await instance.init();
+      expect(dbInitStub.called).toBe(false);
+    });
+
+    it("should throw error if dbType is not MONGO", async () => {
+      const instance = DataManager.getInstance();
+      // @ts-ignore
+      await expect(instance.init("NOT_MONGO" as any)).rejects.toThrow();
+    });
+
+    it("should handle error from db.init", async () => {
+      const instance = DataManager.getInstance();
+      //instance["isInitialized"] = true;
+      const dbInitStub = sandbox.stub(instance["db"], "init");
+      const addChangeListenerStub = sandbox.stub(instance["changeListenerManager"], "addChangeListener").resolves();
+      //dbInitStub.throws(new Error("db error"));
+      const result = await instance.init();
+      expect(dbInitStub.called).toBe(true); // not pass, why?
+    });
+
+
+
+  });
+
   describe("findItemsInCollection", () => {
     it("returns null if collection name is an empty string", async () => {
       const result = await DataManager.getInstance().findItemsInCollection("", {
@@ -111,3 +187,5 @@ describe("DataManager", () => {
     });
   });
 });
+
+
