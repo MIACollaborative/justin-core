@@ -163,6 +163,25 @@ describe("DataManager", () => {
     });
   });
 
+  describe("checkInitialization", () => {
+    it("should return undefined if isInitialized is true, or throw an error if not", async () => {
+      const instance = DataManager.getInstance();
+
+      (instance as any).isInitialized = true;
+      console.log(`(instance as any).isInitialized: ${(instance as any).isInitialized}`);
+      expect(instance.checkInitialization()).toBeUndefined();
+
+      // work, but then I can also not stub the checkInitialization method
+      // however, that does mean I have to set it up for every other tests that need it.
+      sandbox.restore();
+      sandbox = sinon.createSandbox();
+
+      (instance as any).isInitialized = false;
+      console.log(`(instance as any).isInitialized: ${(instance as any).isInitialized}`);
+      expect(() => instance.checkInitialization()).toThrow();
+    });
+  });
+
   describe("findItemsInCollection", () => {
     it("returns null if collection name is an empty string", async () => {
       const result = await DataManager.getInstance().findItemsInCollection("", {

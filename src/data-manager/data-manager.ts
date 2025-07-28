@@ -109,6 +109,7 @@ class DataManager extends EventEmitter {
   }
 
   public checkInitialization(): void {
+    Log.dev('Checking DataManager initialization status:', this.isInitialized);
     if (!this.isInitialized) {
       throw new Error('DataManager has not been initialized');
     }
