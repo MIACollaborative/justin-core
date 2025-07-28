@@ -55,7 +55,7 @@ class DataManager extends EventEmitter {
   public async init(dbType: DBType = DBType.MONGO): Promise<void> {
     Log.dev('Entering DM.init, isInitialized:', this.isInitialized);
     try {
-      if (this.isInitialized && dbType === DBType.MONGO) return;
+      if (this.getInitializationStatus() && dbType === DBType.MONGO) return;
       if (dbType !== DBType.MONGO) {
         throw new Error('MongoDB is the only supported DB type');
       }

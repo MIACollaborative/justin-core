@@ -79,8 +79,8 @@ describe('JustInWrapper Integration', () => {
   describe('User Management', () => {
     it('should add users to database successfully', async () => {
       const users = [
-        { name: 'User 1', email: 'user1@test.com' },
-        { name: 'User 2', email: 'user2@test.com' }
+        { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1', email: 'user1@test.com' } },
+        { uniqueIdentifier: 'user2', initialAttributes: { name: 'User 2', email: 'user2@test.com' } }
       ];
       await justIn.addUsersToDatabase(users);
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -204,7 +204,7 @@ describe('JustInWrapper Integration', () => {
       justIn.registerDecisionRule(aDecisionRule);
       justIn.registerTask(aTask);
       justIn.registerEventHandlers('TEST_EVENT', ['testDecisionRule', 'testTask']);
-      await justIn.addUsersToDatabase([{ name: 'U1', email: 'u1@test.com' }]);
+      await justIn.addUsersToDatabase([{ uniqueIdentifier: 'user1', initialAttributes: { name: 'U1', email: 'u1@test.com' } }]);
       await justIn.startEngine();
       await justIn.publishEvent('TEST_EVENT', new Date(), {});
       await new Promise(res => setTimeout(res, 1000));
@@ -228,7 +228,7 @@ describe('JustInWrapper Integration', () => {
 
       justIn.registerDecisionRule(aDecisionRule);
       justIn.registerEventHandlers('INTERVAL_EVENT', ['testDecisionRule']);
-      await justIn.addUsersToDatabase([{ name: 'U2', email: 'u2@test.com' }]);
+      await justIn.addUsersToDatabase([{ uniqueIdentifier: 'user2', initialAttributes: { name: 'U2', email: 'u2@test.com' } }]);
       justIn.createIntervalTimerEventGenerator('INTERVAL_EVENT', 1000);
       await justIn.startEngine();
       await new Promise(res => setTimeout(res, 2500));

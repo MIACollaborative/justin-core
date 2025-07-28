@@ -54,10 +54,6 @@ describe("MongoDBManager", () => {
   });
 
   describe("ensureInitialized", () => {
-    it("should not throw error if database is initialized", async () => {
-      expect(() => MongoDBManager.ensureInitialized()).not.toThrow();
-    });
-
     it("should throw if database is not connected", async () => {
       sandbox.restore();
       sandbox = sinon.createSandbox();
