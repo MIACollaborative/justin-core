@@ -167,14 +167,12 @@ describe("DataManager", () => {
     it("should return undefined if isInitialized is true, or throw an error if not", async () => {
       const instance = DataManager.getInstance();
 
+      // restore, otherwise it will always pass and return undefined.
+      checkInitStub.restore();
+
       (instance as any).isInitialized = true;
       console.log(`(instance as any).isInitialized: ${(instance as any).isInitialized}`);
       expect(instance.checkInitialization()).toBeUndefined();
-
-      // work, but then I can also not stub the checkInitialization method
-      // however, that does mean I have to set it up for every other tests that need it.
-      sandbox.restore();
-      sandbox = sinon.createSandbox();
 
       (instance as any).isInitialized = false;
       console.log(`(instance as any).isInitialized: ${(instance as any).isInitialized}`);
