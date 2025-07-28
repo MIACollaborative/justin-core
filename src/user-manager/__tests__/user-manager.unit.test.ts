@@ -24,7 +24,7 @@ describe("UserManager", () => {
   let sandbox: sinon.SinonSandbox;
   let getInitializationStatusStub: sinon.SinonStub;
   let checkInitializationStub: sinon.SinonStub;
-  let remoteItemFromCollectionStub: sinon.SinonStub;
+  let removeItemFromCollectionStub: sinon.SinonStub;
   let getAllInCollectionStub: sinon.SinonStub;
   let initStub: sinon.SinonStub;
   let clearCollectionStub: sinon.SinonStub;
@@ -53,7 +53,7 @@ describe("UserManager", () => {
     checkInitializationStub = sandbox
       .stub(DataManager.prototype, "checkInitialization")
       .resolves();
-    remoteItemFromCollectionStub = sandbox
+    removeItemFromCollectionStub = sandbox
       .stub(DataManager.prototype, "removeItemFromCollection")
       .resolves();
     getAllInCollectionStub = sandbox
@@ -410,7 +410,7 @@ describe("UserManager", () => {
       getInitializationStatusStub.returns(true);
       TestingUserManager._users.set(jUser1.id, jUser1);
       const result = await TestingUserManager.deleteUserById(jUser1.id);
-      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, jUser1.id)).toBe(true);
+      expect(removeItemFromCollectionStub.calledOnceWith(USERS, jUser1.id)).toBe(true);
       expect(result).toBeUndefined();
     });
 
@@ -418,11 +418,11 @@ describe("UserManager", () => {
       getInitializationStatusStub.returns(true);
       TestingUserManager._users.set(jUser1.id, jUser1);
       TestingUserManager._users.set(jUser2.id, jUser2);
-      remoteItemFromCollectionStub.resolves(false);
+      removeItemFromCollectionStub.resolves(false);
       
       const result = await TestingUserManager.deleteUserById("nonexistent-id");
       expect(TestingUserManager._users.size).toBe(2);
-      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, "nonexistent-id")).toBe(true);
+      expect(removeItemFromCollectionStub.calledOnceWith(USERS, "nonexistent-id")).toBe(true);
     });
   });
 
@@ -432,7 +432,7 @@ describe("UserManager", () => {
       TestingUserManager._users.set(jUser1.id, jUser1);
       TestingUserManager._users.set(jUser2.id, jUser2);
       const result = await TestingUserManager.deleteUserByUniqueIdentifier(jUser1.uniqueIdentifier);
-      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, jUser1.uniqueIdentifier)).toBe(true);
+      expect(removeItemFromCollectionStub.calledOnceWith(USERS, jUser1.uniqueIdentifier)).toBe(true);
       expect(result).toBeUndefined();
       // _users cache should be updated
       expect(TestingUserManager._users.has(jUser1.id)).toBe(false);
@@ -444,11 +444,11 @@ describe("UserManager", () => {
       getInitializationStatusStub.returns(true);
       TestingUserManager._users.set(jUser1.id, jUser1);
       TestingUserManager._users.set(jUser2.id, jUser2);
-      remoteItemFromCollectionStub.resolves(false);
+      removeItemFromCollectionStub.resolves(false);
       
       await TestingUserManager.deleteUserById("nonexistent-id");
       expect(TestingUserManager._users.size).toBe(2);
-      expect(remoteItemFromCollectionStub.calledOnceWith(USERS, "nonexistent-id")).toBe(true);
+      expect(removeItemFromCollectionStub.calledOnceWith(USERS, "nonexistent-id")).toBe(true);
     });
   });
 
