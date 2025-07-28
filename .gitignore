@@ -61,5 +61,4 @@ tslint.cache
 
 # additional files
 **/.DS_Store
-docs/
 *.out

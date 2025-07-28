@@ -1,22 +1,46 @@
 {
-  "name": "justin-core",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@just-in/core",
+  "version": "0.1.0",
+  "description": "A TypeScript-first framework for building adaptive digital health interventions.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MIACollaborative/justin-core"
+  },
+  "keywords": ["jitai","justin", "just-in time", "digital intervention", "adaptive intervention"],
+  "homepage": "REPLACE WITH GITHUB IO PAGE",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": { "access": "public" },
   "scripts": {
     "build": "tsc",
+    "prepare": "yarn build",
     "clean": "rm -rf dist",
     "docs": "typedoc",
+    "docusaurus": "typedoc --options docusaurus-typedoc.json",
+    "version-docs": "cd docs && yarn docusaurus docs:version $(node -p \"require('../package.json').version\")",
     "start": "node dist/index.js",
     "test:unit": "yarn build && jest --config=jest.unit.config.js -i --verbose --passWithNoTests --runInBand --detectOpenHandles",
     "test:integration": "yarn build && jest --config=jest.integration.config.js --verbose --passWithNoTests --runInBand --detectOpenHandles",
     "test": "yarn test:unit && yarn test:integration",
     "test:coverage": "yarn test:unit && yarn test:integration --coverage"
+  },
+  "dependencies": {
+    "mongodb": "^6.10.0",
+    "mongodb-memory-server": "^10.1.4",
+    "uuid": "^11.0.3",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
@@ -39,11 +63,5 @@
     "typedoc-plugin-markdown": "^4.7.0",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.11.0"
-  },
-  "dependencies": {
-    "mongodb": "^6.10.0",
-    "mongodb-memory-server": "^10.1.4",
-    "uuid": "^11.0.3",
-    "zod": "^3.23.8"
   }
 }

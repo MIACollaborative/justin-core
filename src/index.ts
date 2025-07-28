@@ -1,9 +1,16 @@
+// Core Entry
 import { JustIn } from './JustInWrapper';
-import { Log } from './logger/logger-manager';
-import { StepReturnResult, RecordResult, DecisionRuleRegistration } from './handlers/handler.type';
-import { JUser } from './user-manager/user.type';
-import { JEvent } from './event/event.type';
-import { JustInLite } from './JustInLite'
-
-export { Log, JUser, JEvent, StepReturnResult, RecordResult, DecisionRuleRegistration, JustInLite };
 export default JustIn;
+
+// Utilities
+export { Log } from './logger/logger-manager';
+
+// Types
+export type {
+  StepReturnResult,
+  RecordResult,
+  DecisionRuleRegistration,
+} from './handlers/handler.type';
+
+export type { JUser } from './user-manager/user.type';
+export type { JEvent } from './event/event.type';
