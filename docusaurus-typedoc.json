@@ -1,7 +1,7 @@
 {
   "entryPoints": ["./src/index.ts"],
   "entryPointStrategy": "expand",
-  "out": "../justin-docs/docs/typeDoc",
+  "out": "./docs/docs/typeDoc",
   "plugin": ["typedoc-plugin-markdown"],
   "excludePrivate": true,
   "excludeProtected": true,

@@ -1,0 +1,28 @@
+{
+  "id": "types",
+  "title": "Exported Types",
+  "description": "-----------------",
+  "source": "@site/docs/types.md",
+  "sourceDirName": ".",
+  "slug": "/types",
+  "permalink": "/docs/types",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/types.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "types",
+    "title": "Exported Types",
+    "sidebar\\_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Core Concepts",
+    "permalink": "/docs/concepts"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/docs/typeDoc/"
+  }
+}
