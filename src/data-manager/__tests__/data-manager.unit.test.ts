@@ -2,6 +2,7 @@ import DataManager from "../data-manager";
 import { MongoDBManager } from "../mongo/mongo-data-manager";
 import * as dataManagerHelpers from "../data-manager.helpers";
 import sinon from "sinon";
+import { ChangeListenerManager } from "../change-listener.manager";
 
 // Use jest for assertions
 
@@ -12,6 +13,7 @@ describe("DataManager", () => {
   let mongoFindStub: sinon.SinonStub;
   let handleDbErrorStub: sinon.SinonStub;
   let emitStub: sinon.SinonStub;
+  let clearChangeListenersStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -27,6 +29,10 @@ describe("DataManager", () => {
         console.log("emit called");
         return true;
       });
+
+
+    // clearChangeListeners
+    clearChangeListenersStub = sandbox.stub(ChangeListenerManager.prototype, "clearChangeListeners").callsFake(() => {});
 
     sandbox.stub(console, "error").callsFake(() => {});
     handleDbErrorStub = sandbox
@@ -138,6 +144,21 @@ describe("DataManager", () => {
       expect(instance.getInitializationStatus()).toBe(true);
 
       (instance as any).isInitialized = false;
+      expect(instance.getInitializationStatus()).toBe(false);
+    });
+  });
+
+
+  describe("close", () => {
+    it("should call necessary methods", async () => {
+      const instance = DataManager.getInstance();
+      const dbCloseStub = sandbox.stub(instance["db"], "close").resolves();
+      
+      await instance.close();
+      
+      expect(checkInitStub.called).toBe(true);
+      expect(clearChangeListenersStub.called).toBe(true);
+      expect(dbCloseStub.called).toBe(true);
       expect(instance.getInitializationStatus()).toBe(false);
     });
   });
