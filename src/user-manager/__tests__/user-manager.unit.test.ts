@@ -464,33 +464,32 @@ describe("UserManager", () => {
     });
   });
 
-
   describe("isIdentifierUnique", () => {
-    it("returns false and message if identifier already exists", async () => {
-      findStub.resolves([initialUserRecord1]);
+    it("returns false if identifier already exists", async () => {
+      findStub.resolves([jUser1]);
       TestingUserManager._users.set(jUser1.id, jUser1);
-      const result = await TestingUserManager.isIdentifierUnique("abc");
+      const result = await TestingUserManager.isIdentifierUnique(jUser1.uniqueIdentifier);
       expect(result).toBe(false);
     });
-    it("returns true and message if identifier is new", async () => {
+
+    it("returns true if identifier is new", async () => {
       findStub.resolves([]);
       const result = await TestingUserManager.isIdentifierUnique("new-uid");
       expect(result).toBe(true);
     });
+
     it("throw an error if identifier is null", async () => {
       // @ts-ignore
       await expect(() => TestingUserManager.isIdentifierUnique(null)).rejects.toThrow();
     });
+
     it("throw an error if identifier is undefined", async () => {
       // @ts-ignore
       await expect(() => TestingUserManager.isIdentifierUnique(undefined)).rejects.toThrow();
     });
+    
     it("throw an error if identifier is empty string", async () => {
       await expect(() => TestingUserManager.isIdentifierUnique("")).rejects.toThrow();
     });
   });
-
-
-
-
 });
