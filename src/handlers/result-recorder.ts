@@ -1,7 +1,11 @@
 import { RecordResult } from './handler.type'
 import {Log} from "../logger/logger-manager";
+import DataManager from "../data-manager/data-manager";
+import { DECISION_RULE_RESULTS, TASK_RESULTS } from "../data-manager/data-manager.constants";
 
 type RecordResultFunction = (record: RecordResult) => Promise<void> | void;
+
+const dataManager = DataManager.getInstance();
 
 let recordDecisionRuleResultFn: RecordResultFunction | null = null;
 let recordTaskResultFn: RecordResultFunction | null = null;
@@ -25,21 +29,24 @@ export function setTaskResultRecorder(fn: RecordResultFunction): void {
 }
 
 /**
- * Handles a decision rule result (or task fallback).
- *
- * @param record - The result of executing the handler
- */
+* Handles a decision rule result (or task fallback).
+*
+* @param record - The result of executing the handler
+*/
 export async function handleDecisionRuleResult(record: RecordResult): Promise<void> {
-  if(!hasResultRecord(record)) {
-    Log.warn("No steps found.", JSON.stringify(record));
+  if (!hasResultRecord(record)) {
+    Log.warn('No steps found.', JSON.stringify(record));
     return;
   }
 
   if (recordDecisionRuleResultFn) {
     await recordDecisionRuleResultFn(record);
   } else {
-    // Default fallback
-    console.log('[Result] DecisionRule result:', record);
+    // Default fallback: persist via DataManager
+    await dataManager.addItemToCollection(
+      DECISION_RULE_RESULTS,
+      record
+    );
   }
 }
 
@@ -49,8 +56,8 @@ export async function handleDecisionRuleResult(record: RecordResult): Promise<vo
  * @param record - The result of executing the handler
  */
 export async function handleTaskResult(record: RecordResult): Promise<void> {
-  if(!hasResultRecord(record)) {
-    Log.warn("No steps found.", JSON.stringify(record));
+  if (!hasResultRecord(record)) {
+    Log.warn('No steps found.', JSON.stringify(record));
     return;
   }
 
@@ -59,17 +66,20 @@ export async function handleTaskResult(record: RecordResult): Promise<void> {
   } else if (recordDecisionRuleResultFn) {
     await recordDecisionRuleResultFn(record);
   } else {
-    // Default fallback
-    console.log('[Result] Task result:', record);
+    // Default fallback: persist via DataManager
+    await dataManager.addItemToCollection(
+      TASK_RESULTS,
+      record
+    );
   }
 }
 
 /*
-  * Will determine if there are steps in the result object
-  *
-  * @param record - The result of executing the handler
-  * @returns boolean - false if no steps are found true if there are
-*/
+ * Will determine if there are steps in the result object
+ *
+ * @param record - The result of executing the handler
+ * @returns boolean - false if no steps are found true if there are
+ */
 export function hasResultRecord(record: RecordResult): boolean {
   return record.steps.length > 0;
 }
