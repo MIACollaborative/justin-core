@@ -193,7 +193,7 @@ const processExecutionLifecycle = async (
     }
 
     // Log warning if function is not found
-    Log.warn(`"${functionName}" not found for handler "${handlerName}".`);
+    Log.dev(`"${functionName}" not found for handler "${handlerName}".`);
   } catch (error) {
     Log.error(
       `Error executing "${functionName}" for handler "${handlerName}" and event "${event.eventType}": ${error}`

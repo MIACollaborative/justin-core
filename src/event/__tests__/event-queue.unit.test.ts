@@ -482,8 +482,8 @@ describe('Event Queue', () => {
 
       await EventQueue.processEventQueue();
 
-      expect(logWarnStub.calledWith('"beforeExecution" not found for handler "task1".')).toBe(true);
-      expect(logWarnStub.calledWith('"afterExecution" not found for handler "task1".')).toBe(true);
+      expect(logDevStub.calledWith('"beforeExecution" not found for handler "task1".')).toBe(true);
+      expect(logDevStub.calledWith('"afterExecution" not found for handler "task1".')).toBe(true);
     });
 
     it('should handle lifecycle method execution errors', async () => {
