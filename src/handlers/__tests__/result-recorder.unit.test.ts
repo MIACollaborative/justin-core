@@ -1,10 +1,12 @@
 import sinon from 'sinon';
 import { Log } from '../../logger/logger-manager';
 import * as recorder from '../result-recorder';
+import DataManager from '../../data-manager/data-manager';
 
 describe('Result Recorder Module', () => {
   let warnStub: sinon.SinonStub;
-  let consoleLogStub: sinon.SinonStub;
+  let dmGetInstanceStub: sinon.SinonStub;
+  let dmInstance: { addItemToCollection: sinon.SinonStub };
 
   const emptyRecord = { steps: [] } as any;
   const nonEmptyRecord = { steps: [{}, {}] } as any;
@@ -14,12 +16,14 @@ describe('Result Recorder Module', () => {
     recorder.setTaskResultRecorder(null as any);
 
     warnStub = sinon.stub(Log, 'warn');
-    consoleLogStub = sinon.stub(console, 'log');
+
+    dmInstance = { addItemToCollection: sinon.stub().resolves() };
+    jest.spyOn(DataManager, 'getInstance').mockReturnValue(dmInstance as any);
   });
 
   afterEach(() => {
     warnStub.restore();
-    consoleLogStub.restore();
+    (DataManager.getInstance as jest.Mock).mockRestore();
   });
 
   describe('hasResultRecord', () => {
@@ -39,17 +43,7 @@ describe('Result Recorder Module', () => {
         'No steps found.',
         JSON.stringify(emptyRecord)
       );
-      sinon.assert.notCalled(consoleLogStub);
-    });
-
-    it('logs console fallback', async () => {
-      await recorder.handleDecisionRuleResult(nonEmptyRecord);
-      sinon.assert.notCalled(warnStub);
-      sinon.assert.calledOnceWithExactly(
-        consoleLogStub,
-        '[Result] DecisionRule result:',
-        nonEmptyRecord
-      );
+      sinon.assert.notCalled(dmInstance.addItemToCollection);
     });
 
     it('calls decision recorder when set', async () => {
@@ -57,7 +51,7 @@ describe('Result Recorder Module', () => {
       recorder.setDecisionRuleResultRecorder(callback);
       await recorder.handleDecisionRuleResult(nonEmptyRecord);
       sinon.assert.calledOnceWithExactly(callback, nonEmptyRecord);
-      sinon.assert.notCalled(consoleLogStub);
+      sinon.assert.notCalled(dmInstance.addItemToCollection);
     });
   });
 
@@ -69,7 +63,7 @@ describe('Result Recorder Module', () => {
         'No steps found.',
         JSON.stringify(emptyRecord)
       );
-      sinon.assert.notCalled(consoleLogStub);
+      sinon.assert.notCalled(dmInstance.addItemToCollection);
     });
 
     it('calls task recorder when set', async () => {
@@ -77,7 +71,7 @@ describe('Result Recorder Module', () => {
       recorder.setTaskResultRecorder(taskCb);
       await recorder.handleTaskResult(nonEmptyRecord);
       sinon.assert.calledOnceWithExactly(taskCb, nonEmptyRecord);
-      sinon.assert.notCalled(consoleLogStub);
+      sinon.assert.notCalled(dmInstance.addItemToCollection);
     });
 
     it('falls back to decision recorder', async () => {
@@ -85,16 +79,7 @@ describe('Result Recorder Module', () => {
       recorder.setDecisionRuleResultRecorder(decisionCb);
       await recorder.handleTaskResult(nonEmptyRecord);
       sinon.assert.calledOnceWithExactly(decisionCb, nonEmptyRecord);
-      sinon.assert.notCalled(consoleLogStub);
-    });
-
-    it('logs console fallback when no recorders', async () => {
-      await recorder.handleTaskResult(nonEmptyRecord);
-      sinon.assert.calledOnceWithExactly(
-        consoleLogStub,
-        '[Result] Task result:',
-        nonEmptyRecord
-      );
+      sinon.assert.notCalled(dmInstance.addItemToCollection);
     });
   });
 });
