@@ -1,6 +1,6 @@
 ---
 id: intro
-title: About JustIn
+title: About JustIn 
 sidebar_position: 1
 ---
 # About JustIn
@@ -14,7 +14,8 @@ To break the cycle of discarded apps and wasted effort, we decided to create Jus
 
 Our goal for JustIn is to significantly reduce the effort and cost required to build apps for mHealth research, especially apps designed to deliver *adaptive interventions*, which are interventions that modify their operation based on user characteristics, behavior, context, and/or outcomes. Currently such apps require significant software development skill and effort to build and delploy, placing excessive burden on research budgets and investigators, who may struggle to find sufficiently skilled development expertise at a price they can afford. While JustIn is designed (for now) to require programming, our goal is to make that programming signficantly easier, faster, and cheaper. In fact we use the "undergraduate in CS" as our benchmark for who should be able to use JustIn to build an adaptive mHealth intervention app that can withstand the rigors of a multi-month trial with dozens or even hundreds of participants. As researchers mostly working academia, we are intimately familar with the skills, availability, and costs associated with student developers, and know that being able to build mHealth research apps with students will greatly accelerate research while providing excellent experience for students still building their craft.
 
-JustIn will initially be released in several stages, with each stage adding more of the functionality required to build a complete app. See the JustIn Roadmap for more details about planned features and approximate timelines.
+JustIn will initially be released in several stages, with each stage adding more of the functionality required to build a complete app. See the [JustIn Roadmap](./roadmap) for more details about planned features and approximate timelines.
+
 
 
 

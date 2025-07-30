@@ -6,6 +6,79 @@
         {
           "name": "current",
           "label": "Next",
+          "isLast": false,
+          "path": "/docs/next",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "concepts/events",
+              "path": "/docs/next/concepts/events",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "concepts/handlers",
+              "path": "/docs/next/concepts/handlers",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "concepts/overview",
+              "path": "/docs/next/concepts/overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "concepts/users",
+              "path": "/docs/next/concepts/users",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/docs/next/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "reference/types",
+              "path": "/docs/next/reference/types",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "roadmap",
+              "path": "/docs/next/roadmap",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "typeDoc/functions/default",
+              "path": "/docs/next/typeDoc/functions/default",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "typeDoc/README",
+              "path": "/docs/next/typeDoc/",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "typeDoc/variables/Log",
+              "path": "/docs/next/typeDoc/variables/Log",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "using",
+              "path": "/docs/next/using",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/docs/next/intro",
+                "label": "intro"
+              }
+            }
+          }
+        },
+        {
+          "name": "0.1.0",
+          "label": "0.1.0",
           "isLast": true,
           "path": "/docs",
           "mainDocId": "intro",
