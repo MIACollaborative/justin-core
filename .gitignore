@@ -62,4 +62,4 @@ tslint.cache
 # additional files
 **/.DS_Store
 *.out
-/.docusaurus/
+docs/.docusaurus/
