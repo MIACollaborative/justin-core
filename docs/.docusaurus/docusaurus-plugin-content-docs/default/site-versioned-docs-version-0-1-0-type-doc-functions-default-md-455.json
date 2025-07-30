@@ -1,0 +1,24 @@
+{
+  "id": "typeDoc/functions/default",
+  "title": "default",
+  "description": "justin-core v0.1.0",
+  "source": "@site/versioned_docs/version-0.1.0/typeDoc/functions/default.md",
+  "sourceDirName": "typeDoc/functions",
+  "slug": "/typeDoc/functions/default",
+  "permalink": "/docs/typeDoc/functions/default",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-org/justin-docs/edit/main/versioned_docs/version-0.1.0/typeDoc/functions/default.md",
+  "tags": [],
+  "version": "0.1.0",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "README",
+    "permalink": "/docs/typeDoc/"
+  },
+  "next": {
+    "title": "Log",
+    "permalink": "/docs/typeDoc/variables/Log"
+  }
+}

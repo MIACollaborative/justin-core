@@ -1,0 +1,28 @@
+{
+  "id": "reference/types",
+  "title": "Exported Types",
+  "description": "This reference page explains the key types exported from justin-core. These are useful for writing custom handlers, extending the framework, or understanding how execution works.",
+  "source": "@site/docs/reference/types.md",
+  "sourceDirName": "reference",
+  "slug": "/reference/types",
+  "permalink": "/docs/next/reference/types",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/reference/types.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "id": "types",
+    "title": "Exported Types",
+    "sidebar\\_position": 4
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "JustIn Roadmap",
+    "permalink": "/docs/next/roadmap"
+  },
+  "next": {
+    "title": "README",
+    "permalink": "/docs/next/typeDoc/"
+  }
+}

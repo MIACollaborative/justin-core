@@ -11,7 +11,7 @@ You will also write code to specify how and when events are generated, and how t
 A very basic JustIn app looks like this:
 
 ```ts
-import JustIn from "justin-core";
+import JustIn from "just-in/core";
 import { MySimpleTask } from "./my-simple-task"; // TBD
 
 const justIn = JustIn(); // get a reference to the framework
