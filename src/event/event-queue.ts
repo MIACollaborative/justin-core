@@ -132,7 +132,7 @@ export const setupEventQueueListener = async (): Promise<void> => {
 
     clm.addChangeListener(EVENT_QUEUE, CollectionChangeType.INSERT, async () => {
       if (shouldProcessQueue) {
-        Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
+        Log.dev('New event detected in EVENTS_QUEUE. Triggering processing.');
         await processEventQueue();
       }
     });
@@ -213,7 +213,7 @@ const archiveEvent = async (event: JEvent): Promise<void> => {
     } else {
       Log.error(`Event "${event}" has no ID. Skipping archiving.`);
     }
-    Log.info(
+    Log.dev(
       `Event of type "${event.eventType}" with ID: ${event.id} archived successfully.`
     );
   } catch (error) {

@@ -16,7 +16,6 @@ export const recordResult = (resultData: {
   user: JUser;
 }): void => {
   if(!resultData.steps.length) {
-    Log.warn("No steps found.", JSON.stringify(resultData));
     return;
   }
   Log.handlerResult(resultData);

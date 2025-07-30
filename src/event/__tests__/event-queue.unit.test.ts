@@ -535,7 +535,7 @@ describe('Event Queue', () => {
       expect(addItemToCollectionStub.calledWith('archived_events', mockEvent)).toBe(true);
       expect(removeItemFromCollectionStub.calledWith('event_queue', 'event1')).toBe(true);
 
-      expect(logInfoStub.calledWith(
+      expect(logDevStub.calledWith(
         `Event of type "TEST_EVENT" with ID: event1 archived successfully.`
       )).toBe(true);
     });
