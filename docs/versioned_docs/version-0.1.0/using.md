@@ -1,7 +1,7 @@
 ---
 id: using
 title: Using JustIn Core
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 

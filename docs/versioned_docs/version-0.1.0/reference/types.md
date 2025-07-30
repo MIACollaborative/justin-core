@@ -3,7 +3,7 @@
 id: types
 title: Exported Types
 sidebar\_position: 4
---------------------
+---
 
 # Exported Types
 
