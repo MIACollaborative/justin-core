@@ -60,8 +60,10 @@ export async function executeDecisionRule(
   user: JUser
 ): Promise<void> {
   const results: ExecuteStepReturn[] = [];
+  let decisionRuleExecutionStatus: "not activated" | "activated" | "error" | "finished" = "not activated";
+
   try {
-    Log.info(
+    Log.dev(
       `Starting decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" with ID: ${event.id}.`
     );
 
@@ -71,6 +73,7 @@ export async function executeDecisionRule(
     );
 
     if (shouldActivateResult.result.status === 'success') {
+      decisionRuleExecutionStatus = "activated";
       results.push(shouldActivateResult);
       const selectionActionResult = await executeStep(
         DecisionRuleStep.SELECT_ACTION,
@@ -87,10 +90,13 @@ export async function executeDecisionRule(
         );
         results.push(actionResult);
       }
+      decisionRuleExecutionStatus = "finished";
     } else {
-      Log.info(`Decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
+      Log.dev(`Decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
     }
+    
   } catch (error) {
+    decisionRuleExecutionStatus = "error";
     Log.error(
       `Error processing decision rule "${rule.name}" for user "${user.id}" in event "${event.eventType}": ${error}`
     );
@@ -107,7 +113,7 @@ export async function executeDecisionRule(
         user,
       });
     Log.info(
-      `Decision rule "${rule.name}" completed for user "${user.id}" in event "${event.eventType}".`
+      `Decision rule "${rule.name}" completed for user "${user.id}" in event "${event.eventType}": ${decisionRuleExecutionStatus}.`
     );
   }
 }

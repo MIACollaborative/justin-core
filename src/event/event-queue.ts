@@ -81,7 +81,7 @@ export const processEventQueue = async (): Promise<void> => {
       }
 
       for (const event of events) {
-        Log.info(`Processing event "${event.eventType}" with ID: ${event.id} for ${users.length} users.`);
+        Log.dev(`Processing event "${event.eventType}" with ID: ${event.id} for ${users.length} users.`);
 
         for (const handlerName of eventHandlerManager.getHandlersForEventType(event.eventType)) {
           await processExecutionLifecycle(handlerName, event, "beforeExecution")
