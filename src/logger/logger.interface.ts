@@ -1,4 +1,3 @@
-import { RecordResult } from '../handlers/handler.type';
 
 /**
  * Interface defining methods for logging at various levels, with optional custom functions.
@@ -27,10 +26,4 @@ export interface Logger {
    * @param args - The arguments to log (can be any type of data like strings, objects, etc.).
    */
   dev?: (...args: any[]) => void;
-
-  /**
-   * Logs a result of running a task or decision rule.
-   * @param handlerResults - Data on the event, the handler, and the results of its steps.
-   */
-  handlerResults?: (handlerResults: RecordResult) => void;
 }

@@ -20,9 +20,5 @@ export const ConsoleLogger: Logger = {
     if (process.env.NODE_ENV !== 'PROD') {
       console.log('DEV:', ...args);
     }
-  },
-
-  handlerResults(...args: any[]): void {
-    console.log('Step Result:', ...args);
-  },
+  }
 };
