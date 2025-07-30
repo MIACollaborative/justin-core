@@ -3,8 +3,8 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Justin Docs',
-  tagline: 'Just-in-time interventions, documented.',
+  title: 'Justin-Core',
+  tagline: 'Helping you run your JITAI study apps',
   favicon: 'img/favicon.ico',
 
   url: 'https://your-docs-site.example.com', // 🔧 Update when deployed
@@ -31,7 +31,6 @@ const config: Config = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.ts'),
-          editUrl: 'https://github.com/your-org/justin-docs/edit/main/',
         },
         blog: false,
         theme: {
@@ -64,7 +63,6 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
       links: [
         {
           title: 'Docs',
@@ -78,23 +76,20 @@ const config: Config = {
         {
           title: 'Community',
           items: [
-            // {
-            //   label: 'JustIn-Core - Discussions',
-            //   href: 'https://github.com/MIACollaborative/justin-core/discussions',
-            // },
             {
               label: 'JustIn-Core - GitHub',
               href: 'https://github.com/MIACollaborative/justin-core',
+            },
+            {
+              label: 'Nord Color Palette',
+              href: 'https://www.nordtheme.com',
             },
           ],
         },
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Justin Project.`,
     },
-    prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
-    },
+
   } satisfies Preset.ThemeConfig,
 
   future: {

@@ -1,3 +1,4 @@
+/* Light mode */
 :root {
   --ifm-color-primary: #5e81ac;
   --ifm-color-primary-dark: #4c678d;
@@ -11,10 +12,23 @@
   --ifm-footer-background-color: #d8dee9;
 }
 
-/* Optional sidebar version dropdown styling */
-.theme-doc-sidebar-item-html .version-dropdown {
-  margin: 1em 0;
-  padding: 0.5em;
-  background-color: var(--ifm-background-color);
-  border-left: 4px solid var(--ifm-color-primary);
+/* Dark mode */
+html[data-theme='dark'] {
+  --ifm-color-primary: #88c0d0;
+  --ifm-background-color: #2e3440;
+  --ifm-font-color-base: #eceff4;
+  --ifm-navbar-background-color: #3b4252;
+  --ifm-footer-background-color: #3b4252;
+}
+
+/* Matches dark-mode */
+html[data-theme='dark'] .footer {
+  background-color: var(--ifm-footer-background-color);
+  color: var(--ifm-font-color-base);
+}
+
+/* Matches light-mode */
+html[data-theme='light'] .footer {
+  background-color: var(--ifm-footer-background-color);
+  color: var(--ifm-font-color-base);
 }

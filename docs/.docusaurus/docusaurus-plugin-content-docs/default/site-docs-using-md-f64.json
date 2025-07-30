@@ -1,14 +1,13 @@
 {
   "id": "using",
   "title": "Using JustIn Core",
-  "description": "The justin-core package is a lightweight, event-driven framework for building Just-In-Time Adaptive Interventions (JITAIs). It helps research app developers define, schedule, and deliver adaptive interventions using events, decision rules, and tasks.",
+  "description": "The just-in/core package is a lightweight, event-driven framework for building Just-In-Time Adaptive Interventions (JITAIs). It helps research app developers define, schedule, and deliver adaptive interventions using events, decision rules, and tasks.",
   "source": "@site/docs/using.md",
   "sourceDirName": ".",
   "slug": "/using",
   "permalink": "/docs/next/using",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/using.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 2,
@@ -18,10 +17,6 @@
     "sidebar_position": 2
   },
   "sidebar": "tutorialSidebar",
-  "previous": {
-    "title": "About JustIn",
-    "permalink": "/docs/next/intro"
-  },
   "next": {
     "title": "Overview",
     "permalink": "/docs/next/concepts/overview"

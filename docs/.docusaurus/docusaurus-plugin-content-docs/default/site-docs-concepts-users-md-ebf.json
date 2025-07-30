@@ -8,7 +8,6 @@
   "permalink": "/docs/next/concepts/users",
   "draft": false,
   "unlisted": false,
-  "editUrl": "https://github.com/your-org/justin-docs/edit/main/docs/concepts/users.md",
   "tags": [],
   "version": "current",
   "sidebarPosition": 4,
@@ -23,7 +22,7 @@
     "permalink": "/docs/next/concepts/events"
   },
   "next": {
-    "title": "JustIn Roadmap",
-    "permalink": "/docs/next/roadmap"
+    "title": "Exported Types",
+    "permalink": "/docs/next/reference/types"
   }
 }
