@@ -3,15 +3,17 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Justin-Core',
+  title: 'Justin Core',
   tagline: 'Helping you run your JITAI study apps',
   favicon: 'img/favicon.ico',
 
-  url: 'https://your-docs-site.example.com', // 🔧 Update when deployed
-  baseUrl: '/',
+  url: 'https://miacollaborative.github.io',
+  baseUrl: '/justin-core/',
 
-  organizationName: 'your-org', // 🔧 Replace with your GitHub org/user
-  projectName: 'justin-docs',   // 🔧 Replace with your GitHub repo
+  organizationName: 'MIACollaborative',
+  projectName: 'justin-core',
+  deploymentBranch: 'gh-pages',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -21,16 +23,15 @@ const config: Config = {
     locales: ['en'],
   },
 
-  themes: [
-    '@docusaurus/theme-mermaid',
-  ],
+  themes: ['@docusaurus/theme-mermaid'],
 
   presets: [
     [
       'classic',
       {
         docs: {
-          routeBasePath: '/docs',
+          path: 'docs',
+          routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.ts'),
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
@@ -50,6 +51,8 @@ const config: Config = {
       logo: {
         alt: 'Justin Logo',
         src: 'img/justin-logo.png',
+        href: 'https://miacollaborative.github.io/justin-docs/',
+        target: '_self',
       },
       items: [
         {
@@ -67,19 +70,10 @@ const config: Config = {
     footer: {
       links: [
         {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Overview',
-              to: '/docs/intro',
-            },
-          ],
-        },
-        {
           title: 'Community',
           items: [
             {
-              label: 'JustIn-Core - GitHub',
+              label: 'Justin Core - GitHub',
               href: 'https://github.com/MIACollaborative/justin-core',
             },
             {
@@ -91,7 +85,6 @@ const config: Config = {
       ],
       copyright: `Copyright © ${new Date().getFullYear()} Justin Project.`,
     },
-
   } satisfies Preset.ThemeConfig,
 
   future: {

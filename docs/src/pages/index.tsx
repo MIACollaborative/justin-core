@@ -17,7 +17,7 @@ export default function Home(): JSX.Element {
             A lightweight execution engine for delivering adaptive interventions in real time.
           </p>
           <div style={{ marginTop: '1rem' }}>
-            <Link className="button button--primary" to="/docs/using">
+            <Link className="button button--primary" to="/using">
               Start Using justin-core
             </Link>
           </div>
