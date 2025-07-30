@@ -30,7 +30,10 @@ const config: Config = {
       'classic',
       {
         docs: {
+          routeBasePath: '/docs',
           sidebarPath: require.resolve('./sidebars.ts'),
+          showLastUpdateAuthor: true,
+          showLastUpdateTime: true,
         },
         blog: false,
         theme: {
@@ -56,8 +59,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/MIACollaborative/justin-core',
-          label: 'JustIn-core - GitHub',
+          type: 'docsVersionDropdown',
           position: 'right',
         },
       ],

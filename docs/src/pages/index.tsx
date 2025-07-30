@@ -7,16 +7,18 @@ import styles from './index.module.css';
 export default function Home(): JSX.Element {
   return (
     <Layout
-      title="JustIn Docs"
-      description="Just-in-time interventions, documented.">
+      title="justin-core"
+      description="The execution engine for JustIn interventions.">
       <header className={styles.heroBanner}>
         <div className="container">
           <JustinLogo className={styles.featureSvg} />
-          <h1 className="hero__title">JustIn Docs</h1>
-          <p className="hero__subtitle">Just-in-time interventions, documented.</p>
+          <h1 className="hero__title">justin-core</h1>
+          <p className="hero__subtitle">
+            A lightweight execution engine for delivering adaptive interventions in real time.
+          </p>
           <div style={{ marginTop: '1rem' }}>
-            <Link className="button button--primary" to="/docs/about">
-              Learn About JustIn
+            <Link className="button button--primary" to="/docs/using">
+              Start Using justin-core
             </Link>
           </div>
         </div>
@@ -24,21 +26,21 @@ export default function Home(): JSX.Element {
       <main className="container margin-vert--xl">
         <div className="row">
           <div className="col col--4">
-            <h3>Born from Frustration</h3>
+            <h3>Event-Driven Architecture</h3>
             <p>
-              JustIn began as a way to stop rebuilding the same mHealth apps over and over. We wanted reusable tools that research teams could adapt and extend.
+              Events are the backbone of justin-core. Schedule or trigger them manually, then execute associated tasks and decision rules across participants.
             </p>
           </div>
           <div className="col col--4">
-            <h3>Empowering Student Developers</h3>
+            <h3>Powerful Task & Rule Engine</h3>
             <p>
-              We believe an undergrad CS student should be able to build a full-featured JITAI study app using JustIn — that’s our benchmark.
+              Define reusable tasks and decision rules. Customize activation logic, execute complex steps, and route results for logging and follow-up.
             </p>
           </div>
           <div className="col col--4">
-            <h3>Open Source, Community-Driven</h3>
+            <h3>Built for Research Apps</h3>
             <p>
-              JustIn is freely available and extensible. We aim to serve the research community with a framework that grows through shared contributions.
+              justin-core is designed for flexibility — run in cloud functions or server mode, integrate with MongoDB, and log structured results per participant.
             </p>
           </div>
         </div>
