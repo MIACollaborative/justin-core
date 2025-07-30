@@ -1,6 +1,11 @@
 {
   "tutorialSidebar": [
     {
+      "type": "html",
+      "value": "<div class=\"version-dropdown\"><DocsVersionDropdown/></div>",
+      "defaultStyle": true
+    },
+    {
       "type": "doc",
       "id": "using"
     },

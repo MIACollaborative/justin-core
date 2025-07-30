@@ -2,6 +2,7 @@ import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
   tutorialSidebar: [
+    { type: 'html', value: '<div class="version-dropdown"><DocsVersionDropdown/></div>', defaultStyle: true },
     {type: 'doc', id: 'using'},
     {
       type: 'category',
