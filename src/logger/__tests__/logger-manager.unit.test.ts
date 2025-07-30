@@ -8,7 +8,6 @@ jest.mock('../console.logger', () => ({
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
-    handlerResults: jest.fn(),
   },
 }));
 
@@ -20,7 +19,6 @@ describe('Logger Manager', () => {
       info: true,
       warn: true,
       error: true,
-      handlerResults: true,
     });
 
     setLogger(ConsoleLogger);
@@ -98,62 +96,6 @@ describe('Logger Manager', () => {
       expect(ConsoleLogger.error).toHaveBeenCalledWith('Error message');
       expect(ConsoleLogger.warn).not.toHaveBeenCalled();
       expect(ConsoleLogger.info).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('handlerResult', () => {
-    it('should log handler results when handlerResults level is enabled', () => {
-      const mockHandlerResults: RecordResult = {
-        event: { eventType: 'Test Event', id: '12345', generatedTimestamp: new Date() },
-        name: 'Test Handler',
-        steps: [
-          {
-            step: 'doAction',
-            result: { status: 'success' },
-            timestamp: new Date(),
-          },
-        ],
-        user: { id: '12345', uniqueIdentifier: "12345", attributes: { name: 'Test User', email: 'test@test.com' } },
-      };
-
-      setLogLevels({
-        info: false,
-        warn: false,
-        error: false,
-        handlerResults: true,
-      });
-
-      Log.handlerResult(mockHandlerResults);
-
-      expect(ConsoleLogger.handlerResults).toHaveBeenCalledWith(
-        mockHandlerResults
-      );
-    });
-
-    it('should not log handler results when handlerResults level is disabled', () => {
-      const mockHandlerResults: RecordResult = {
-        event: { eventType: 'Test Event', id: '12345', generatedTimestamp: new Date() },
-        name: 'Test Handler',
-        steps: [
-          {
-            step: 'doAction',
-            result: { status: 'success' },
-            timestamp: new Date(),
-          },
-        ],
-        user: { id: '12345', uniqueIdentifier: "12345", attributes: { name: 'Test User', email: 'test@test.com' } },
-      };
-
-      setLogLevels({
-        info: false,
-        warn: false,
-        error: false,
-        handlerResults: false,
-      });
-
-      Log.handlerResult(mockHandlerResults);
-
-      expect(ConsoleLogger.handlerResults).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,6 +1,5 @@
 import { Logger } from './logger.interface';
 import { ConsoleLogger } from './console.logger';
-import { RecordResult } from '../handlers/handler.type';
 
 /** Default logger configuration using ConsoleLogger. */
 let activeLogger: Logger = ConsoleLogger;
@@ -11,7 +10,6 @@ export const logLevels = {
   warn: true,
   error: true,
   dev: true,
-  handlerResults: true,
 };
 
 /**
@@ -25,7 +23,6 @@ export function setLogger(logger: Partial<Logger>): void {
     warn: logger.warn || ConsoleLogger.warn,
     error: logger.error || ConsoleLogger.error,
     dev: logger.dev || ConsoleLogger.dev,
-    handlerResults: logger.handlerResults || ConsoleLogger.handlerResults,
   };
 }
 
@@ -87,16 +84,6 @@ export const Log = {
   dev(message: string, ...optionalParams: any[]): void {
     if (logLevels.dev && activeLogger.dev) {
       activeLogger.dev(message, ...optionalParams);
-    }
-  },
-
-  /**
-   * Logs a result for a handler if `handlerResults` logging is enabled.
-   * @param handlerResults - Data on the event, the handler, and the results of its steps.
-   */
-  handlerResult(handlerResults: RecordResult): void {
-    if (logLevels.handlerResults && activeLogger.handlerResults) {
-      activeLogger.handlerResults(handlerResults);
     }
   }
 };

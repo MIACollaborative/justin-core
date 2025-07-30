@@ -1,9 +1,9 @@
-import { HandlerType, Task, TaskRegistration, TaskStep } from './handler.type';
+import { ExecuteStepReturn, HandlerType, Task, TaskRegistration, TaskStep} from './handler.type';
 import { Log } from '../logger/logger-manager';
 import { executeStep } from './steps.helpers';
-import { recordResult } from '../event/record-result';
 import { JEvent } from '../event/event.type';
 import { JUser } from '../user-manager/user.type';
+import {handleTaskResult} from "./result-recorder";
 
 const tasks: Map<string, Task> = new Map();
 
@@ -37,7 +37,7 @@ export async function executeTask(
   event: JEvent,
   user: JUser
 ): Promise<void> {
-  const results = [];
+  const results: ExecuteStepReturn<any>[] = [];
 
   try {
     Log.info(
@@ -70,7 +70,7 @@ export async function executeTask(
     });
   } finally {
     if (results.length > 0) {
-      recordResult({
+      await handleTaskResult({
         event,
         name: task.name,
         steps: results,
