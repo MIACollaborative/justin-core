@@ -31,6 +31,7 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 const userManagerInitStub = sinon.stub(UserManager, 'init');
 const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
 const userManagerAddUserStub = sinon.stub(UserManager, 'addUser');
+const userManagerUpdateUserStub = sinon.stub(UserManager, 'updateUserByUniqueIdentifier');
 const userManagerGetUserByUniqueIdentifierStub = sinon.stub(UserManager, 'getUserByUniqueIdentifier');
 const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
@@ -75,6 +76,7 @@ describe('JustInWrapper', () => {
     userManagerAddUserStub.reset();
     userManagerGetUserByUniqueIdentifierStub.reset();
     userManagerStopUserManagerStub.reset();
+    userManagerUpdateUserStub.reset();
     publishEventStub.reset();
     processEventQueueStub.reset();
     setupEventQueueListenerStub.reset();
@@ -100,6 +102,7 @@ describe('JustInWrapper', () => {
     userManagerAddUsersToDatabaseStub.restore();
     userManagerAddUserStub.restore();
     userManagerGetUserByUniqueIdentifierStub.restore();
+    userManagerUpdateUserStub.restore();
     userManagerStopUserManagerStub.restore();
     publishEventStub.restore();
     processEventQueueStub.restore();
@@ -215,16 +218,30 @@ describe('JustInWrapper', () => {
   describe('getUser', () => {
     it('should retrieve user information by uniqueIdentifier', async () => {
       const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
-      const retrievedUser = await justInWrapper.getUser(user.uniqueIdentifier) as JUser;
+      await justInWrapper.getUser(user.uniqueIdentifier) as JUser;
       expect(userManagerGetUserByUniqueIdentifierStub.calledOnce).toBe(true);
       expect(userManagerGetUserByUniqueIdentifierStub.calledWith(user.uniqueIdentifier)).toBe(true);
     });
 
-    it('should handle user not found', async () => {
-      const nonExistingUserIdentifier = 'non_existing_user';
-      await justInWrapper.getUser(nonExistingUserIdentifier);
+    it('should handle user with null identifier', async () => {
+      await justInWrapper.getUser(null as any);
       expect(userManagerGetUserByUniqueIdentifierStub.calledOnce).toBe(true);
-      expect(userManagerGetUserByUniqueIdentifierStub.calledWith(nonExistingUserIdentifier)).toBe(true);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledWith(null as any)).toBe(true);
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update user information by uniqueIdentifier', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+      await justInWrapper.updateUser(user.uniqueIdentifier, {name: "New Name"}) as JUser;``
+      expect(userManagerUpdateUserStub.calledOnce).toBe(true);
+      expect(userManagerUpdateUserStub.calledWith(user.uniqueIdentifier, {name: "New Name"})).toBe(true);
+    });
+
+    it('should handle user with null uniqueIdentifier and attributes to update', async () => {
+      await justInWrapper.updateUser(null as any, null as any);
+      expect(userManagerUpdateUserStub.calledOnce).toBe(true);
+      expect(userManagerUpdateUserStub.calledWith(null as any, null as any)).toBe(true);
     });
   });
 
