@@ -152,7 +152,7 @@ export const addUser = async (
 
   if (!userDataCheck) {
     Log.warn(
-      `User's unique identifier is not unique. Skipping insertion: ${user.uniqueIdentifier}. `
+      `User's unique identifier already exists. Skipping insertion: ${user.uniqueIdentifier}. `
     );
     return null;
   }
