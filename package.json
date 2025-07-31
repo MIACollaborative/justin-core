@@ -2,7 +2,7 @@
   "name": "@just-in/core",
   "version": "0.0.9",
   "description": "A TypeScript-first framework for building adaptive digital health interventions.",
-  "license": "BSD 3-clause",
+  "license": "BSD-3-Clause",
   "author": "MIACollaborative",
   "repository": {
     "type": "git",
