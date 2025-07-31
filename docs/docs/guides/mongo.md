@@ -16,19 +16,33 @@ JustIn requires a MongoDB server with replica sets in order to work. These instr
 
 On Mac, create a `/data/mdata` directory in your home directory (`$ mkdir ~/data/mdata`).
 
-On Windows, create a `\data\db` directory at the top level of your C: drive, or (`mkdir c:\data\db`).
+On Windows, create a `\data\mdata` directory at the top level of your C: drive, or (`mkdir c:\data\mdata`).
 
 ## Run MongoDB
 
 In your command line/terminal:
 
+### Mac OS
 ```bash
-
 mongod --port 27017 --dbpath ~/data/mdata --replSet rs0 --bind_ip localhost
-
 ```
 
+### Windows
+```bash
+mongod --port 27017 --dbpath "c:\data\mdata" --replSet rs0 --bind_ip localhost
+```
+
+
 This will need to stay running while any example apps are running. For information about other ways to install and run MongoDB, including running it as an always-available service, see the [MongoDB documentation](https://www.mongodb.com/docs/manual/installation/) for your OS. 
+
+Note that JustIn utilizes MongoDB's capability to subscribe to changes in the database, which requires the use of ReplicaSet (https://www.mongodb.com/docs/manual/replication/). To enable this feature, run the following command in your terminal.
+
+```
+mongosh
+
+# after successful connection to MongoDB
+rs.initiate()
+```
 
 ## Install MongoDB GUI (Optional)
 
