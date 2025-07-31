@@ -29,6 +29,7 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 // UserManager stubs
 const userManagerInitStub = sinon.stub(UserManager, 'init');
 const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
+const userManagerAddUserStub = sinon.stub(UserManager, 'addUser');
 const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
 // EventQueue stubs
@@ -69,6 +70,7 @@ describe('JustInWrapper', () => {
     unregisterEventHandlersStub.reset();
     userManagerInitStub.reset();
     userManagerAddUsersToDatabaseStub.reset();
+    userManagerAddUserStub.reset();
     userManagerStopUserManagerStub.reset();
     publishEventStub.reset();
     processEventQueueStub.reset();
@@ -184,6 +186,24 @@ describe('JustInWrapper', () => {
 
       expect(userManagerAddUsersToDatabaseStub.calledOnce).toBe(true);
       expect(userManagerAddUsersToDatabaseStub.calledWith([])).toBe(true);
+    });
+  });
+
+  describe('addUser', () => {
+    it('should add user to database successfully', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+
+      await justInWrapper.addUser(user);
+
+      expect(userManagerAddUserStub.calledOnce).toBe(true);
+      expect(userManagerAddUserStub.calledWith(user)).toBe(true);
+    });
+
+    it('should handle adding null user', async () => {
+      await justInWrapper.addUser(null as any);
+
+      expect(userManagerAddUserStub.calledOnce).toBe(true);
+      expect(userManagerAddUserStub.calledWith(null as any)).toBe(true);
     });
   });
 
