@@ -33,6 +33,7 @@ const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
 const userManagerAddUserStub = sinon.stub(UserManager, 'addUser');
 const userManagerUpdateUserStub = sinon.stub(UserManager, 'updateUserByUniqueIdentifier');
 const userManagerGetUserByUniqueIdentifierStub = sinon.stub(UserManager, 'getUserByUniqueIdentifier');
+const userManagerDeleteUserStub = sinon.stub(UserManager, 'deleteUserByUniqueIdentifier');
 const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
 // EventQueue stubs
@@ -75,6 +76,7 @@ describe('JustInWrapper', () => {
     userManagerAddUsersToDatabaseStub.reset();
     userManagerAddUserStub.reset();
     userManagerGetUserByUniqueIdentifierStub.reset();
+    userManagerDeleteUserStub.reset();
     userManagerStopUserManagerStub.reset();
     userManagerUpdateUserStub.reset();
     publishEventStub.reset();
@@ -103,6 +105,7 @@ describe('JustInWrapper', () => {
     userManagerAddUserStub.restore();
     userManagerGetUserByUniqueIdentifierStub.restore();
     userManagerUpdateUserStub.restore();
+    userManagerDeleteUserStub.restore();
     userManagerStopUserManagerStub.restore();
     publishEventStub.restore();
     processEventQueueStub.restore();
@@ -242,6 +245,21 @@ describe('JustInWrapper', () => {
       await justInWrapper.updateUser(null as any, null as any);
       expect(userManagerUpdateUserStub.calledOnce).toBe(true);
       expect(userManagerUpdateUserStub.calledWith(null as any, null as any)).toBe(true);
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should delete user information by uniqueIdentifier', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+      await justInWrapper.deleteUser(user.uniqueIdentifier);
+      expect(userManagerDeleteUserStub.calledOnce).toBe(true);
+      expect(userManagerDeleteUserStub.calledWith(user.uniqueIdentifier)).toBe(true);
+    });
+
+    it('should handle user with null uniqueIdentifier', async () => {
+      await justInWrapper.deleteUser(null as any);
+      expect(userManagerDeleteUserStub.calledOnce).toBe(true);
+      expect(userManagerDeleteUserStub.calledWith(null as any)).toBe(true);
     });
   });
 
