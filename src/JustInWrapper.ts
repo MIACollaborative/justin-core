@@ -17,7 +17,7 @@ import {
 } from './logger/logger-manager';
 import {
   TaskRegistration,
-  DecisionRuleRegistration,
+  DecisionRuleRegistration, RecordResultFunction,
 } from './handlers/handler.type';
 import { DBType } from './data-manager/data-manager.constants';
 import { Logger } from './logger/logger.interface';
@@ -25,6 +25,7 @@ import { UserManager } from './user-manager/user-manager';
 import { IntervalTimerEventGenerator } from './event/interval-timer-event-generator';
 import { IntervalTimerEventGeneratorOptions } from './event/event.type';
 import { NewUserRecord } from './user-manager/user.type';
+import { setDecisionRuleResultRecorder, setTaskResultRecorder } from "./handlers/result-recorder";
 
 
 /**
@@ -38,7 +39,7 @@ export class JustInWrapper {
   private isInitialized: boolean = false;
   private initializedAt: Date | null = null;
   private intervalTimerEventGenerators: Map<string, IntervalTimerEventGenerator> = new Map();
-  
+
   protected constructor() {
     this.isInitialized = false;
     this.initializedAt = new Date();
@@ -229,6 +230,24 @@ export class JustInWrapper {
    */
   public configureLogger(logger: Logger): void {
     setLogger(logger);
+  }
+
+  /**
+   * Configures the writer for a task result with a custom function.
+   * Will default to writing to the db
+   * @param {RecordResultFunction} taskWriter - The function to take in the results of a task
+   */
+  public configureTaskResultWriter(taskWriter: RecordResultFunction): void {
+    setTaskResultRecorder(taskWriter)
+  }
+
+  /**
+   * Configures the writer for a decision rule result with a custom function.
+   * Will default to writing to the db
+   * @param {RecordResultFunction} decisionRuleWriter - The function to take in the results of a task
+   */
+  public configureDecisionRuleResultWriter(decisionRuleWriter: RecordResultFunction): void {
+    setDecisionRuleResultRecorder(decisionRuleWriter)
   }
 
   /**
