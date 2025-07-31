@@ -241,7 +241,24 @@ describe("UserManager", () => {
       expect(addStub.callCount).toBe(2);
       expect(result[0]).toEqual(jUser1);
       expect(result[1]).toEqual(jUser2);
-      expect(logInfoStub.calledWithMatch(/2 users added successfully./)).toBe(true);
+      expect(logInfoStub.calledWithMatch(/2 user\(s\) added successfully./)).toBe(true);
+    });
+
+    it("should not add duplicate users", async () => {
+      findStub.resolves([]);
+      addStub.onFirstCall().resolves(jUser1);
+      addStub.onSecondCall().resolves(jUser1);
+
+      const userRecordList: NewUserRecord[] = [initialUserRecord1, initialUserRecord1];
+      const result = await UserManager.addUsers(userRecordList);
+
+      expect(addStub.callCount).toBe(1);
+      expect(result[0]).toEqual(jUser1);
+      expect(logInfoStub.calledWithMatch(/1 user\(s\) added successfully./)).toBe(true);
+
+      await UserManager.addUsers(userRecordList);
+      expect(logInfoStub.calledWithMatch(/No new users were added./)).toBe(true);
+
     });
 
     it("should throw error if users is not an array", async () => {

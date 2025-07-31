@@ -200,10 +200,10 @@ export const addUsers = async (
       }
     }
     if(addedUsers.length > 0) {
-      Log.info(`${addedUsers.length} users added successfully.`);
+      Log.info(`${addedUsers.length} user(s) added successfully.`);
     }
     else{
-      Log.info("No users were added.");
+      Log.info("No new users were added.");
     }
     return addedUsers;
   } catch (error) {
