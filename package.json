@@ -2,12 +2,14 @@
   "name": "@just-in/core",
   "version": "0.0.9",
   "description": "A TypeScript-first framework for building adaptive digital health interventions.",
+  "license": "BSD 3-clause",
+  "author": "MIACollaborative",
   "repository": {
     "type": "git",
     "url": "https://github.com/MIACollaborative/justin-core"
   },
   "keywords": ["jitai","justin", "just-in time", "digital intervention", "adaptive intervention"],
-  "homepage": "REPLACE WITH GITHUB IO PAGE",
+  "homepage": "https://miacollaborative.github.io/justin-core/",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
