@@ -68,10 +68,6 @@ const config: Config = {
           href: 'https://miacollaborative.github.io/justin-docs/roadmap',
           target: '_self'
         },
-        { 
-          to: 'https://miacollaborative.github.io/justin-docs/', 
-          label: 'JustIn Framework', 
-          position: 'left' },
         {
           type: 'docsVersionDropdown',
           position: 'right',
