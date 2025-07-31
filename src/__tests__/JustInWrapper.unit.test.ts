@@ -13,6 +13,7 @@ import { TaskRegistration, DecisionRuleRegistration } from '../handlers/handler.
 import { Logger } from '../logger/logger.interface';
 import { logLevels } from '../logger/logger-manager';
 import { Log } from '../logger/logger-manager';
+import { JUser } from '../user-manager/user.type';
 
 // Create stubs for all dependencies
 const dataManager = DataManager.getInstance();
@@ -30,6 +31,7 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 const userManagerInitStub = sinon.stub(UserManager, 'init');
 const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
 const userManagerAddUserStub = sinon.stub(UserManager, 'addUser');
+const userManagerGetUserByUniqueIdentifierStub = sinon.stub(UserManager, 'getUserByUniqueIdentifier');
 const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
 // EventQueue stubs
@@ -71,6 +73,7 @@ describe('JustInWrapper', () => {
     userManagerInitStub.reset();
     userManagerAddUsersToDatabaseStub.reset();
     userManagerAddUserStub.reset();
+    userManagerGetUserByUniqueIdentifierStub.reset();
     userManagerStopUserManagerStub.reset();
     publishEventStub.reset();
     processEventQueueStub.reset();
@@ -95,6 +98,8 @@ describe('JustInWrapper', () => {
     unregisterEventHandlersStub.restore();
     userManagerInitStub.restore();
     userManagerAddUsersToDatabaseStub.restore();
+    userManagerAddUserStub.restore();
+    userManagerGetUserByUniqueIdentifierStub.restore();
     userManagerStopUserManagerStub.restore();
     publishEventStub.restore();
     processEventQueueStub.restore();
@@ -204,6 +209,22 @@ describe('JustInWrapper', () => {
 
       expect(userManagerAddUserStub.calledOnce).toBe(true);
       expect(userManagerAddUserStub.calledWith(null as any)).toBe(true);
+    });
+  });
+
+  describe('getUser', () => {
+    it('should retrieve user information by uniqueIdentifier', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+      const retrievedUser = await justInWrapper.getUser(user.uniqueIdentifier) as JUser;
+      expect(userManagerGetUserByUniqueIdentifierStub.calledOnce).toBe(true);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledWith(user.uniqueIdentifier)).toBe(true);
+    });
+
+    it('should handle user not found', async () => {
+      const nonExistingUserIdentifier = 'non_existing_user';
+      await justInWrapper.getUser(nonExistingUserIdentifier);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledOnce).toBe(true);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledWith(nonExistingUserIdentifier)).toBe(true);
     });
   });
 
