@@ -20,6 +20,13 @@ const sidebars: SidebarsConfig = {
         {type: 'doc', id: 'reference/types'},
       ],
     },
+    {
+      type: 'category',
+      label: 'Guides',
+      items: [
+        {type: 'doc', id: 'guides/mongo'},
+      ],
+    },
   ],
 };
 

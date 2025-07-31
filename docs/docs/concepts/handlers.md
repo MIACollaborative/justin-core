@@ -169,7 +169,7 @@ const simpleRule: DecisionRuleRegistration = {
 
 And now register these handlers and associate them with the event that will trigger them.
 ```ts
-import JustIn from 'just-in/core';
+import JustIn from '@just-in/core';
 
 const justIn = JustIn();
 justIn.registerTask(simpleTask);

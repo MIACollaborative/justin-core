@@ -44,7 +44,7 @@ Example scenarios where the `IntervalTimerEventGenerator` can be used include:
 To create and start an `IntervalTimerEventGenerator`, use the JustIn functions `createIntervalTimerEventGenerator()` and `startEngine()`, like so:
 
 ```ts
-import JustIn from 'just-in/core';
+import JustIn from '@just-in/core';
 
 const justIn = JustIn();
 justIn.createIntervalTimerEventGenerator('myEventType', 1000 * 60); // one minute in ms
@@ -119,7 +119,7 @@ const simpleRule: DecisionRuleRegistration = {
 
 And now we register these handlers, associate them with the event that will trigger them, and start an `IntervalTimerEventGenerator`:
 ```ts
-import JustIn from 'just-in/core';
+import JustIn from '@just-in/core';
 
 const justIn = JustIn();
 justIn.registerTask(simpleTask);
