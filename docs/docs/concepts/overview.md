@@ -3,6 +3,7 @@ id: overview
 title: Overview
 sidebar_position: 1
 ---
+# Overview
 
 The primary way that you will interact with JustIn Core as an app developer is to write **Decision Rules** and **Tasks** (collectively called **"Event Handlers"**) that are executed when certain **Events** (called **JEvents** in JustIn) occur. The code you write for your Decision Rules and Tasks will be executed by JustIn for *each* event and *each* user independently.
 
