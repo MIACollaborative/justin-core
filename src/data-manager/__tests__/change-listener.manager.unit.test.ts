@@ -38,7 +38,7 @@ describe('ChangeListenerManager', () => {
     );
 
     expect(
-      loggerMock.mockLogInfo.calledWith(
+      loggerMock.mockLogDev.calledWith(
         'Change listener added for testCollection-insert.'
       )
     ).toBe(true);

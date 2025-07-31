@@ -56,7 +56,7 @@ export async function executeTask(
       );
       results.push(actionResult);
     } else {
-      Log.info(`Task "${task.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
+      Log.dev(`Task "${task.name}" for user "${user.id}" in event "${event.eventType}" did not activate.`);
       return;
     }
   } catch (error) {
