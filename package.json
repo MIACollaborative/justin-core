@@ -28,7 +28,6 @@
     "prepare": "yarn build",
     "clean": "rm -rf dist",
     "docs": "typedoc",
-    "docusaurus": "typedoc --options docusaurus-typedoc.json",
     "version-docs": "cd docs && yarn docusaurus docs:version $(node -p \"require('../package.json').version\")",
     "start": "node dist/index.js",
     "test:unit": "yarn build && jest --config=jest.unit.config.js -i --verbose --passWithNoTests --runInBand --detectOpenHandles",

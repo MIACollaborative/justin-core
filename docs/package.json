@@ -2,6 +2,7 @@
   "name": "justin-core-docs",
   "version": "0.0.0",
   "private": true,
+  "homepage": "https://miacollaborative.github.io/justin-core",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",

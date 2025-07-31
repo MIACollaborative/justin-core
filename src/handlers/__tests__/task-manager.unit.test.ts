@@ -7,13 +7,13 @@ import { initializeLoggerMocks } from '../../__tests__/mocks/logger.mock';
 import { registerTask, getTaskByName } from '../../handlers/task.manager';
 import { executeStep } from '../../handlers/steps.helpers';
 import { executeTask } from '../../handlers/task.manager';
-import { recordResult } from '../../event/record-result';
+import { handleTaskResult } from '../result-recorder';
 
 jest.mock('../steps.helpers', () => ({
   executeStep: jest.fn(),
 }));
-jest.mock('../../event/record-result', () => ({
-  recordResult: jest.fn(),
+jest.mock('../result-recorder', () => ({
+  handleTaskResult: jest.fn(),
 }));
 
 describe('Task Manager', () => {
@@ -35,8 +35,8 @@ describe('Task Manager', () => {
   const mockUser: JUser = {
     id: 'user123',
     uniqueIdentifier: 'user123',
-    attributes: { 
-      preferredName: 'Test User' 
+    attributes: {
+      preferredName: 'Test User'
     }
   };
 
@@ -48,7 +48,7 @@ describe('Task Manager', () => {
     loggerMocks.resetLoggerMocks();
     loggerMocks.restoreLoggerMocks();
     (executeStep as jest.Mock).mockClear();
-    (recordResult as jest.Mock).mockClear();
+    (handleTaskResult as jest.Mock).mockClear();
   });
 
   it('should register a task successfully and log info', () => {
@@ -114,7 +114,7 @@ describe('Task Manager', () => {
         `Completed execution of task "mockTask" for user "user123".`
       );
 
-      expect(recordResult).toHaveBeenCalledWith({
+      expect(handleTaskResult).toHaveBeenCalledWith({
         event: mockEvent,
         name: mockTask.name,
         steps: [
@@ -135,7 +135,7 @@ describe('Task Manager', () => {
         `Error executing task "mockTask" for user "user123": Error: Test error`
       );
 
-      expect(recordResult).toHaveBeenCalledTimes(1);
+      expect(handleTaskResult).toHaveBeenCalledTimes(1);
     });
   });
 });

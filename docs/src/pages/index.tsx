@@ -1,18 +1,49 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import Layout from '@theme/Layout';
+import Link from '@docusaurus/Link';
+import JustinLogo from '@site/static/img/justin-logo.svg';
+import styles from './index.module.css';
 
-export default function Home(): React.JSX.Element {
+export default function Home(): JSX.Element {
   return (
-    <Layout title="Welcome to Justin" description="Documentation for the Justin JITAI framework.">
-      <main style={{ padding: '2rem' }}>
-        <h1>Welcome to Justin</h1>
-        <p>
-          Justin is a JITAI (Just-In-Time Adaptive Intervention) framework for delivering dynamic behavioral interventions.
-        </p>
-        <ul>
-          <li><a href="/docs/intro">📘 Read the Docs</a></li>
-          <li><a href="https://github.com/your-org/justin">💻 View on GitHub</a></li>
-        </ul>
+    <Layout
+      title="justin-core"
+      description="The execution engine for JustIn interventions.">
+      <header className={styles.heroBanner}>
+        <div className="container">
+          <JustinLogo className={styles.featureSvg} />
+          <h1 className="hero__title">justin-core</h1>
+          <p className="hero__subtitle">
+            A lightweight execution engine for delivering adaptive interventions in real time.
+          </p>
+          <div style={{ marginTop: '1rem' }}>
+            <Link className="button button--primary" to="/using">
+              Start Using justin-core
+            </Link>
+          </div>
+        </div>
+      </header>
+      <main className="container margin-vert--xl">
+        <div className="row">
+          <div className="col col--4">
+            <h3>Event-Driven Architecture</h3>
+            <p>
+              Events are the backbone of justin-core. Schedule or trigger them manually, then execute associated tasks and decision rules across participants.
+            </p>
+          </div>
+          <div className="col col--4">
+            <h3>Powerful Task & Rule Engine</h3>
+            <p>
+              Define reusable tasks and decision rules. Customize activation logic, execute complex steps, and route results for logging and follow-up.
+            </p>
+          </div>
+          <div className="col col--4">
+            <h3>Built for Research Apps</h3>
+            <p>
+              justin-core is designed for flexibility — run in cloud functions or server mode, integrate with MongoDB, and log structured results per participant.
+            </p>
+          </div>
+        </div>
       </main>
     </Layout>
   );

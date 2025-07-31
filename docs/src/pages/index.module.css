@@ -21,3 +21,10 @@
   align-items: center;
   justify-content: center;
 }
+
+.featureSvg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+  fill: var(--ifm-color-primary);
+}
