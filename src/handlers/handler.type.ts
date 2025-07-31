@@ -60,3 +60,5 @@ export type RecordResult = {
   steps: ExecuteStepReturn[],
   user: JUser,
 }
+
+export type RecordResultFunction = (record: RecordResult) => Promise<void> | void;

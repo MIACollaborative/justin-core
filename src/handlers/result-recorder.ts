@@ -1,9 +1,8 @@
-import { RecordResult } from './handler.type'
+import {RecordResult, RecordResultFunction} from './handler.type'
 import {Log} from "../logger/logger-manager";
 import DataManager from "../data-manager/data-manager";
 import { DECISION_RULE_RESULTS, TASK_RESULTS } from "../data-manager/data-manager.constants";
 
-type RecordResultFunction = (record: RecordResult) => Promise<void> | void;
 
 const dataManager = DataManager.getInstance();
 

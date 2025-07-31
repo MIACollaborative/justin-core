@@ -1,4 +1,4 @@
-import { themes as prismThemes } from 'prism-react-renderer';
+
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
@@ -35,6 +35,7 @@ const config: Config = {
           sidebarPath: require.resolve('./sidebars.ts'),
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
+          includeCurrentVersion: false,
         },
         blog: false,
         theme: {
@@ -56,10 +57,16 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          label: 'About',
           position: 'left',
-          label: 'Docs',
+          href: 'https://miacollaborative.github.io/justin-docs/about',
+          target: '_self'
+        },
+        {
+          label: 'Roadmap',
+          position: 'left',
+          href: 'https://miacollaborative.github.io/justin-docs/roadmap',
+          target: '_self'
         },
         { 
           to: 'https://miacollaborative.github.io/justin-docs/', 
