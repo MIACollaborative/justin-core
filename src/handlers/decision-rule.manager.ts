@@ -113,7 +113,7 @@ export async function executeDecisionRule(
         user,
       });
     Log.info(
-      `Decision rule "${rule.name}" completed for user "${user.id}" in event "${event.eventType}": ${decisionRuleExecutionStatus}.`
+      `Decision rule "${rule.name}" completed for user "${user.uniqueIdentifier}" in event "${event.eventType}": ${decisionRuleExecutionStatus}.`
     );
   }
 }
