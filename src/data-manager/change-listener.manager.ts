@@ -93,7 +93,7 @@ export class ChangeListenerManager extends EventEmitter {
       },
     });
 
-    Log.info(`Change listener added for ${key}.`);
+    Log.dev(`Change listener added for ${key}.`);
   }
 
   /**

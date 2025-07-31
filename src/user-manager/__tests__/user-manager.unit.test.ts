@@ -206,7 +206,7 @@ describe("UserManager", () => {
       TestingUserManager._users.set(jUser1.id, jUser1);
       const result = await TestingUserManager.addUser(initialUserRecord1);
       expect(result).toBeNull();
-      expect(logWarnStub.calledWithMatch(/not unique/)).toBe(true);
+      expect(logWarnStub.calledWithMatch(/already exists/)).toBe(true);
       expect(addStub.called).toBe(false);
     });
 

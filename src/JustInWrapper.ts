@@ -17,7 +17,7 @@ import {
 } from './logger/logger-manager';
 import {
   TaskRegistration,
-  DecisionRuleRegistration,
+  DecisionRuleRegistration, RecordResultFunction,
 } from './handlers/handler.type';
 import { DBType } from './data-manager/data-manager.constants';
 import { Logger } from './logger/logger.interface';
@@ -25,6 +25,7 @@ import { UserManager } from './user-manager/user-manager';
 import { IntervalTimerEventGenerator } from './event/interval-timer-event-generator';
 import { IntervalTimerEventGeneratorOptions } from './event/event.type';
 import { NewUserRecord } from './user-manager/user.type';
+import { setDecisionRuleResultRecorder, setTaskResultRecorder } from "./handlers/result-recorder";
 
 
 /**
@@ -38,7 +39,7 @@ export class JustInWrapper {
   private isInitialized: boolean = false;
   private initializedAt: Date | null = null;
   private intervalTimerEventGenerators: Map<string, IntervalTimerEventGenerator> = new Map();
-  
+
   protected constructor() {
     this.isInitialized = false;
     this.initializedAt = new Date();
@@ -49,10 +50,8 @@ export class JustInWrapper {
    * @returns {JustInWrapper} The singleton instance.
    */
   public static getInstance(): JustInWrapper {
-    Log.info('Entering JW.getInstance, instance?', JustInWrapper.instance ? JustInWrapper.instance.initializedAt : 'not initialized');
     if (!JustInWrapper.instance) {
       JustInWrapper.instance = new JustInWrapper();
-      Log.info('In JW.getInstance, new JustInWrapper instance created at:', JustInWrapper.instance.initializedAt);
     }
     return JustInWrapper.instance;
   }
@@ -88,7 +87,7 @@ export class JustInWrapper {
     await this.dataManager.init(dbType);
     await UserManager.init();
     this.isInitialized = true;
-    Log.info('JustInWrapper initialized successfully.');
+    Log.info('JustIn initialized successfully.');
   }
   /**
    * Shuts down data manager, user manager, and event queue.
@@ -119,7 +118,7 @@ export class JustInWrapper {
    * This should be called after init().
    */
   public async startEngine(): Promise<void> {
-    Log.info('Starting engine...');
+    Log.dev('Starting engine...');
 
     await startEventQueueProcessing();
 
@@ -129,7 +128,7 @@ export class JustInWrapper {
     });
 
     await processEventQueue();
-    Log.info('Engine started and processing events.');
+    Log.info(`Engine started and processing events at ${new Date().toISOString()}.`);
   }
 
   /**
@@ -232,6 +231,24 @@ export class JustInWrapper {
   }
 
   /**
+   * Configures the writer for a task result with a custom function.
+   * Will default to writing to the db
+   * @param {RecordResultFunction} taskWriter - The function to take in the results of a task
+   */
+  public configureTaskResultWriter(taskWriter: RecordResultFunction): void {
+    setTaskResultRecorder(taskWriter)
+  }
+
+  /**
+   * Configures the writer for a decision rule result with a custom function.
+   * Will default to writing to the db
+   * @param {RecordResultFunction} decisionRuleWriter - The function to take in the results of a task
+   */
+  public configureDecisionRuleResultWriter(decisionRuleWriter: RecordResultFunction): void {
+    setDecisionRuleResultRecorder(decisionRuleWriter)
+  }
+
+  /**
    * Sets the logging levels for the application.
    * @param levels - The logging levels to enable or disable.
    */
@@ -241,6 +258,5 @@ export class JustInWrapper {
 }
 
 export const JustIn = () => {
-  Log.info('Entering JustIn, returning JustInWrapper.getInstance()');
   return JustInWrapper.getInstance();
 };

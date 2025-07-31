@@ -1,9 +1,8 @@
-import { RecordResult } from './handler.type'
+import {RecordResult, RecordResultFunction} from './handler.type'
 import {Log} from "../logger/logger-manager";
 import DataManager from "../data-manager/data-manager";
 import { DECISION_RULE_RESULTS, TASK_RESULTS } from "../data-manager/data-manager.constants";
 
-type RecordResultFunction = (record: RecordResult) => Promise<void> | void;
 
 const dataManager = DataManager.getInstance();
 
@@ -35,7 +34,6 @@ export function setTaskResultRecorder(fn: RecordResultFunction): void {
 */
 export async function handleDecisionRuleResult(record: RecordResult): Promise<void> {
   if (!hasResultRecord(record)) {
-    Log.warn('No steps found.', JSON.stringify(record));
     return;
   }
 
@@ -57,7 +55,6 @@ export async function handleDecisionRuleResult(record: RecordResult): Promise<vo
  */
 export async function handleTaskResult(record: RecordResult): Promise<void> {
   if (!hasResultRecord(record)) {
-    Log.warn('No steps found.', JSON.stringify(record));
     return;
   }
 

@@ -42,7 +42,7 @@ Leaving `mongod` running, open a separate terminal and do the following:
 #### Both MacOS and Windows
 ```
 $ mongosh
-[mongosh prompt] > rs.initialize()
+[mongosh prompt] > rs.initiate()
 [mongosh prompt] > exit
 ```
 

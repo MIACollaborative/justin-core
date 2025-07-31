@@ -190,7 +190,7 @@ const addItemToCollection = async (
     const result = await _db!
       .collection(collectionName)
       .insertOne(filteredObject);
-    Log.info(`Item added to ${collectionName}`, {
+    Log.dev(`Item added to ${collectionName}`, {
       id: result.insertedId.toString(),
     });
     return result.insertedId.toString();

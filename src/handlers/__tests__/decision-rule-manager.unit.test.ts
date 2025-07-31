@@ -115,13 +115,13 @@ describe('DecisionRuleManager', () => {
       await executeDecisionRule(mockRule, mockEvent, mockUser);
 
       expect(
-        loggerMock.mockLogInfo.calledWith(
+        loggerMock.mockLogDev.calledWith(
           'Starting decision rule "testRule" for user "user123" in event "MOCK_EVENT" with ID: event123.'
         )
       ).toBe(true);
       expect(
         loggerMock.mockLogInfo.calledWith(
-          'Decision rule "testRule" completed for user "user123" in event "MOCK_EVENT".'
+          'Decision rule "testRule" completed for user "user123" in event "MOCK_EVENT": finished.'
         )
       ).toBe(true);
 

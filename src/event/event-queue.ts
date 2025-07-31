@@ -67,7 +67,7 @@ export const processEventQueue = async (): Promise<void> => {
   isProcessingQueue = true;
 
   try {
-    Log.info('Starting event queue processing.');
+    Log.dev('Starting event queue processing.');
 
     while (shouldProcessQueue) {
       const users = UserManager.getAllUsers();
@@ -76,12 +76,12 @@ export const processEventQueue = async (): Promise<void> => {
       )) as JEvent[];
 
       if (!events || events.length === 0) {
-        Log.info('No events left in the queue. Pausing processing.');
+        Log.dev('No events left in the queue. Pausing processing.');
         break;
       }
 
       for (const event of events) {
-        Log.info(`Processing event "${event.eventType}" with ID: ${event.id} for ${users.length} users.`);
+        Log.dev(`Processing event "${event.eventType}" with ID: ${event.id} for ${users.length} users.`);
 
         for (const handlerName of eventHandlerManager.getHandlersForEventType(event.eventType)) {
           await processExecutionLifecycle(handlerName, event, "beforeExecution")
@@ -111,7 +111,7 @@ export const processEventQueue = async (): Promise<void> => {
       }
     }
 
-    Log.info('Finished processing event queue.');
+    Log.dev('Finished processing event queue.');
   } catch (error) {
     Log.error(`Error during event queue processing: ${error}`);
   } finally {
@@ -132,14 +132,14 @@ export const setupEventQueueListener = async (): Promise<void> => {
 
     clm.addChangeListener(EVENT_QUEUE, CollectionChangeType.INSERT, async () => {
       if (shouldProcessQueue) {
-        Log.info('New event detected in EVENTS_QUEUE. Triggering processing.');
+        Log.dev('New event detected in EVENTS_QUEUE. Triggering processing.');
         await processEventQueue();
       }
     });
     
     await processEventQueue();
 
-    Log.info('Event queue listener set up successfully.');
+    Log.dev('Event queue listener set up successfully.');
   } catch (error) {
     Log.error(`Error setting up event queue listener: ${error}`);
   }
@@ -193,7 +193,7 @@ const processExecutionLifecycle = async (
     }
 
     // Log warning if function is not found
-    Log.warn(`"${functionName}" not found for handler "${handlerName}".`);
+    Log.dev(`"${functionName}" not found for handler "${handlerName}".`);
   } catch (error) {
     Log.error(
       `Error executing "${functionName}" for handler "${handlerName}" and event "${event.eventType}": ${error}`
@@ -213,7 +213,7 @@ const archiveEvent = async (event: JEvent): Promise<void> => {
     } else {
       Log.error(`Event "${event}" has no ID. Skipping archiving.`);
     }
-    Log.info(
+    Log.dev(
       `Event of type "${event.eventType}" with ID: ${event.id} archived successfully.`
     );
   } catch (error) {
@@ -239,7 +239,7 @@ export const stopEventQueueProcessing = (): void => {
 export const startEventQueueProcessing = async (): Promise<void> => {
   await setupEventQueueListener();
   shouldProcessQueue = true;
-  Log.info('Event queue processing started.');
+  Log.dev('Event queue processing started.');
 };
 
 /**
