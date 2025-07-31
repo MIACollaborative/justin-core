@@ -13,12 +13,12 @@ import {
   initializeLoggerMocks,
   LoggerMocksType,
 } from '../../__tests__/mocks/logger.mock';
-import { recordResult } from '../../event/record-result';
 import { executeStep } from '../steps.helpers';
 import { JEvent } from '../../event/event.type';
 import { JUser } from '../../user-manager/user.type';
+import {handleDecisionRuleResult} from "../result-recorder";
 
-jest.mock('../../event/record-result');
+jest.mock('../result-recorder');
 jest.mock('../steps.helpers');
 
 describe('DecisionRuleManager', () => {
@@ -125,7 +125,7 @@ describe('DecisionRuleManager', () => {
         )
       ).toBe(true);
 
-      expect(recordResult).toHaveBeenCalledWith({
+      expect(handleDecisionRuleResult).toHaveBeenCalledWith({
         event: mockEvent,
         name: mockRule.name,
         steps: [
@@ -161,7 +161,7 @@ describe('DecisionRuleManager', () => {
           `Error processing decision rule "testRule" for user "user123" in event "MOCK_EVENT": ${mockError}`
         )
       ).toBe(true);
-      expect(recordResult).toHaveBeenCalled();
+      expect(handleDecisionRuleResult).toHaveBeenCalled();
     });
   });
 });
