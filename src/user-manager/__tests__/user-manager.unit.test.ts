@@ -218,6 +218,7 @@ describe("UserManager", () => {
       expect(addStub.calledOnceWith(USERS, { uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes })).toBe(true);
       expect(result).toEqual(jUser1);
       expect(TestingUserManager._users.get(jUser1.id)).toEqual(jUser1);
+      expect(logInfoStub.calledWithMatch(/Added user: abc/)).toBe(true);
     });
 
     it("should handle error from addItemToCollection", async () => {
@@ -240,6 +241,7 @@ describe("UserManager", () => {
       expect(addStub.callCount).toBe(2);
       expect(result[0]).toEqual(jUser1);
       expect(result[1]).toEqual(jUser2);
+      expect(logInfoStub.calledWithMatch(/2 users added successfully./)).toBe(true);
     });
 
     it("should throw error if users is not an array", async () => {
