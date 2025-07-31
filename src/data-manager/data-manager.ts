@@ -29,10 +29,8 @@ class DataManager extends EventEmitter {
    * @returns {DataManager} The singleton instance.
    */
   public static getInstance(): DataManager {
-    Log.dev('Entering DM.getInstance, instance:', DataManager.instance ? DataManager.instance.initializedAt : 'not initialized');
     if (!DataManager.instance) {
       DataManager.instance = new DataManager();
-      Log.dev('In DM.getInstance, new DataManager instance created at:', DataManager.instance.initializedAt);
     }
     return DataManager.instance;
   }
@@ -67,7 +65,7 @@ class DataManager extends EventEmitter {
         CollectionChangeType.INSERT,
         this.handleEventsQueueInsert.bind(this)
       );
-      Log.info('DataManager initialized successfully');
+      Log.dev('DataManager initialized successfully');
     } catch (error) {
       handleDbError('Failed to initialize DataManager', error);
     }

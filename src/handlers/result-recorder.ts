@@ -34,7 +34,6 @@ export function setTaskResultRecorder(fn: RecordResultFunction): void {
 */
 export async function handleDecisionRuleResult(record: RecordResult): Promise<void> {
   if (!hasResultRecord(record)) {
-    Log.warn('No steps found.', JSON.stringify(record));
     return;
   }
 
@@ -56,7 +55,6 @@ export async function handleDecisionRuleResult(record: RecordResult): Promise<vo
  */
 export async function handleTaskResult(record: RecordResult): Promise<void> {
   if (!hasResultRecord(record)) {
-    Log.warn('No steps found.', JSON.stringify(record));
     return;
   }
 

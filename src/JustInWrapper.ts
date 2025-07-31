@@ -50,10 +50,8 @@ export class JustInWrapper {
    * @returns {JustInWrapper} The singleton instance.
    */
   public static getInstance(): JustInWrapper {
-    Log.info('Entering JW.getInstance, instance?', JustInWrapper.instance ? JustInWrapper.instance.initializedAt : 'not initialized');
     if (!JustInWrapper.instance) {
       JustInWrapper.instance = new JustInWrapper();
-      Log.info('In JW.getInstance, new JustInWrapper instance created at:', JustInWrapper.instance.initializedAt);
     }
     return JustInWrapper.instance;
   }
@@ -89,7 +87,7 @@ export class JustInWrapper {
     await this.dataManager.init(dbType);
     await UserManager.init();
     this.isInitialized = true;
-    Log.info('JustInWrapper initialized successfully.');
+    Log.info('JustIn initialized successfully.');
   }
   /**
    * Shuts down data manager, user manager, and event queue.
@@ -120,7 +118,7 @@ export class JustInWrapper {
    * This should be called after init().
    */
   public async startEngine(): Promise<void> {
-    Log.info('Starting engine...');
+    Log.dev('Starting engine...');
 
     await startEventQueueProcessing();
 
@@ -130,7 +128,7 @@ export class JustInWrapper {
     });
 
     await processEventQueue();
-    Log.info('Engine started and processing events.');
+    Log.info(`Engine started and processing events at ${new Date().toISOString()}.`);
   }
 
   /**
@@ -260,6 +258,5 @@ export class JustInWrapper {
 }
 
 export const JustIn = () => {
-  Log.info('Entering JustIn, returning JustInWrapper.getInstance()');
   return JustInWrapper.getInstance();
 };

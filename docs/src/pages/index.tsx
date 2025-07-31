@@ -1,4 +1,5 @@
 import React, { JSX } from 'react';
+
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import JustinLogo from '@site/static/img/justin-logo.svg';
@@ -12,9 +13,10 @@ export default function Home(): JSX.Element {
       <header className={styles.heroBanner}>
         <div className="container">
           <JustinLogo className={styles.featureSvg} />
-          <h1 className="hero__title">justin-core</h1>
+          <h1 className="hero__title">JustIn Core</h1>
           <p className="hero__subtitle">
-            A lightweight execution engine for delivering adaptive interventions in real time.
+            The foundation of the <a href="https://miacollaborative.github.io/justin-docs/">JustIn Framework</a>, 
+            including the core data models and event-driven execution of intervention logic.
           </p>
           <div style={{ marginTop: '1rem' }}>
             <Link className="button button--primary" to="/using">
@@ -34,13 +36,14 @@ export default function Home(): JSX.Element {
           <div className="col col--4">
             <h3>Powerful Task & Rule Engine</h3>
             <p>
-              Define reusable tasks and decision rules. Customize activation logic, execute complex steps, and route results for logging and follow-up.
+              Define reusable tasks and decision rules. Customize activation logic, execute complex decisions and actions, and route log results for monitoring and analysis.
             </p>
           </div>
           <div className="col col--4">
             <h3>Built for Research Apps</h3>
             <p>
-              justin-core is designed for flexibility — run in cloud functions or server mode, integrate with MongoDB, and log structured results per participant.
+              Designed by researchers for researchers, JustIn is flexible enough to suppport your innovative ideas while 
+              saving you the headaches of rebuilding the tedious stuff over and over again.
             </p>
           </div>
         </div>

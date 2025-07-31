@@ -36,16 +36,6 @@ describe('Result Recorder Module', () => {
   });
 
   describe('handleDecisionRuleResult', () => {
-    it('warns on empty', async () => {
-      await recorder.handleDecisionRuleResult(emptyRecord);
-      sinon.assert.calledOnceWithExactly(
-        warnStub,
-        'No steps found.',
-        JSON.stringify(emptyRecord)
-      );
-      sinon.assert.notCalled(dmInstance.addItemToCollection);
-    });
-
     it('calls decision recorder when set', async () => {
       const callback = sinon.spy();
       recorder.setDecisionRuleResultRecorder(callback);
@@ -56,16 +46,6 @@ describe('Result Recorder Module', () => {
   });
 
   describe('handleTaskResult', () => {
-    it('warns on empty', async () => {
-      await recorder.handleTaskResult(emptyRecord);
-      sinon.assert.calledOnceWithExactly(
-        warnStub,
-        'No steps found.',
-        JSON.stringify(emptyRecord)
-      );
-      sinon.assert.notCalled(dmInstance.addItemToCollection);
-    });
-
     it('calls task recorder when set', async () => {
       const taskCb = sinon.spy();
       recorder.setTaskResultRecorder(taskCb);
