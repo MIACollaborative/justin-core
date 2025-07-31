@@ -87,6 +87,16 @@ describe('JustInWrapper Integration', () => {
       const allUsers = UserManager.getAllUsers();
       expect(allUsers).toHaveLength(2);
     });
+
+    it('should add a user to database successfully', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1', email: 'user1@test.com' } };
+      await justIn.addUser(user);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const theUser = UserManager.getUserByUniqueIdentifier(user.uniqueIdentifier);
+      expect(theUser).toBeDefined();
+      expect(theUser?.uniqueIdentifier).toBe(user.uniqueIdentifier);
+      expect(theUser?.attributes).toEqual(user.initialAttributes);
+    });
   });
 
   describe('Event Handler Registration', () => {
