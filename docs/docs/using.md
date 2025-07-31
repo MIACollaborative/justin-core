@@ -11,7 +11,7 @@ The `just-in/core` package is a lightweight, **event-driven** framework for buil
 
 ## Requirements
 
-`just-in/core` requires a connection to a MongoDB server. We have guides to walk you through selecting and configuring a MongoDB installation to work with JustIn.
+`just-in/core` requires a connection to a MongoDB server. We have [guides to walk you through selecting and configuring a MongoDB installation](./guides/mongo.md) to work with JustIn.
 
 `just-in/core` is avilable via npm and can be used by applications written in TypeScript or JavaScript. `just-in/core` iteself is written in TypeScript, so all of our documentation and examples will be offered in TypeScript.
 

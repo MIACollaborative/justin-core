@@ -47,7 +47,7 @@ const config: Config = {
   themeConfig: {
     image: 'img/justin-logo.png',
     navbar: {
-      title: 'Justin',
+      title: 'JustIn Core',
       logo: {
         alt: 'Justin Logo',
         src: 'img/justin-logo.png',
@@ -61,10 +61,15 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
+        { 
+          to: 'https://miacollaborative.github.io/justin-docs/', 
+          label: 'JustIn Framework', 
+          position: 'left' },
         {
           type: 'docsVersionDropdown',
           position: 'right',
         },
+
       ],
     },
     footer: {
