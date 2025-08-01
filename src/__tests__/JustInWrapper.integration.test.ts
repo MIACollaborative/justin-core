@@ -128,14 +128,33 @@ describe('JustInWrapper Integration', () => {
       const updatedUser = await justIn.updateUser(user.uniqueIdentifier, attributesToUpdate) as JUser;
       await new Promise(resolve => setTimeout(resolve, 1000));
       expect(updatedUser).toBeDefined();
-      expect(updatedUser?.uniqueIdentifier).toBe(user.uniqueIdentifier);
-      expect(updatedUser?.attributes).toEqual(attributesToUpdate);
+      expect(updatedUser.uniqueIdentifier).toBe(user.uniqueIdentifier);
+      expect(updatedUser.attributes).toEqual(attributesToUpdate);
     
       const theUser: JUser = await justIn.getUser(user.uniqueIdentifier) as JUser;
       await new Promise(resolve => setTimeout(resolve, 1000));
       expect(theUser).toBeDefined();
-      expect(theUser?.uniqueIdentifier).toBe(user.uniqueIdentifier);
-      expect(theUser?.attributes).toEqual(attributesToUpdate);
+      expect(theUser.uniqueIdentifier).toBe(user.uniqueIdentifier);
+      expect(theUser.attributes).toEqual(attributesToUpdate);
+    });
+
+    it('should delete a user in database successfully', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1', email: 'user1@test.com' } };
+      
+      const addedUser:JUser = await justIn.addUser(user) as JUser;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      expect(addedUser).toBeDefined();
+      expect(addedUser.uniqueIdentifier).toBe(user.uniqueIdentifier);
+      expect(addedUser.attributes).toEqual(user.initialAttributes);
+
+      const deletedUser:void = await justIn.deleteUser(user.uniqueIdentifier);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      expect(deletedUser).toBeUndefined();
+
+      const theUser: JUser | null = await justIn.getUser(user.uniqueIdentifier);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      expect(theUser).toBeNull();
+
     });
   });
 
