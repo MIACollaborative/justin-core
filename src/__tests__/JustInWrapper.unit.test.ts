@@ -7,11 +7,9 @@ import * as EventQueue from '../event/event-queue';
 import * as TaskManager from '../handlers/task.manager';
 import * as DecisionRuleManager from '../handlers/decision-rule.manager';
 import * as LoggerManager from '../logger/logger-manager';
-import { IntervalTimerEventGenerator } from '../event/interval-timer-event-generator';
 import { DBType } from '../data-manager/data-manager.constants';
 import { TaskRegistration, DecisionRuleRegistration } from '../handlers/handler.type';
 import { Logger } from '../logger/logger.interface';
-import { logLevels } from '../logger/logger-manager';
 import { Log } from '../logger/logger-manager';
 import { JUser } from '../user-manager/user.type';
 
