@@ -223,8 +223,6 @@ const getUserByUniqueIdentifier = (uniqueIdentifier: string): JUser | null => {
   return Array.from(_users.values()).find(user => user.uniqueIdentifier === uniqueIdentifier) || null;
 };
 
-
-
 /**
  * Update the properties of a user by uniqueIdentifier
  * @param {string} userUniqueIdentifier - the uniqueIdentifier value.
@@ -285,11 +283,16 @@ const updateUserById = async (
   attributesToUpdate: object
 ): Promise<JUser> => {
   _checkInitialization();
+
+  const existingUser: JUser | null = _users.get(userId) as JUser;
+
+  const mergedAttributes = { ...existingUser.attributes, ...attributesToUpdate };
+
   const updatedUser =
     (await dm.updateItemByIdInCollection(
       USERS,
       userId,
-      attributesToUpdate
+      {attributes: mergedAttributes}
     )) as JUser;
   if (!updatedUser) {
     throw new Error(`Failed to update user: ${userId}`);
