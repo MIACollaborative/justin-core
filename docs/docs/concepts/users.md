@@ -17,7 +17,7 @@ export type JUser = {
 
 export type NewUserRecord = {
   uniqueIdentifier: string;
-  attributes: Record<string, any>;
+  initialAttributes: Record<string, any>;
 };
 ```
 
@@ -29,7 +29,7 @@ The JustIn functions for working with users have the following signatures:
 ```ts
 async addUsers (newUserRecords: NewUserRecord []): Promise<JUser []>;
 async addUser (newUserRecord: NewUserRecord): Promise<JUser>;
-async updateUser(attributeName: string, attributesToUpdate: Record<string, any>): Promise<JUser>;
+async updateUser(uniqueIdentifier: string, attributesToUpdate: Record<string, any>): Promise<JUser>;
 async deleteUser(uniqueIdentifier: string): Promise<void>;
 async getUser(uniqueIdentifier: string): Promise<JUser>;
 ```
