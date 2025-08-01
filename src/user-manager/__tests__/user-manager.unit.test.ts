@@ -218,6 +218,7 @@ describe("UserManager", () => {
       expect(addStub.calledOnceWith(USERS, { uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes })).toBe(true);
       expect(result).toEqual(jUser1);
       expect(TestingUserManager._users.get(jUser1.id)).toEqual(jUser1);
+      expect(logInfoStub.calledWithMatch(/Added user: abc/)).toBe(true);
     });
 
     it("should handle error from addItemToCollection", async () => {
@@ -240,6 +241,24 @@ describe("UserManager", () => {
       expect(addStub.callCount).toBe(2);
       expect(result[0]).toEqual(jUser1);
       expect(result[1]).toEqual(jUser2);
+      expect(logInfoStub.calledWithMatch(/2 user\(s\) added successfully./)).toBe(true);
+    });
+
+    it("should not add duplicate users", async () => {
+      findStub.resolves([]);
+      addStub.onFirstCall().resolves(jUser1);
+      addStub.onSecondCall().resolves(jUser1);
+
+      const userRecordList: NewUserRecord[] = [initialUserRecord1, initialUserRecord1];
+      const result = await UserManager.addUsers(userRecordList);
+
+      expect(addStub.callCount).toBe(1);
+      expect(result[0]).toEqual(jUser1);
+      expect(logInfoStub.calledWithMatch(/1 user\(s\) added successfully./)).toBe(true);
+
+      await UserManager.addUsers(userRecordList);
+      expect(logInfoStub.calledWithMatch(/No new users were added./)).toBe(true);
+
     });
 
     it("should throw error if users is not an array", async () => {

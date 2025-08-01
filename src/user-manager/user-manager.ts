@@ -165,6 +165,9 @@ export const addUser = async (
       convertedUser
     )) as JUser;
     _users.set(addedUser.id, addedUser);
+    Log.info(
+      `Added user: ${user.uniqueIdentifier}. `
+    );
     return addedUser;
   } catch (error) {
     return handleDbError("Failed to add users:", error);
@@ -195,6 +198,12 @@ export const addUsers = async (
       if (addedUser) {
         addedUsers.push(addedUser);
       }
+    }
+    if(addedUsers.length > 0) {
+      Log.info(`${addedUsers.length} user(s) added successfully.`);
+    }
+    else{
+      Log.info("No new users were added.");
     }
     return addedUsers;
   } catch (error) {
