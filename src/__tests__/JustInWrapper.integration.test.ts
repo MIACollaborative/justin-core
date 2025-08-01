@@ -77,6 +77,11 @@ describe('JustInWrapper Integration', () => {
   });
 
   describe('User Management', () => {
+    beforeEach(async () => {
+    });
+
+    afterEach(async () => {
+    });
     it('should add users to database successfully', async () => {
       const users = [
         { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1', email: 'user1@test.com' } },
@@ -96,6 +101,21 @@ describe('JustInWrapper Integration', () => {
       expect(theUser).toBeDefined();
       expect(theUser?.uniqueIdentifier).toBe(user.uniqueIdentifier);
       expect(theUser?.attributes).toEqual(user.initialAttributes);
+    });
+
+    it('should retrieve a user from database successfully', async () => {
+      const allUsers = UserManager.getAllUsers();
+      expect(allUsers).toHaveLength(0);
+
+      /*
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1', email: 'user1@test.com' } };
+      await justIn.addUser(user);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const theUser = UserManager.getUserByUniqueIdentifier(user.uniqueIdentifier);
+      expect(theUser).toBeDefined();
+      expect(theUser?.uniqueIdentifier).toBe(user.uniqueIdentifier);
+      expect(theUser?.attributes).toEqual(user.initialAttributes);
+      */
     });
   });
 

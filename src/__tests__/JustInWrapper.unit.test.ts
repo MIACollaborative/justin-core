@@ -30,6 +30,7 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 // UserManager stubs
 const userManagerInitStub = sinon.stub(UserManager, 'init');
 const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
+const userManagerGetAllUsersStub = sinon.stub(UserManager, 'getAllUsers');
 const userManagerAddUserStub = sinon.stub(UserManager, 'addUser');
 const userManagerUpdateUserStub = sinon.stub(UserManager, 'updateUserByUniqueIdentifier');
 const userManagerGetUserByUniqueIdentifierStub = sinon.stub(UserManager, 'getUserByUniqueIdentifier');
@@ -74,6 +75,7 @@ describe('JustInWrapper', () => {
     unregisterEventHandlersStub.reset();
     userManagerInitStub.reset();
     userManagerAddUsersToDatabaseStub.reset();
+    userManagerGetAllUsersStub.reset();
     userManagerAddUserStub.reset();
     userManagerGetUserByUniqueIdentifierStub.reset();
     userManagerDeleteUserStub.reset();
@@ -102,6 +104,7 @@ describe('JustInWrapper', () => {
     unregisterEventHandlersStub.restore();
     userManagerInitStub.restore();
     userManagerAddUsersToDatabaseStub.restore();
+    userManagerGetAllUsersStub.restore();
     userManagerAddUserStub.restore();
     userManagerGetUserByUniqueIdentifierStub.restore();
     userManagerUpdateUserStub.restore();
@@ -197,6 +200,21 @@ describe('JustInWrapper', () => {
 
       expect(userManagerAddUsersToDatabaseStub.calledOnce).toBe(true);
       expect(userManagerAddUsersToDatabaseStub.calledWith([])).toBe(true);
+    });
+  });
+
+  describe('getAllUsers', () => {
+
+    it('should retrieve all users', async () => {
+      await justInWrapper.getUsersFromDatabase();
+      expect(userManagerGetAllUsersStub.calledOnce).toBe(true);
+    });
+
+    it('should handle empty user list', async () => {
+      userManagerGetAllUsersStub.resolves([]);
+      const users = await justInWrapper.getUsersFromDatabase();
+      expect(users).toEqual([]);
+      expect(userManagerGetAllUsersStub.calledOnce).toBe(true);
     });
   });
 

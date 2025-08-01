@@ -153,6 +153,14 @@ export class JustInWrapper {
   }
 
   /**
+   * Retrieves a list of users from the database.
+   * @returns {Promise<(JUser | null)[]>} The list of users, or null if not found.
+   */
+  public async getUsersFromDatabase(): Promise<(JUser | null)[]> {
+    return await UserManager.getAllUsers();
+  }
+
+  /**
    * Adds a new user to the database.
    * @param {NewUserRecord} newUserRecord - The new user record to add.
    * @returns {Promise<JUser>} The added user.
