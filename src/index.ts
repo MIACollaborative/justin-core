@@ -14,7 +14,3 @@ export type {
 
 export type { JUser } from './user-manager/user.type';
 export type { JEvent } from './event/event.type';
-
-
-// Result Recorder
-export { setDecisionRuleResultRecorder, setTaskResultRecorder } from './handlers/result-recorder';

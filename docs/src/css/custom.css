@@ -32,3 +32,8 @@ html[data-theme='light'] .footer {
   background-color: var(--ifm-footer-background-color);
   color: var(--ifm-font-color-base);
 }
+
+/* Hide external link icons in the navbar */
+.navbar__item svg use[href="#theme-svg-external-link"] {
+  display: none !important;
+}
