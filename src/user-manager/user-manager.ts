@@ -381,12 +381,10 @@ const isIdentifierUnique = async (
 export const UserManager = {
   init,
   addUser,
-  addUsers,
-  deleteUserById,
-  updateUserByUniqueIdentifier,
+  addUsers, 
   getAllUsers,
   getUserByUniqueIdentifier,
-  updateUserById,
+  updateUserByUniqueIdentifier,
   deleteUserByUniqueIdentifier,
   deleteAllUsers,
   shutdown,
@@ -400,6 +398,8 @@ export const UserManager = {
  */
 export const TestingUserManager = {
   ...UserManager,
+  updateUserById,
+  deleteUserById,
   transformUserDocument,
   _checkInitialization,
   refreshCache,
