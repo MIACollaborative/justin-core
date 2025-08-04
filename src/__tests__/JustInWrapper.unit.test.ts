@@ -7,12 +7,11 @@ import * as EventQueue from '../event/event-queue';
 import * as TaskManager from '../handlers/task.manager';
 import * as DecisionRuleManager from '../handlers/decision-rule.manager';
 import * as LoggerManager from '../logger/logger-manager';
-import { IntervalTimerEventGenerator } from '../event/interval-timer-event-generator';
 import { DBType } from '../data-manager/data-manager.constants';
 import { TaskRegistration, DecisionRuleRegistration } from '../handlers/handler.type';
 import { Logger } from '../logger/logger.interface';
-import { logLevels } from '../logger/logger-manager';
 import { Log } from '../logger/logger-manager';
+import { JUser } from '../user-manager/user.type';
 
 // Create stubs for all dependencies
 const dataManager = DataManager.getInstance();
@@ -29,6 +28,11 @@ const unregisterEventHandlersStub = sinon.stub(eventHandlerManager, 'unregisterE
 // UserManager stubs
 const userManagerInitStub = sinon.stub(UserManager, 'init');
 const userManagerAddUsersToDatabaseStub = sinon.stub(UserManager, 'addUsers');
+const userManagerGetAllUsersStub = sinon.stub(UserManager, 'getAllUsers');
+const userManagerAddUserStub = sinon.stub(UserManager, 'addUser');
+const userManagerUpdateUserStub = sinon.stub(UserManager, 'updateUserByUniqueIdentifier');
+const userManagerGetUserByUniqueIdentifierStub = sinon.stub(UserManager, 'getUserByUniqueIdentifier');
+const userManagerDeleteUserStub = sinon.stub(UserManager, 'deleteUserByUniqueIdentifier');
 const userManagerStopUserManagerStub = sinon.stub(UserManager, 'shutdown');
 
 // EventQueue stubs
@@ -69,7 +73,12 @@ describe('JustInWrapper', () => {
     unregisterEventHandlersStub.reset();
     userManagerInitStub.reset();
     userManagerAddUsersToDatabaseStub.reset();
+    userManagerGetAllUsersStub.reset();
+    userManagerAddUserStub.reset();
+    userManagerGetUserByUniqueIdentifierStub.reset();
+    userManagerDeleteUserStub.reset();
     userManagerStopUserManagerStub.reset();
+    userManagerUpdateUserStub.reset();
     publishEventStub.reset();
     processEventQueueStub.reset();
     setupEventQueueListenerStub.reset();
@@ -93,6 +102,11 @@ describe('JustInWrapper', () => {
     unregisterEventHandlersStub.restore();
     userManagerInitStub.restore();
     userManagerAddUsersToDatabaseStub.restore();
+    userManagerGetAllUsersStub.restore();
+    userManagerAddUserStub.restore();
+    userManagerGetUserByUniqueIdentifierStub.restore();
+    userManagerUpdateUserStub.restore();
+    userManagerDeleteUserStub.restore();
     userManagerStopUserManagerStub.restore();
     publishEventStub.restore();
     processEventQueueStub.restore();
@@ -169,21 +183,99 @@ describe('JustInWrapper', () => {
     });
   });
 
-  describe('addUsersToDatabase', () => {
+  describe('addUsers', () => {
     it('should add users to database successfully', async () => {
       const users = [{ uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } }, { uniqueIdentifier: 'user2', initialAttributes: { name: 'User 2'} }];
 
-      await justInWrapper.addUsersToDatabase(users);
+      await justInWrapper.addUsers(users);
 
       expect(userManagerAddUsersToDatabaseStub.calledOnce).toBe(true);
       expect(userManagerAddUsersToDatabaseStub.calledWith(users)).toBe(true);
     });
 
     it('should handle empty users array', async () => {
-      await justInWrapper.addUsersToDatabase([]);
+      await justInWrapper.addUsers([]);
 
       expect(userManagerAddUsersToDatabaseStub.calledOnce).toBe(true);
       expect(userManagerAddUsersToDatabaseStub.calledWith([])).toBe(true);
+    });
+  });
+
+  describe('getAllUsers', () => {
+
+    it('should retrieve all users', async () => {
+      await justInWrapper.getAllUsers();
+      expect(userManagerGetAllUsersStub.calledOnce).toBe(true);
+    });
+
+    it('should handle empty user list', async () => {
+      userManagerGetAllUsersStub.resolves([]);
+      const users = await justInWrapper.getAllUsers();
+      expect(users).toEqual([]);
+      expect(userManagerGetAllUsersStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe('addUser', () => {
+    it('should add user to database successfully', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+
+      await justInWrapper.addUser(user);
+
+      expect(userManagerAddUserStub.calledOnce).toBe(true);
+      expect(userManagerAddUserStub.calledWith(user)).toBe(true);
+    });
+
+    it('should handle adding null user', async () => {
+      await justInWrapper.addUser(null as any);
+
+      expect(userManagerAddUserStub.calledOnce).toBe(true);
+      expect(userManagerAddUserStub.calledWith(null as any)).toBe(true);
+    });
+  });
+
+  describe('getUser', () => {
+    it('should retrieve user information by uniqueIdentifier', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+      await justInWrapper.getUser(user.uniqueIdentifier) as JUser;
+      expect(userManagerGetUserByUniqueIdentifierStub.calledOnce).toBe(true);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledWith(user.uniqueIdentifier)).toBe(true);
+    });
+
+    it('should handle user with null identifier', async () => {
+      await justInWrapper.getUser(null as any);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledOnce).toBe(true);
+      expect(userManagerGetUserByUniqueIdentifierStub.calledWith(null as any)).toBe(true);
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update user information by uniqueIdentifier', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+      await justInWrapper.updateUser(user.uniqueIdentifier, {name: "New Name"}) as JUser;``
+      expect(userManagerUpdateUserStub.calledOnce).toBe(true);
+      expect(userManagerUpdateUserStub.calledWith(user.uniqueIdentifier, {name: "New Name"})).toBe(true);
+    });
+
+    it('should handle user with null uniqueIdentifier and attributes to update', async () => {
+      await justInWrapper.updateUser(null as any, null as any);
+      expect(userManagerUpdateUserStub.calledOnce).toBe(true);
+      expect(userManagerUpdateUserStub.calledWith(null as any, null as any)).toBe(true);
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should delete user information by uniqueIdentifier', async () => {
+      const user = { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } };
+      await justInWrapper.deleteUser(user.uniqueIdentifier);
+      expect(userManagerDeleteUserStub.calledOnce).toBe(true);
+      expect(userManagerDeleteUserStub.calledWith(user.uniqueIdentifier)).toBe(true);
+    });
+
+    it('should handle user with null uniqueIdentifier', async () => {
+      await justInWrapper.deleteUser(null as any);
+      expect(userManagerDeleteUserStub.calledOnce).toBe(true);
+      expect(userManagerDeleteUserStub.calledWith(null as any)).toBe(true);
     });
   });
 
