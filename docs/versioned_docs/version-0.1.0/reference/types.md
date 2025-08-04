@@ -7,7 +7,7 @@ sidebar\_position: 4
 
 # Exported Types
 
-This reference page explains the key types exported from `justin-core`. These are useful for writing custom handlers, extending the framework, or understanding how execution works.
+This reference page explains the key types exported from `@just-in/core`. These are useful for writing custom handlers, extending the framework, or understanding how execution works.
 
 ---
 
@@ -45,19 +45,19 @@ type DecisionRule = {
   type: HandlerType.DECISION_RULE;
 
   shouldActivate: (user: JUser, event: JEvent) => Promise<StepReturnResult>;
-  // Determine whether this rule should be run for the user. Return `stop` to skip.
+  // Determines whether this rule should be run for this user in response to this event. Return `stop` to skip processing the rest of the rule.
 
   selectAction: (user: JUser, event: JEvent, previousResult: StepReturnResult) => Promise<StepReturnResult>;
-  // Decide what action to take. Typically returns a message, reminder, or trigger object.
+  // Decides what action (if any) to take and stores the decision result in the StepReturnResult to be passed to doAction()
 
   doAction: (user: JUser, event: JEvent, previousResult: StepReturnResult) => Promise<StepReturnResult>;
-  // Actually deliver the action. Send the push notification, log the result, etc.
+  // Carry out the action(s) chosen by selectAction(), which are specifiedf in the StepReturnResult.result field
 
   beforeExecution?: (event: JEvent) => Promise<void>;
   // Optional: run once before any user-level execution. Useful for bulk fetches.
 
   afterExecution?: (event: JEvent) => Promise<void>;
-  // Optional: run once after all users are processed. Useful for bulk summaries or notifications.
+  // Optional: run once after all users are processed. Useful for bulk actions that affect many users.
 };
 ```
 
@@ -73,7 +73,7 @@ type Task = {
   type: HandlerType.TASK;
 
   shouldActivate?: (user: JUser, event: JEvent) => Promise<StepReturnResult>;
-  // Determine if the task should be run for this user.
+  // Determines whether this task should be run for this user in response to this event. Return `stop` to skip processing the rest of the task.
 
   doAction: (user: JUser, event: JEvent, previousResult: StepReturnResult) => Promise<StepReturnResult>;
   // Execute the core behavior of the task (e.g. API call, DB write, transformation).
@@ -86,7 +86,7 @@ type Task = {
 };
 ```
 
-> 💡 Tasks do not use `selectAction` because they are not responsible for choosing or delivering interventions — they simply perform operations needed by the rule or study infrastructure.
+> 💡 Tasks do not use `selectAction` because they are not responsible for choosing or delivering interventions — they simply perform operations needed by the application.
 
 ---
 
@@ -96,48 +96,22 @@ type Task = {
 
 Represents a participant. Includes:
 
-* `participantId`: Unique identifier
-* `customFields`: In-memory store for transient state between handlers (e.g. step count)
+* `uniqueIdentifier`: Unique identifier
+* `attributes`: In-memory store for transient state between handlers (e.g. step count)
 
 ### `JEvent`
 
-Represents a triggered event. Includes:
-
-* `name`: The event name (e.g. "dailyReminder")
-* `timestamp`: When the event was published or run
-
----
-
-## 📚 Enums
-
-### `HandlerType`
+Represents an event within JustIn.
 
 ```ts
-enum HandlerType {
-  DECISION_RULE = 'DECISION_RULE',
-  TASK = 'TASK',
-}
+type JEvent = {
+  id?: string;
+  eventType: string; // a string that identifies the type of event
+  generatedTimestamp: Date; // timestamp provided by the event generator
+  publishedTimestamp?: Date; // timestamp provided by the JustIn EventQueue
+  eventDetails?: Record<string, any>; // optional additional information about the event
+};
 ```
-
-### `DecisionRuleStep`
-
-```ts
-enum DecisionRuleStep {
-  SHOULD_ACTIVATE = 'shouldActivate',
-  SELECT_ACTION = 'selectAction',
-  DO_ACTION = 'doAction',
-}
-```
-
-### `TaskStep`
-
-```ts
-enum TaskStep {
-  SHOULD_ACTIVATE = 'shouldActivate',
-  DO_ACTION = 'doAction',
-}
-```
-
 ---
 
 This page will grow over time as new extension points are exposed.
