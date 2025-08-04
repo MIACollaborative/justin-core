@@ -165,6 +165,9 @@ export const addUser = async (
       convertedUser
     )) as JUser;
     _users.set(addedUser.id, addedUser);
+    Log.info(
+      `Added user: ${user.uniqueIdentifier}. `
+    );
     return addedUser;
   } catch (error) {
     return handleDbError("Failed to add users:", error);
@@ -196,6 +199,12 @@ export const addUsers = async (
         addedUsers.push(addedUser);
       }
     }
+    if(addedUsers.length > 0) {
+      Log.info(`${addedUsers.length} user(s) added successfully.`);
+    }
+    else{
+      Log.info("No new users were added.");
+    }
     return addedUsers;
   } catch (error) {
     return handleDbError("Failed to add users:", error);
@@ -222,8 +231,6 @@ const getUserByUniqueIdentifier = (uniqueIdentifier: string): JUser | null => {
   _checkInitialization();
   return Array.from(_users.values()).find(user => user.uniqueIdentifier === uniqueIdentifier) || null;
 };
-
-
 
 /**
  * Update the properties of a user by uniqueIdentifier
@@ -285,11 +292,16 @@ const updateUserById = async (
   attributesToUpdate: object
 ): Promise<JUser> => {
   _checkInitialization();
+
+  const existingUser: JUser | null = _users.get(userId) as JUser;
+
+  const mergedAttributes = { ...existingUser.attributes, ...attributesToUpdate };
+
   const updatedUser =
     (await dm.updateItemByIdInCollection(
       USERS,
       userId,
-      attributesToUpdate
+      {attributes: mergedAttributes}
     )) as JUser;
   if (!updatedUser) {
     throw new Error(`Failed to update user: ${userId}`);
@@ -378,12 +390,10 @@ const isIdentifierUnique = async (
 export const UserManager = {
   init,
   addUser,
-  addUsers,
-  deleteUserById,
-  updateUserByUniqueIdentifier,
+  addUsers, 
   getAllUsers,
   getUserByUniqueIdentifier,
-  updateUserById,
+  updateUserByUniqueIdentifier,
   deleteUserByUniqueIdentifier,
   deleteAllUsers,
   shutdown,
@@ -397,6 +407,8 @@ export const UserManager = {
  */
 export const TestingUserManager = {
   ...UserManager,
+  updateUserById,
+  deleteUserById,
   transformUserDocument,
   _checkInitialization,
   refreshCache,

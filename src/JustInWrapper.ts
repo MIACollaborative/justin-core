@@ -24,7 +24,7 @@ import { Logger } from './logger/logger.interface';
 import { UserManager } from './user-manager/user-manager';
 import { IntervalTimerEventGenerator } from './event/interval-timer-event-generator';
 import { IntervalTimerEventGeneratorOptions } from './event/event.type';
-import { NewUserRecord } from './user-manager/user.type';
+import { NewUserRecord, JUser } from './user-manager/user.type';
 import { setDecisionRuleResultRecorder, setTaskResultRecorder } from "./handlers/result-recorder";
 
 
@@ -144,8 +144,58 @@ export class JustInWrapper {
     Log.info('Engine stopped and cleared of all events.');
   }
 
-  public async addUsersToDatabase(users: NewUserRecord[]) : Promise<void> {
-    await UserManager.addUsers(users);
+  /**
+   * Adds a list of new users to the database.
+   * @param {NewUserRecord[]} users - The list of new users to add.
+   * @returns {Promise<(JUser | null)[]>} The list of added users, or null if not found.
+   */
+  public async addUsers(users: NewUserRecord[]) : Promise<(JUser | null)[]> {
+    return await UserManager.addUsers(users);
+  }
+
+  /**
+   * Retrieves a list of users from the database.
+   * @returns {Promise<(JUser | null)[]>} The list of users, or null if not found.
+   */
+  public async getAllUsers(): Promise<(JUser | null)[]> {
+    return await UserManager.getAllUsers();
+  }
+
+  /**
+   * Adds a new user to the database.
+   * @param {NewUserRecord} newUserRecord - The new user record to add.
+   * @returns {Promise<JUser>} The added user.
+   */
+  public async addUser(newUserRecord: NewUserRecord): Promise<JUser | null> {
+    return await UserManager.addUser(newUserRecord);
+  }
+
+  /**
+   * Retrieves a user from the database by their unique identifier.
+   * @param {string} uniqueIdentifier - The unique identifier of the user.
+   * @returns {Promise<JUser | null>} The user, or null if not found.
+   */
+  public async getUser(uniqueIdentifier: string): Promise<JUser | null> {
+    return await UserManager.getUserByUniqueIdentifier(uniqueIdentifier);
+  }
+
+  /**
+   * Retrieves a user from the database by their unique identifier.
+   * @param {string} uniqueIdentifier - The unique identifier of the user.
+   * @param {Record<string, any>} attributesToUpdate - The attributes to update in the user record.
+   * @returns {Promise<JUser | null>} The user, or null if not found.
+   */
+  public async updateUser(uniqueIdentifier: string, attributesToUpdate: Record<string, any>): Promise<JUser | null> {
+    return await UserManager.updateUserByUniqueIdentifier(uniqueIdentifier, attributesToUpdate);
+  }
+
+    /**
+   * Deletes a user from the database by their unique identifier.
+   * @param {string} uniqueIdentifier - The unique identifier of the user.
+   * @returns {Promise<void>} A promise that resolves when the user is deleted.
+   */
+  public async deleteUser(uniqueIdentifier: string): Promise<void> {
+    return await UserManager.deleteUserByUniqueIdentifier(uniqueIdentifier);
   }
 
   /**

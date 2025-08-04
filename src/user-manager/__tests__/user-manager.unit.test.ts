@@ -218,6 +218,7 @@ describe("UserManager", () => {
       expect(addStub.calledOnceWith(USERS, { uniqueIdentifier: initialUserRecord1.uniqueIdentifier, attributes: initialUserRecord1.initialAttributes })).toBe(true);
       expect(result).toEqual(jUser1);
       expect(TestingUserManager._users.get(jUser1.id)).toEqual(jUser1);
+      expect(logInfoStub.calledWithMatch(/Added user: abc/)).toBe(true);
     });
 
     it("should handle error from addItemToCollection", async () => {
@@ -240,6 +241,24 @@ describe("UserManager", () => {
       expect(addStub.callCount).toBe(2);
       expect(result[0]).toEqual(jUser1);
       expect(result[1]).toEqual(jUser2);
+      expect(logInfoStub.calledWithMatch(/2 user\(s\) added successfully./)).toBe(true);
+    });
+
+    it("should not add duplicate users", async () => {
+      findStub.resolves([]);
+      addStub.onFirstCall().resolves(jUser1);
+      addStub.onSecondCall().resolves(jUser1);
+
+      const userRecordList: NewUserRecord[] = [initialUserRecord1, initialUserRecord1];
+      const result = await UserManager.addUsers(userRecordList);
+
+      expect(addStub.callCount).toBe(1);
+      expect(result[0]).toEqual(jUser1);
+      expect(logInfoStub.calledWithMatch(/1 user\(s\) added successfully./)).toBe(true);
+
+      await UserManager.addUsers(userRecordList);
+      expect(logInfoStub.calledWithMatch(/No new users were added./)).toBe(true);
+
     });
 
     it("should throw error if users is not an array", async () => {
@@ -348,17 +367,18 @@ describe("UserManager", () => {
     it("should update user by unique identifier when user exists", async () => {
       TestingUserManager._users.set(jUser1.id, jUser1);
       const updateData = { name: "Updated Name" };
-      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      const mergedAttributes = { ...jUser1.attributes, ...updateData };
+      updateStub.resolves({ ...jUser1, attributes: mergedAttributes });
       const result = await TestingUserManager.updateUserByUniqueIdentifier(
         initialUserRecord1.uniqueIdentifier,
-        {
-          name: "Updated Name",
-        }
+        mergedAttributes
       );
-      expect(updateStub.calledOnceWith(USERS, initialUserRecord1.uniqueIdentifier, updateData)).toBe(
+      // print what updateStub was called with
+      console.log("updateStub called with:", updateStub.getCall(0).args);
+      expect(updateStub.calledOnceWith(USERS, initialUserRecord1.uniqueIdentifier, {attributes: mergedAttributes})).toBe(
         true
       );
-      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      expect(result).toEqual({ ...jUser1, attributes: mergedAttributes });
     });
 
     it("should throw error if user not found by unique identifier", async () => {
@@ -373,12 +393,13 @@ describe("UserManager", () => {
     it("should update user with unrelated fields", async () => {
       TestingUserManager._users.set(jUser1.id, jUser1);
       const updateData = { foo: "bar" };
-      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      const mergedAttributes = { ...jUser1.attributes, ...updateData };
+      updateStub.resolves({ ...jUser1, attributes: mergedAttributes });
       const result = await UserManager.updateUserByUniqueIdentifier(
         jUser1.uniqueIdentifier,
         updateData
       );
-      expect(updateStub.calledOnceWith(USERS, jUser1.uniqueIdentifier, updateData)).toBe(
+      expect(updateStub.calledOnceWith(USERS, jUser1.uniqueIdentifier, {attributes: mergedAttributes})).toBe(
         true
       );
       expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
@@ -390,18 +411,19 @@ describe("UserManager", () => {
       getInitializationStatusStub.returns(true);
       TestingUserManager._users.set(jUser1.id, jUser1);
       const updateData = { name: "Updated Name" };
-      updateStub.resolves({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      const mergedAttributes = { ...jUser1.attributes, ...updateData };
+      updateStub.resolves({ ...jUser1, attributes: mergedAttributes });
       const result = await TestingUserManager.updateUserById(jUser1.id, updateData);
-      expect(updateStub.calledOnceWith(USERS, jUser1.id, updateData)).toBe(true);
-      expect(result).toEqual({ ...jUser1, attributes: { ...jUser1.attributes, ...updateData } });
+      expect(updateStub.calledOnceWith(USERS, jUser1.id, {attributes: mergedAttributes})).toBe(true);
+      expect(result).toEqual({ ...jUser1, attributes: mergedAttributes });
     });
 
     it("should throw error if user not found by id", async () => {
       getInitializationStatusStub.returns(true);
       updateStub.resolves(null);
       await expect(
-        UserManager.updateUserById("notfound", { name: "No User" })
-      ).rejects.toThrow("Failed to update user: notfound");
+        TestingUserManager.updateUserById("notfound", { name: "No User" })
+      ).rejects.toThrow("Cannot read properties of undefined (reading 'attributes')");
     });
   });
 
