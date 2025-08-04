@@ -15,7 +15,7 @@ export default function Home(): JSX.Element {
           <JustinLogo className={styles.featureSvg} />
           <h1 className="hero__title">JustIn Core</h1>
           <p className="hero__subtitle">
-            The foundation of the <a href="https://miacollaborative.github.io/justin-docs/">JustIn Framework</a>, 
+            The foundation of the <a href="https://miacollaborative.github.io/justin-framework/">JustIn Framework</a>, 
             including the core data models and event-driven execution of intervention logic.
           </p>
           <div style={{ marginTop: '1rem' }}>

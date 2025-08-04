@@ -48,29 +48,29 @@ const config: Config = {
   themeConfig: {
     image: 'img/justin-logo.png',
     navbar: {
-      title: 'JustIn Core',
+      title: 'JustIn',
       logo: {
         alt: 'Justin Logo',
         src: 'img/justin-logo.png',
-        href: 'https://miacollaborative.github.io/justin-docs/',
+        href: 'https://miacollaborative.github.io/justin-framework/',
         target: '_self',
       },
       items: [
         {
           label: 'About',
           position: 'left',
-          href: 'https://miacollaborative.github.io/justin-docs/about',
+          href: 'https://miacollaborative.github.io/justin-framework/about',
           target: '_self'
         },
         {
           label: 'Roadmap',
           position: 'left',
-          href: 'https://miacollaborative.github.io/justin-docs/roadmap',
+          href: 'https://miacollaborative.github.io/justin-framework/roadmap',
           target: '_self'
         },
         {
           type: 'docsVersionDropdown',
-          position: 'right',
+          position: 'left',
         },
 
       ],
