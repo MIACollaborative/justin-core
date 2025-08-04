@@ -183,18 +183,18 @@ describe('JustInWrapper', () => {
     });
   });
 
-  describe('addUsersToDatabase', () => {
+  describe('addUsers', () => {
     it('should add users to database successfully', async () => {
       const users = [{ uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1' } }, { uniqueIdentifier: 'user2', initialAttributes: { name: 'User 2'} }];
 
-      await justInWrapper.addUsersToDatabase(users);
+      await justInWrapper.addUsers(users);
 
       expect(userManagerAddUsersToDatabaseStub.calledOnce).toBe(true);
       expect(userManagerAddUsersToDatabaseStub.calledWith(users)).toBe(true);
     });
 
     it('should handle empty users array', async () => {
-      await justInWrapper.addUsersToDatabase([]);
+      await justInWrapper.addUsers([]);
 
       expect(userManagerAddUsersToDatabaseStub.calledOnce).toBe(true);
       expect(userManagerAddUsersToDatabaseStub.calledWith([])).toBe(true);
@@ -204,13 +204,13 @@ describe('JustInWrapper', () => {
   describe('getAllUsers', () => {
 
     it('should retrieve all users', async () => {
-      await justInWrapper.getUsersFromDatabase();
+      await justInWrapper.getAllUsers();
       expect(userManagerGetAllUsersStub.calledOnce).toBe(true);
     });
 
     it('should handle empty user list', async () => {
       userManagerGetAllUsersStub.resolves([]);
-      const users = await justInWrapper.getUsersFromDatabase();
+      const users = await justInWrapper.getAllUsers();
       expect(users).toEqual([]);
       expect(userManagerGetAllUsersStub.calledOnce).toBe(true);
     });

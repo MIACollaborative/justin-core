@@ -79,7 +79,7 @@ describe('JustInWrapper Integration', () => {
 
   describe('User Management', () => {
     beforeEach(async () => {
-      const allUsers = await justIn.getUsersFromDatabase() as JUser[];
+      const allUsers = await justIn.getAllUsers() as JUser[];
       // Clean up existing users before each test
       if (allUsers.length > 0) {
         await Promise.all(allUsers.map(user => justIn.deleteUser(user.uniqueIdentifier)));
@@ -93,10 +93,10 @@ describe('JustInWrapper Integration', () => {
         { uniqueIdentifier: 'user1', initialAttributes: { name: 'User 1', email: 'user1@test.com' } },
         { uniqueIdentifier: 'user2', initialAttributes: { name: 'User 2', email: 'user2@test.com' } }
       ];
-      await justIn.addUsersToDatabase(users);
+      await justIn.addUsers(users);
       const allUsers = UserManager.getAllUsers();
       expect(allUsers).toHaveLength(2); // Ensure users are added
-      const justAllUsers = await justIn.getUsersFromDatabase();
+      const justAllUsers = await justIn.getAllUsers();
       expect(justAllUsers).toHaveLength(2);
       expect(justAllUsers[0]?.uniqueIdentifier).toBe(allUsers[0].uniqueIdentifier);
       expect(justAllUsers[1]?.uniqueIdentifier).toBe(allUsers[1].uniqueIdentifier);
@@ -265,7 +265,7 @@ describe('JustInWrapper Integration', () => {
       justIn.registerDecisionRule(aDecisionRule);
       justIn.registerTask(aTask);
       justIn.registerEventHandlers('TEST_EVENT', ['testDecisionRule', 'testTask']);
-      await justIn.addUsersToDatabase([{ uniqueIdentifier: 'user1', initialAttributes: { name: 'U1', email: 'u1@test.com' } }]);
+      await justIn.addUsers([{ uniqueIdentifier: 'user1', initialAttributes: { name: 'U1', email: 'u1@test.com' } }]);
       await justIn.startEngine();
       await justIn.publishEvent('TEST_EVENT', new Date(), {});
       await new Promise(res => setTimeout(res, 1000));
@@ -289,7 +289,7 @@ describe('JustInWrapper Integration', () => {
 
       justIn.registerDecisionRule(aDecisionRule);
       justIn.registerEventHandlers('INTERVAL_EVENT', ['testDecisionRule']);
-      await justIn.addUsersToDatabase([{ uniqueIdentifier: 'user2', initialAttributes: { name: 'U2', email: 'u2@test.com' } }]);
+      await justIn.addUsers([{ uniqueIdentifier: 'user2', initialAttributes: { name: 'U2', email: 'u2@test.com' } }]);
       justIn.createIntervalTimerEventGenerator('INTERVAL_EVENT', 1000);
       await justIn.startEngine();
       await new Promise(res => setTimeout(res, 2500));
