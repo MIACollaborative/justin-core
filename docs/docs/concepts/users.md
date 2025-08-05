@@ -49,7 +49,7 @@ Adding users in bulk.
 const usersToAdd: NewUserRecord[] = [
   {
     uniqueIdentifier: 'participant1',
-    attributes: {
+    initialAttributes: {
       firstName: 'Alice',
       studyPhase: 'active',
       timezone: 'America/Detroit'
@@ -57,7 +57,7 @@ const usersToAdd: NewUserRecord[] = [
   },
   {
     uniqueIdentifier: 'participant2',
-    attributes: {
+    initialAttributes: {
       firstName: 'Bob',
       studyPhase: 'baseline',
       timezone: 'America/Los Angeles'
@@ -72,7 +72,7 @@ Adding just one user (after justIn.init(), of course):
 ```ts
 await justIn.addUser({
   uniqueIdentifier: participant3,
-  attributes: {
+  initialAttributes: {
     firstName: 'Charlie',
     studyPhase: 'pre-enrollment',
     timezone: 'America/Chicago'
