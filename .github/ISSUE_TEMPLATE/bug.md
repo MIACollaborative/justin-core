@@ -8,7 +8,7 @@ assignees: []
 
 ### Describe the bug
 
-A clear and concise description of what the bug is.
+A clear and concise description of what the bug is, including when it occurs and what how the system behaves.
 
 ### Steps to reproduce the behavior
 
