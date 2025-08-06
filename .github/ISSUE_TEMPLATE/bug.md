@@ -34,3 +34,10 @@ If applicable, add screenshots to help explain your problem.
 ### Additional context
 
 Add any other context about the problem here.
+
+Severity
+- [ ] **Very Low**: e.g., cosmetic, grammatical
+- [ ] **Low**: e.g., annoying but still functional
+- [ ] **Medium**: e.g., things mostly work, but functionality is impeded
+- [ ] **High**: e.g., needed functionality not accessible
+- [ ] **Very High**: e.g., showstopper/system crasher
