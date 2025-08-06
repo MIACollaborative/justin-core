@@ -1,9 +1,9 @@
 ---
-name: 🧑‍💻 Task
+name: Task 🧑‍💻
 about: Create a task to track a specific piece of work.
 title: "[Task]: "
 labels: ["task"]
-assignees: ["your-github-username"]
+assignees: []
 ---
 
 ### Description
