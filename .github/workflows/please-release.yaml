@@ -1,0 +1,23 @@
+name: Manual Release (Changelog + GitHub Release)
+
+on:
+  push:
+    branches:
+      - publish
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run release-please (manual mode)
+        uses: googleapis/release-please-action@v4
+        with:
+          release-type: node
+          package-name: "@just-in/core"
+          bump-minor-pre-major: true
+          skip-github-pull-request: true   # No PR
+          skip-publish: true               # No npm publish
+          token: ${{ secrets.GITHUB_TOKEN }}
