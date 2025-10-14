@@ -1,5 +1,5 @@
 {
-  "entryPoints": ["./src/index.ts"],
+  "entryPoints": ["./src/index.ts", "./src/JustInWrapper.ts", "./src/JustInLite.ts"],
   "entryPointStrategy": "expand",
   "out": "docs/typedoc-html",
   "theme": "default",

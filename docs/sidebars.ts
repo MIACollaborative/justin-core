@@ -11,6 +11,7 @@ const sidebars: SidebarsConfig = {
         {type: 'doc', id: 'concepts/handlers'},
         {type: 'doc', id: 'concepts/events'},
         {type: 'doc', id: 'concepts/users'},
+        {type: 'doc', id: 'concepts/logging'}
       ],
     },
     {
@@ -25,6 +26,7 @@ const sidebars: SidebarsConfig = {
       label: 'Guides',
       items: [
         {type: 'doc', id: 'guides/mongo'},
+        {type: 'doc', id: 'guides/gcp'},
       ],
     },
   ],

@@ -35,7 +35,7 @@ const config: Config = {
           sidebarPath: require.resolve('./sidebars.ts'),
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
-          includeCurrentVersion: false,
+          includeCurrentVersion: true,
         },
         blog: false,
         theme: {
