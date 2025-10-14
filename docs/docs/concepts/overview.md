@@ -9,7 +9,7 @@ The primary way that you will interact with JustIn Core as an app developer is t
 
 You will also write code to specify how and when events are generated, and how those events are mapped to the Decision Rules and Tasks that should execute for each. JustIn comes with one built-in event generator--the IntervalTimerEventGenerator--that you can enable to fire events at a specified interval (e.g., every minute or every hour).
 
-A very basic JustIn app looks like this:
+A very basic JustIn app (note: this is "standard" JustIn; [JustInLite](../guides/gcp) is slightly different) looks like this:
 
 ```ts
 import JustIn from "@just-in/core";

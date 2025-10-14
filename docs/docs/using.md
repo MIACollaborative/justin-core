@@ -4,7 +4,6 @@ title: Using JustIn Core
 sidebar_position: 1
 ---
 
-
 # Justin Core
 
 The `@just-in/core` package is a lightweight, **event-driven** framework for building **Just-In-Time Adaptive Interventions (JITAIs)**. It helps research app developers define, schedule, and deliver adaptive interventions using events, decision rules, and tasks.
@@ -20,7 +19,6 @@ There are two ways to run `@just-in/core`, **standard mode** and **serverless mo
 * **Serverless** mode is designed to be run as a cloud function/lambda within a cloud services environment such as Google Cloud or Amazon Web Services. See the [Serverless with JustInLite and Google Cloud guide](./guides/gcp.md) for instructions on setting up JustInLite.
 
 To use `@just-in/core` in either mode, create an npm package and install `@just-in/core`.
-
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
