@@ -88,7 +88,7 @@ Results of Task and Decision Rule execution are written to persistent storage an
 
 **Note that `RecordResult`s are only written when `shouldActivate()` returns a `StepReturnResult` with `status: 'success'`. If you want to change this behavior you MUST provide a custom `ResultWriter` as described below.**
 
-Recall that [JustIn Handlers](./concepts/handlers) (i.e., Tasks and Decision Rules) all return `StepReturnResult`s which contain both the high level outcome (`status`) of the step (`success`, `stop`, `error`), as well as an optional `result` field. The value of the `result` is an object that can contain any key-value pairs deemed useful by the study team for documenting the outcome of executing a particular handler for a particular user. All of the `StepReturnResult`s for a handler execution are collected by JustIn and written to a `RecordResult` with the following structure:
+Recall that [JustIn Handlers](./handlers) (i.e., Tasks and Decision Rules) all return `StepReturnResult`s which contain both the high level outcome (`status`) of the step (`success`, `stop`, `error`), as well as an optional `result` field. The value of the `result` is an object that can contain any key-value pairs deemed useful by the study team for documenting the outcome of executing a particular handler for a particular user. All of the `StepReturnResult`s for a handler execution are collected by JustIn and written to a `RecordResult` with the following structure:
 
 ```ts
 type RecordResult = {
@@ -109,7 +109,6 @@ type ExecuteStepReturn<T = any> = {
 Note that, in addition to the `StepReturnResult`s, the `RecordResult` includes a snapshot of the `JUser` at the time of handler execution as well as the details of the `JEvent` that triggered the execution. 
 
 After executing a handler for a user, JustIn passes the `RecordResult` to the appropriate *result recorder* function (i.e., `DecisionRuleResultRecorder` or `TaskResultRecorder`, depending on the handler type). What happens to the `ResultRecord` next depends upon the JustIn mode (standard or serverless) and/or optional configuration actions taken by your app.
-
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';

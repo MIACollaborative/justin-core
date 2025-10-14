@@ -16,18 +16,21 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'API Reference',
-      items: [
-        {type: 'doc', id: 'reference/types'},
-      ],
-    },
-    {
-      type: 'category',
       label: 'Guides',
       items: [
         {type: 'doc', id: 'guides/mongo'},
         {type: 'doc', id: 'guides/gcp'},
       ],
+    },
+    {
+      type: 'category',
+      label: 'API Reference',
+      link: {
+        type: 'generated-index',
+        title: 'API Reference',
+        description: 'Complete API documentation for JustIn Core',
+      },
+      items: require('./api-sidebar.js'),
     },
   ],
 };
