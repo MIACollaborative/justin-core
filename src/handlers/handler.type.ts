@@ -7,17 +7,26 @@ export type StepReturnResult<T = any> = {
   error?: any;
 };
 
+/**
+ * @internal
+ */
 export enum HandlerType {
   DECISION_RULE = 'DECISION_RULE',
   TASK = 'TASK',
 }
 
+/**
+ * @internal
+ */
 export enum DecisionRuleStep {
   SHOULD_ACTIVATE = 'shouldActivate',
   SELECT_ACTION = 'selectAction',
   DO_ACTION = 'doAction',
 }
 
+/**
+ * @internal
+ */
 export enum TaskStep {
   SHOULD_ACTIVATE = 'shouldActivate',
   DO_ACTION = 'doAction',
@@ -48,6 +57,9 @@ export type Task = BaseHandler;
 export type TaskRegistration = Omit<Task, 'type'>;
 export type DecisionRuleRegistration = Omit<DecisionRule, 'type'>;
 
+/**
+ * @internal
+ */
 export type ExecuteStepReturn<T = any> = {
   step: string;
   result: StepReturnResult<T>;

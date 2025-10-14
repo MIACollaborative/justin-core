@@ -1,13 +1,33 @@
 {
-  "entryPoints": ["./src/index.ts", "./src/JustInWrapper.ts", "./src/JustInLite.ts"],
-  "entryPointStrategy": "expand",
-  "out": "docs/typedoc-html",
-  "theme": "default",
+  "entryPoints": [
+    "./src/JustInWrapper.ts",
+    "./src/JustInLite.ts",
+    "./src/handlers/handler.type.ts",
+    "./src/user-manager/user.type.ts",
+    "./src/logger/logger.interface.ts",
+    "./src/event/event.type.ts"
+  ],
+  "entryPointStrategy": "resolve",
+  "out": "docs/docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "fileExtension": ".md",
   "excludePrivate": true,
   "excludeProtected": true,
   "excludeExternals": true,
   "excludeNotDocumented": false,
-  "excludeInternal": false,
+  "excludeInternal": true,
   "includeVersion": true,
-  "preserveWatchOutput": true
+  "preserveWatchOutput": true,
+  "exclude": ["**/__tests__/**", "**/*.test.ts"],
+  "excludeCategories": ["Internal"],
+  "validation": {
+    "invalidLink": true
+  },
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "hidePageTitle": false,
+  "useCodeBlocks": true,
+  "expandObjects": true,
+  "mergeReadme": true,
+  "categorizeByGroup": false
 }
