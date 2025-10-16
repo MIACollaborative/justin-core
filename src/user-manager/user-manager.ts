@@ -334,7 +334,6 @@ const deleteUserByUniqueIdentifier = async (uniqueIdentifier: string): Promise<b
   const theUser: JUser | null = await getUserByUniqueIdentifier(uniqueIdentifier);
   const userId = theUser?.id as any;
   const result = await deleteUserById(userId);
-  if(result) _users.delete(userId);
   return result;
 };
 
