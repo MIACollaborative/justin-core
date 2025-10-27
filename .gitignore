@@ -8,6 +8,10 @@ temp/
 # TypeScript
 *.tsbuildinfo
 
+# Yarn
+.yarnrc.yml
+.yarn/install-state.gz
+
 # Logs
 logs
 *.log
