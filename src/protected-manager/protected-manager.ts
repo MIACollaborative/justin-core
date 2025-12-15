@@ -59,18 +59,9 @@ const getProtectedAttributes = async (uniqueIdentifier: string, namespace: strin
     return null;
   }
   const protectedAttr = transformProtectedDocument(result[0]);
-  const filteredAttributes: Record<string, unknown> = {};
-  if (names && names.length > 0) {
-    for (const name of names) {
-      if (name in protectedAttr.attributes) {
-        filteredAttributes[name] = protectedAttr.attributes[name];
-      }
-      else{
-        filteredAttributes[name] = null;
-      }
-    }
-    protectedAttr.attributes = filteredAttributes;
-  }
+  const filteredAttributes: Record<string, unknown> = Object.fromEntries(
+    Object.entries(protectedAttr.attributes).filter(([key]) => names.includes(key))
+  );
   return filteredAttributes;
 };
 
