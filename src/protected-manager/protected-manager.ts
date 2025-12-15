@@ -1,5 +1,6 @@
 import DataManager from '../data-manager/data-manager';
 import { PROTECTED } from '../data-manager/data-manager.constants';
+import { handleDbError } from '../data-manager/data-manager.helpers';
 import { createLogger } from '../logger/logger';
 import { ProtectedAttributes } from './protected-manager.type';
 
@@ -59,10 +60,15 @@ const getProtectedAttributes = async (
   names: string[],
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
-  const [doc] = (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-  if (!doc) return null;
-  const { attributes } = transformProtectedDocument(doc);
-  return Object.fromEntries(Object.entries(attributes).filter(([key]) => names.includes(key)));
+  try {
+    const [doc] =
+      (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+    if (!doc) return null;
+    const { attributes } = transformProtectedDocument(doc);
+    return Object.fromEntries(Object.entries(attributes).filter(([key]) => names.includes(key)));
+  } catch (error) {
+    return handleDbError('Failed to get protected attributes:', 'getProtectedAttributes', error);
+  }
 };
 
 const setProtectedAttributes = async (
@@ -71,22 +77,23 @@ const setProtectedAttributes = async (
   attributesUpdate: Record<string, unknown>,
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
-  const [doc] = (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-  if (!doc) return null;
-  const protectedAttr = transformProtectedDocument(doc);
-  const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
-  const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
-    PROTECTED,
-    protectedAttr.id,
-    {
-      attributes: mergedAttributes,
-    },
-  );
-
-  if (!updatedProtectedAttr) {
-    throw new Error(`Failed to update protected attributes for: ${protectedAttr.id}`);
+  try {
+    const [doc] =
+      (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+    if (!doc) return null;
+    const protectedAttr = transformProtectedDocument(doc);
+    const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
+    const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
+      PROTECTED,
+      protectedAttr.id,
+      {
+        attributes: mergedAttributes,
+      },
+    );
+    return attributesUpdate;
+  } catch (error) {
+    return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
   }
-  return attributesUpdate;
 };
 
 const deleteProtectedAttributes = async (
@@ -95,25 +102,34 @@ const deleteProtectedAttributes = async (
   names: string[],
 ): Promise<boolean> => {
   _checkInitialization();
-  const [doc] = (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-  if (!doc) return false;
-  const protectedAttr = transformProtectedDocument(doc);
+  try {
+    const [doc] =
+      (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+    if (!doc) return true;
+    const protectedAttr = transformProtectedDocument(doc);
 
-  const filteredAttributes = Object.fromEntries(
-    Object.entries(protectedAttr.attributes).filter(([key]) => !names.includes(key)),
-  );
-  const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
-    PROTECTED,
-    protectedAttr.id,
-    {
-      attributes: filteredAttributes,
-    },
-  );
+    const filteredAttributes = Object.fromEntries(
+      Object.entries(protectedAttr.attributes).filter(([key]) => !names.includes(key)),
+    );
+    const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
+      PROTECTED,
+      protectedAttr.id,
+      {
+        attributes: filteredAttributes,
+      },
+    );
 
-  if (!updatedProtectedAttr) {
-    throw new Error(`Failed to delete protected attributes for: ${protectedAttr.id}`);
+    if (!updatedProtectedAttr) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    return handleDbError(
+      'Failed to delete protected attributes:',
+      'deleteProtectedAttributes',
+      error,
+    );
   }
-  return true;
 };
 
 /**
