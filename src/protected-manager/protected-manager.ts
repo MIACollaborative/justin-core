@@ -20,11 +20,13 @@ const dm = DataManager.getInstance();
  */
 const init = async (): Promise<void> => {
   await dm.init();
-
-  // ensure PROTECTED exists and has a unique index on uniqueIdentifier (idempotent, DB-agnostic)
   await dm.ensureStore(PROTECTED);
   await dm.ensureIndexes(PROTECTED, [
-    { name: 'uniq_user_identifier_namespace', key: { uniqueIdentifier: 1, namespace: 1 }, unique: true },
+    {
+      name: 'uniq_user_identifier_namespace',
+      key: { uniqueIdentifier: 1, namespace: 1 },
+      unique: true,
+    },
   ]);
 };
 
@@ -51,32 +53,35 @@ const _checkInitialization = (): void => {
   }
 };
 
-
-const getProtectedAttributes = async (uniqueIdentifier: string, namespace: string, names: string[]): Promise<Record<string, unknown> | null> => {
+const getProtectedAttributes = async (
+  uniqueIdentifier: string,
+  namespace: string,
+  names: string[],
+): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
-  const result = await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace });
-  if (!result || result.length === 0) {
-    return null;
-  }
-  const protectedAttr = transformProtectedDocument(result[0]);
-  const filteredAttributes: Record<string, unknown> = Object.fromEntries(
-    Object.entries(protectedAttr.attributes).filter(([key]) => names.includes(key))
-  );
-  return filteredAttributes;
+  const [doc] = (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+  if (!doc) return null;
+  const { attributes } = transformProtectedDocument(doc);
+  return Object.fromEntries(Object.entries(attributes).filter(([key]) => names.includes(key)));
 };
 
-
-const setProtectedAttributes = async (uniqueIdentifier: string, namespace: string, attributesUpdate: Record<string, unknown>): Promise<Record<string, unknown> | null> => {
+const setProtectedAttributes = async (
+  uniqueIdentifier: string,
+  namespace: string,
+  attributesUpdate: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
-  const result = await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace });
-  if (!result || result.length === 0) {
-    return null;
-  }
-  const protectedAttr = transformProtectedDocument(result[0]);
+  const [doc] = (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+  if (!doc) return null;
+  const protectedAttr = transformProtectedDocument(doc);
   const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
-  const updatedProtectedAttr: object | null = (await dm.updateItemByIdInCollection(PROTECTED, protectedAttr.id, {
-    attributes: mergedAttributes,
-  }));
+  const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
+    PROTECTED,
+    protectedAttr.id,
+    {
+      attributes: mergedAttributes,
+    },
+  );
 
   if (!updatedProtectedAttr) {
     throw new Error(`Failed to update protected attributes for: ${protectedAttr.id}`);
@@ -84,20 +89,26 @@ const setProtectedAttributes = async (uniqueIdentifier: string, namespace: strin
   return attributesUpdate;
 };
 
-const deleteProtectedAttributes = async (uniqueIdentifier: string, namespace: string, names: string[]): Promise<boolean> => {
+const deleteProtectedAttributes = async (
+  uniqueIdentifier: string,
+  namespace: string,
+  names: string[],
+): Promise<boolean> => {
   _checkInitialization();
-  const result = await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace });
-  if (!result || result.length === 0) {
-    return false;
-  }
-  const protectedAttr = transformProtectedDocument(result[0]);
+  const [doc] = (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+  if (!doc) return false;
+  const protectedAttr = transformProtectedDocument(doc);
 
-  for (const name of names) {
-    delete protectedAttr.attributes[name];
-  }
-  const updatedProtectedAttr: object | null = (await dm.updateItemByIdInCollection(PROTECTED, protectedAttr.id, {
-    attributes: protectedAttr.attributes,
-  }));
+  const filteredAttributes = Object.fromEntries(
+    Object.entries(protectedAttr.attributes).filter(([key]) => !names.includes(key)),
+  );
+  const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
+    PROTECTED,
+    protectedAttr.id,
+    {
+      attributes: filteredAttributes,
+    },
+  );
 
   if (!updatedProtectedAttr) {
     throw new Error(`Failed to delete protected attributes for: ${protectedAttr.id}`);
