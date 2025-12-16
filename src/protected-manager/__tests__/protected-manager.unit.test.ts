@@ -131,7 +131,7 @@ describe('ProtectedManager (unit)', () => {
     );
   });
 
-  it('setProtectedAttributes: set attributes, return null if no item found, return the requested update the same as the parameter.', async () => {
+  it('setProtectedAttributes: set attributes, create a new record if not found, return the requested update the same as the parameter.', async () => {
     // arrange
     const dbDoc = {
       _id: 'pa1',
@@ -174,10 +174,20 @@ describe('ProtectedManager (unit)', () => {
       },
     });
 
-    // if item not found, return null
+    // if item not found, create the document and return the same attributes
+    const newRecord = {
+      uniqueIdentifier: `userX`,
+      namespace: `nsX`,
+      attributes: { ...update },
+    };
     (dm.findItemsInCollection as sinon.SinonStub).resolves([]);
-    const resultNotFound = await ProtectedManager.setProtectedAttributes('userX', 'nsX', update);
-    expect(resultNotFound).toBeNull();
+    (dm.addItemToCollection as sinon.SinonStub).resolves(newRecord);
+    const resultNewAttributes = await ProtectedManager.setProtectedAttributes(
+      newRecord.uniqueIdentifier,
+      newRecord.namespace,
+      update,
+    );
+    expect(resultNewAttributes).toEqual(update);
   });
 
   it('setProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
@@ -199,9 +209,9 @@ describe('ProtectedManager (unit)', () => {
       attr1: 'newValue1',
       attr3: 'value3',
     };
-    await expect(
-      ProtectedManager.setProtectedAttributes('userX', 'nsX', update),
-    ).rejects.toThrow('fail-update');
+    await expect(ProtectedManager.setProtectedAttributes('userX', 'nsX', update)).rejects.toThrow(
+      'fail-update',
+    );
 
     // Support both 2-arg and 3-arg styles; we only care that:
     //  - message is "Failed to get protected attributes:"
@@ -253,16 +263,15 @@ describe('ProtectedManager (unit)', () => {
       },
     });
 
-    // if item not found, return null
+    // if item not found, return false
     (dm.findItemsInCollection as sinon.SinonStub).resolves([]);
-    const resultNotFound = await ProtectedManager.deleteProtectedAttributes(
-      'userX',
-      'nsX',
-      ['attr1', 'attr3'],
-    );
-    expect(resultNotFound).toBe(true);
+    const resultNotFound = await ProtectedManager.deleteProtectedAttributes('userX', 'nsX', [
+      'attr1',
+      'attr3',
+    ]);
+    expect(resultNotFound).toBe(false);
   });
-  
+
   it('deleteProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
     // arrange
     const dbDoc = {

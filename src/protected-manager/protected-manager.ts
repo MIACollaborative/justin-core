@@ -80,7 +80,21 @@ const setProtectedAttributes = async (
   try {
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-    if (!doc) return null;
+    console.log(`Doc: ${JSON.stringify(doc)}`);
+    if (!doc) {
+      const newItem = {
+        uniqueIdentifier,
+        namespace,
+        attributes: { ...attributesUpdate },
+      };
+      const newDoc = (await dm.addItemToCollection(
+        PROTECTED,
+        newItem,
+      )) as unknown as ProtectedAttributes | null;
+      console.log(`NewDoc: ${JSON.stringify(newDoc)}`);
+      return newDoc ? newDoc.attributes : null;
+    }
+
     const protectedAttr = transformProtectedDocument(doc);
     const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
     const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
@@ -105,7 +119,7 @@ const deleteProtectedAttributes = async (
   try {
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-    if (!doc) return true;
+    if (!doc) return false;
     const protectedAttr = transformProtectedDocument(doc);
 
     const filteredAttributes = Object.fromEntries(
