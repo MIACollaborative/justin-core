@@ -5,6 +5,8 @@ import { JUser, NewUserRecord } from './user.type';
 import { handleDbError } from '../data-manager/data-manager.helpers';
 import { CollectionChangeType } from '../data-manager/data-manager.type';
 import { createLogger } from '../logger/logger';
+import { ProtectedManager } from '../protected-manager/protected-manager';
+import { set } from 'zod';
 
 const Log = createLogger({
   context: {
@@ -39,6 +41,9 @@ const init = async (): Promise<void> => {
 
   await refreshCache();
   setupChangeListeners();
+
+  // protected-manager init call
+  await ProtectedManager.init();
 };
 
 /**
@@ -403,6 +408,9 @@ export const UserManager = {
   deleteUserByUniqueIdentifier,
   deleteAllUsers,
   shutdown,
+  getProtectedAttributes: ProtectedManager.getProtectedAttributes,
+  setProtectedAttributes: ProtectedManager.setProtectedAttributes,
+  deleteProtectedAttributes: ProtectedManager.deleteProtectedAttributes,
 };
 
 /**
