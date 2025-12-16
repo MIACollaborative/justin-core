@@ -65,7 +65,9 @@ const getProtectedAttributes = async (
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     if (!doc) return null;
     const { attributes } = transformProtectedDocument(doc);
-    return Object.fromEntries(Object.entries(attributes).filter(([key]) => names.includes(key)));
+    return Object.fromEntries(
+      names.map((key) => [key, attributes.hasOwnProperty(key) ? attributes[key] : null]),
+    );
   } catch (error) {
     return handleDbError('Failed to get protected attributes:', 'getProtectedAttributes', error);
   }

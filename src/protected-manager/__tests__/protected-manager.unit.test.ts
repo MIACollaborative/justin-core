@@ -73,7 +73,7 @@ describe('ProtectedManager (unit)', () => {
     ]);
   });
 
-  it('getProtectedAttributes: query items, return null if no item found, return the requested subset of attributes.', async () => {
+  it('getProtectedAttributes: query items, return null if no item found, return the requested subset of attributes (null if an attribute not found).', async () => {
     // query items
     // arrange
     const dbDoc = {
@@ -111,6 +111,17 @@ describe('ProtectedManager (unit)', () => {
       'attr3',
     ]);
     expect(resultNotFound).toBeNull();
+
+    // if attribute not found, return null for that attribute
+    (dm.findItemsInCollection as sinon.SinonStub).resolves([dbDoc]);
+    const resultAttrNotFound = await ProtectedManager.getProtectedAttributes('user1', 'ns1', [
+      'attr1',
+      'attrX',
+    ]);
+    expect(resultAttrNotFound).toEqual({
+      attr1: 'value1',
+      attrX: null,
+    });
   });
 
   it('getProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
