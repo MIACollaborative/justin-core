@@ -65,6 +65,7 @@ const getProtectedAttributes = async (
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     if (!doc) return null;
     const { attributes } = transformProtectedDocument(doc);
+    // TODO: check mongodb projectino to see what the return behavior is: undefined by default
     return Object.fromEntries(
       names.map((key) => [key, attributes.hasOwnProperty(key) ? attributes[key] : null]),
     );
