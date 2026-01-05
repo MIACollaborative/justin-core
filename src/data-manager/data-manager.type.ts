@@ -1,4 +1,10 @@
 import { Readable } from 'stream';
+import { ShadowsConfig } from './shadows/shadows-db.manager.type';
+
+export type DataManagerOptions = {
+  enableShadowsDB?: boolean;
+  shadowsDBConfig?: ShadowsConfig;
+}
 
 export enum SortDirection {
   ASC = 1,

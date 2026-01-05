@@ -7,6 +7,9 @@ import { handleDbError } from '../data-manager.helpers';
 import { toObjectId, asIndexKey, normalizeIndexKey, transformId } from './mongo.helpers';
 import { DEFAULT_DB_NAME, DEFAULT_MONGO_URI } from './mongo.constants';
 import { createLogger  } from '../../logger';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const Log = createLogger({
   context: {
@@ -73,17 +76,26 @@ const ensureInitialized = (): void => {
  * @throws If the connection or database selection fails.
  */
 const init = async (
-  uri: string = DEFAULT_MONGO_URI,
-  dbName: string = DEFAULT_DB_NAME,
+  uri?: string,
+  dbName?: string,
 ): Promise<void> => {
   if (_isConnected) return;
 
+  const mongoUri = uri || process.env.MONGO_URI || DEFAULT_MONGO_URI;
+  const mongoDBName = dbName || process.env.DB_NAME || DEFAULT_DB_NAME;
+  if (!mongoUri) {
+    throw new Error('MONGO_URI is not set');
+  }
+  if (!mongoDBName) {
+    throw new Error('DB_NAME is not set');
+  }
+
   try {
-    _client = new mongoDB.MongoClient(uri);
+    _client = new mongoDB.MongoClient(mongoUri);
     await _client.connect();
-    _db = _client.db(dbName);
+    _db = _client.db(mongoDBName);
     _isConnected = true;
-    Log.debug(`Mongo connected: db=${dbName}`);
+    Log.debug(`Mongo connected: db=${mongoDBName}`);
   } catch (error) {
     Log.error('Mongo connection failed', error);
     throw error;

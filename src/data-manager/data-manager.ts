@@ -1,11 +1,12 @@
 import { MongoDBManager } from './mongo/mongo-data-manager';
 import { EventEmitter } from 'events';
 import { ChangeListenerManager } from './change-listener.manager';
-import { CollectionChangeType } from './data-manager.type';
+import { CollectionChangeType, DataManagerOptions } from './data-manager.type';
 import { DBType, USERS } from './data-manager.constants';
 import { handleDbError } from './data-manager.helpers';
 import { Readable } from 'stream';
 import { createLogger } from '../logger/logger';
+import { ShadowsDBManager } from './shadows/shadows-db.manager';
 
 const Log = createLogger({
   context: {
@@ -53,7 +54,7 @@ class DataManager extends EventEmitter {
    * @param {DBType} dbType - The type of database to initialize. Defaults to MongoDB.
    * @returns {Promise<void>} Resolves when initialization is complete.
    */
-  public async init(dbType: DBType = DBType.MONGO): Promise<void> {
+  public async init(dbType: DBType = DBType.MONGO, options?: DataManagerOptions): Promise<void> {
     try {
       if (this.getInitializationStatus() && dbType === DBType.MONGO) return;
       if (dbType !== DBType.MONGO) {
@@ -61,6 +62,9 @@ class DataManager extends EventEmitter {
       }
       await this.db.init();
       this.isInitialized = true;
+      if (options?.enableShadowsDB) {
+        await ShadowsDBManager.getInstance().init(options.shadowsDBConfig);
+      }
     } catch (error) {
       handleDbError('Failed to initialize DataManager', 'init', error);
     }
@@ -137,9 +141,10 @@ class DataManager extends EventEmitter {
       const id = await this.db.addItemToCollection(collectionName, item);
       const newItem = { id, ...item };
 
-      if (collectionName === USERS) {
+      if (collectionName === USERS) { // TODO: consolidate with generic way
         this.emit('userAdded', newItem);
       }
+      this.emit('addItem', collectionName, id);
 
       return newItem;
     } catch (error) {
@@ -167,9 +172,10 @@ class DataManager extends EventEmitter {
       this.checkInitialization();
       const updatedItem = await this.db.updateItemInCollection(collectionName, id, updateObject);
 
-      if (collectionName === USERS) {
+      if (collectionName === USERS) { // TODO: consolidate with generic way
         this.emit('userUpdated', { id, ...updateObject });
       }
+      this.emit('updateItem', collectionName, id);
       return updatedItem;
     } catch (error) {
       return handleDbError(
@@ -191,9 +197,10 @@ class DataManager extends EventEmitter {
       this.checkInitialization();
       const result = await this.db.removeItemFromCollection(collectionName, id);
 
-      if (result && collectionName === USERS) {
+      if (result && collectionName === USERS) { // TODO: consolidate with generic way
         this.emit('userDeleted', id);
       }
+      this.emit('deleteItem', collectionName, id);
       return result;
     } catch (error) {
       return (
