@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import DataManager from '../../data-manager/data-manager';
 import * as HelpersModule from '../../data-manager/data-manager.helpers';
 import { PROTECTED } from '../../data-manager/data-manager.constants';
-import { ProtectedManager } from '../protected-manager';
+import { ProtectedManager, TestingProtectedManager } from '../protected-manager';
 
 describe('ProtectedManager (unit)', () => {
   let sb: sinon.SinonSandbox;
@@ -199,6 +199,7 @@ describe('ProtectedManager (unit)', () => {
       update,
     );
     expect(resultNewAttributes).toEqual(update);
+    sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, newRecord);
   });
 
   it('setProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
@@ -309,6 +310,141 @@ describe('ProtectedManager (unit)', () => {
     sinon.assert.calledWithMatch(
       handleDbErrorStub,
       'Failed to delete protected attributes:',
+      sinon.match.any,
+      sinon.match.instanceOf(Error),
+    );
+  });
+
+  // Testing internal functions
+  it('_createProtectedAttributes: create a new record, return the provided attributes the same as the parameter.', async () => {
+    // arrange
+    const newRecord = {
+      uniqueIdentifier: 'user1',
+      namespace: 'ns1',
+      attributes: {
+        attr1: 'value1',
+        attr2: 'value2',
+      },
+    };
+    (dm.addItemToCollection as sinon.SinonStub).resolves(newRecord);
+
+    // act
+    const result = await TestingProtectedManager._createProtectedAttributes(
+      newRecord.uniqueIdentifier,
+      newRecord.namespace,
+      newRecord.attributes,
+    );
+
+    // assert
+    expect(result).toEqual(newRecord.attributes);
+    sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, { ...newRecord });
+  });
+
+  it('_createProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
+    // arrange
+    const newRecord = {
+      uniqueIdentifier: 'user1',
+      namespace: 'ns1',
+      attributes: {
+        attr1: 'value1',
+        attr2: 'value2',
+      },
+    };
+    (dm.addItemToCollection as sinon.SinonStub).rejects(new Error('fail-create'));
+
+    // act & assert
+    await expect(
+      TestingProtectedManager._createProtectedAttributes(
+        newRecord.uniqueIdentifier,
+        newRecord.namespace,
+        newRecord.attributes,
+      ),
+    ).rejects.toThrow('fail-create');
+
+    // Support both 2-arg and 3-arg styles; we only care that:
+    //  - message is "Failed to create protected attributes:"
+    //  - an Error instance is passed somewhere after it
+    sinon.assert.calledWithMatch(
+      handleDbErrorStub,
+      'Failed to create protected attributes:',
+      sinon.match.any,
+      sinon.match.instanceOf(Error),
+    );
+  });
+
+  it('_updateProtectedAttributes: update a new record, return the provided attributes the same as the parameter.', async () => {
+    // arrange
+    const protectedDoc = {
+      id: 'pa1',
+      uniqueIdentifier: 'user1',
+      namespace: 'ns1',
+      attributes: {
+        attr1: 'value1',
+        attr2: 'value2',
+      },
+    };
+
+    const attributesToUpdate = {
+      attr2: 'newValue2',
+      attr3: 'value3',
+    };
+
+    const updatedDoc = {
+      ...protectedDoc,
+      attributes: {
+        ...protectedDoc.attributes,
+        ...attributesToUpdate,
+      },
+    };
+
+    (dm.updateItemByIdInCollection as sinon.SinonStub).resolves(updatedDoc);
+
+    // act
+    const result = await TestingProtectedManager._updateProtectedAttributes(
+      protectedDoc.id,
+      protectedDoc.attributes,
+      attributesToUpdate,
+    );
+
+    // assert
+    expect(result).toEqual(attributesToUpdate);
+    sinon.assert.calledWith(
+      dm.updateItemByIdInCollection as sinon.SinonStub,
+      PROTECTED,
+      protectedDoc.id,
+      {
+        attributes: { ...updatedDoc.attributes },
+      },
+    );
+  });
+
+  it('_updateProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
+    // arrange
+    const newRecord = {
+      uniqueIdentifier: 'user1',
+      namespace: 'ns1',
+      attributes: {
+        attr1: 'value1',
+        attr2: 'value2',
+      },
+    };
+    (dm.updateItemByIdInCollection as sinon.SinonStub).rejects(new Error('fail-update'));
+
+    // act & assert
+    await expect(
+      TestingProtectedManager._updateProtectedAttributes(
+        newRecord.uniqueIdentifier,
+        {},
+        newRecord.attributes,
+      ),
+    ).rejects.toThrow('fail-update');
+
+    // Support both 2-arg and 3-arg styles; we only care that:
+    //  - message is "Failed to update protected attributes:"
+    //  - an Error instance is passed somewhere after it
+    sinon.assert.calledWithMatch(
+      handleDbErrorStub,
+      'Failed to update protected attributes:',
       sinon.match.any,
       sinon.match.instanceOf(Error),
     );

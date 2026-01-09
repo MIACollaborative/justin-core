@@ -81,7 +81,7 @@ const getProtectedAttributes = async (
  * @param {Record<string, unknown>} initialAttributes - The attributes to update.
  * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
  */
-const createProtectedAttributes = async (
+const _createProtectedAttributes = async (
   uniqueIdentifier: string,
   namespace: string,
   initialAttributes: Record<string, unknown>,
@@ -115,7 +115,7 @@ const createProtectedAttributes = async (
  * @param {Record<string, unknown>} attributesUpdate - The attributes to update.
  * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
  */
-const updateProtectedAttributes = async (
+const _updateProtectedAttributes = async (
   protectedAttributesId: string,
   originalAttributes: Record<string, unknown>,
   attributesUpdate: Record<string, unknown>,
@@ -155,10 +155,10 @@ const setProtectedAttributes = async (
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     if (!doc) {
-      return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
+      return await _createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
     }
     const protectedAttr = transformProtectedDocument(doc);
-    return await updateProtectedAttributes(protectedAttr.id, protectedAttr.attributes, attributesUpdate);
+    return await _updateProtectedAttributes(protectedAttr.id, protectedAttr.attributes, attributesUpdate);
   } catch (error) {
     return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
   }
@@ -182,17 +182,17 @@ const deleteProtectedAttributes = async (
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     if (!doc) return false;
+    
     const protectedAttr = transformProtectedDocument(doc);
 
     const filteredAttributes = Object.fromEntries(
       Object.entries(protectedAttr.attributes).filter(([key]) => !names.includes(key)),
     );
-    const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
-      PROTECTED,
+
+    const updatedProtectedAttr: object | null = await _updateProtectedAttributes(
       protectedAttr.id,
-      {
-        attributes: filteredAttributes,
-      },
+      {},
+      filteredAttributes,
     );
 
     return !updatedProtectedAttr ? false : true;
@@ -216,4 +216,18 @@ export const ProtectedManager = {
   getProtectedAttributes,
   setProtectedAttributes,
   deleteProtectedAttributes,
+};
+
+/**
+ * Test-only variant of {@link ProtectedManager} that exposes
+ * internal methods for testing purposes.
+ *
+ * Not exported from the package entry.
+ *
+ * @internal
+ */
+export const TestingProtectedManager = {
+  ...ProtectedManager,
+  _createProtectedAttributes,
+  _updateProtectedAttributes,
 };
