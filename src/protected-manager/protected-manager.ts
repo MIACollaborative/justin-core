@@ -133,7 +133,7 @@ const updateProtectedAttributes = async (
     // return only the updated attributes (not the whole set) if successful
     return updatedProtectedAttr?attributesUpdate:null;
   } catch (error) {
-    return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
+    return handleDbError('Failed to update protected attributes:', 'updateProtectedAttributes', error);
   }
 };
 
