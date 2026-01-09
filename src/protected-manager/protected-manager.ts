@@ -1,14 +1,7 @@
 import DataManager from '../data-manager/data-manager';
 import { PROTECTED } from '../data-manager/data-manager.constants';
 import { handleDbError } from '../data-manager/data-manager.helpers';
-import { createLogger } from '../logger/logger';
 import { ProtectedAttributes } from './protected-manager.type';
-
-const Log = createLogger({
-  context: {
-    source: 'protected-manager',
-  },
-});
 
 const dm = DataManager.getInstance();
 
@@ -81,6 +74,70 @@ const getProtectedAttributes = async (
 };
 
 /**
+ * Creates protected attributes for a given unique identifier and namespace.
+ *
+ * @param {string} uniqueIdentifier - The unique identifier for the entity.
+ * @param {string} namespace - The namespace under which the attributes are stored.
+ * @param {Record<string, unknown>} initialAttributes - The attributes to update.
+ * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
+ */
+const createProtectedAttributes = async (
+  uniqueIdentifier: string,
+  namespace: string,
+  initialAttributes: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> => {
+  _checkInitialization();
+  try {
+    const newItem = {
+      uniqueIdentifier,
+      namespace,
+      attributes: { ...initialAttributes },
+    };
+    const newDoc = (await dm.addItemToCollection(
+      PROTECTED,
+      newItem,
+    )) as unknown as ProtectedAttributes | null;
+    return newDoc ? newDoc.attributes : null;
+  } catch (error) {
+    return handleDbError(
+      'Failed to create protected attributes:',
+      'createProtectedAttributes',
+      error,
+    );
+  }
+};
+
+/**
+ * Updates protected attributes for a given unique identifier and namespace.
+ *
+ * @param {string} uniqueIdentifier - The unique identifier for the entity.
+ * @param {string} namespace - The namespace under which the attributes are stored.
+ * @param {Record<string, unknown>} attributesUpdate - The attributes to update.
+ * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
+ */
+const updateProtectedAttributes = async (
+  protectedAttributesId: string,
+  originalAttributes: Record<string, unknown>,
+  attributesUpdate: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> => {
+  _checkInitialization();
+  try {
+    const mergedAttributes = { ...originalAttributes, ...attributesUpdate };
+    const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
+      PROTECTED,
+      protectedAttributesId,
+      {
+        attributes: mergedAttributes,
+      },
+    );
+    // return only the updated attributes (not the whole set) if successful
+    return updatedProtectedAttr?attributesUpdate:null;
+  } catch (error) {
+    return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
+  }
+};
+
+/**
  * Sets protected attributes for a given unique identifier and namespace.
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
@@ -98,29 +155,10 @@ const setProtectedAttributes = async (
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     if (!doc) {
-      const newItem = {
-        uniqueIdentifier,
-        namespace,
-        attributes: { ...attributesUpdate },
-      };
-      const newDoc = (await dm.addItemToCollection(
-        PROTECTED,
-        newItem,
-      )) as unknown as ProtectedAttributes | null;
-      return newDoc ? newDoc.attributes : null;
+      return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
     }
-
     const protectedAttr = transformProtectedDocument(doc);
-    const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
-    const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
-      PROTECTED,
-      protectedAttr.id,
-      {
-        attributes: mergedAttributes,
-      },
-    );
-    // return only the updated attributes (not the whole set)
-    return attributesUpdate;
+    return await updateProtectedAttributes(protectedAttr.id, protectedAttr.attributes, attributesUpdate);
   } catch (error) {
     return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
   }
