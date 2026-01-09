@@ -13,9 +13,7 @@ const Log = createLogger({
 const dm = DataManager.getInstance();
 
 /**
- * Initializes the ProtectedManager by initializing the DataManager,
- * loading users into the cache, and setting up listeners for
- * user-related database changes.
+ * Initializes the ProtectedManager by initializing the DataManager and creating indexes.
  *
  * @returns {Promise<void>} Resolves when initialization is complete.
  */
@@ -34,7 +32,7 @@ const init = async (): Promise<void> => {
 /**
  * Transforms a document to use `id` instead of `_id`.
  * @param {any} doc - The raw document from the database.
- * @returns {any} The transformed document.
+ * @returns {ProtectedAttributes} The transformed document.
  */
 const transformProtectedDocument = (doc: any): ProtectedAttributes => {
   const { _id, ...rest } = doc;
@@ -42,8 +40,8 @@ const transformProtectedDocument = (doc: any): ProtectedAttributes => {
 };
 
 /**
- * Ensures that the DataManager has been initialized before any user
- * management operation can proceed.
+ * Ensures that the DataManager has been initialized before any
+ * protected attributes management operation can proceed.
  *
  * @throws Error if DataManager is not initialized.
  * @private
@@ -54,6 +52,15 @@ const _checkInitialization = (): void => {
   }
 };
 
+/**
+ * Retrieves protected attributes for a given unique identifier and namespace.
+ *
+ * @param {string} uniqueIdentifier - The unique identifier for the entity.
+ * @param {string} namespace - The namespace under which the attributes are stored.
+ * @param {string[]} names - An array of attribute names to retrieve.
+ * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to a record of attribute names and their values, or null if not found.
+ * Non-existing attributes will have a value of undefined.
+ */
 const getProtectedAttributes = async (
   uniqueIdentifier: string,
   namespace: string,
@@ -73,6 +80,14 @@ const getProtectedAttributes = async (
   }
 };
 
+/**
+ * Sets protected attributes for a given unique identifier and namespace.
+ *
+ * @param {string} uniqueIdentifier - The unique identifier for the entity.
+ * @param {string} namespace - The namespace under which the attributes are stored.
+ * @param {Record<string, unknown>} attributesUpdate - The attributes to update.
+ * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
+ */
 const setProtectedAttributes = async (
   uniqueIdentifier: string,
   namespace: string,
@@ -82,7 +97,6 @@ const setProtectedAttributes = async (
   try {
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-    console.log(`Doc: ${JSON.stringify(doc)}`);
     if (!doc) {
       const newItem = {
         uniqueIdentifier,
@@ -93,7 +107,6 @@ const setProtectedAttributes = async (
         PROTECTED,
         newItem,
       )) as unknown as ProtectedAttributes | null;
-      console.log(`NewDoc: ${JSON.stringify(newDoc)}`);
       return newDoc ? newDoc.attributes : null;
     }
 
@@ -106,12 +119,21 @@ const setProtectedAttributes = async (
         attributes: mergedAttributes,
       },
     );
+    // return only the updated attributes (not the whole set)
     return attributesUpdate;
   } catch (error) {
     return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
   }
 };
 
+/**
+ * Deletes specified protected attributes for a given unique identifier and namespace.
+ *
+ * @param {string} uniqueIdentifier - The unique identifier for the entity.
+ * @param {string} namespace - The namespace under which the attributes are stored.
+ * @param {string[]} names - An array of attribute names to delete.
+ * @returns {Promise<boolean>} A promise that resolves to true if deletion was successful, false otherwise.
+ */
 const deleteProtectedAttributes = async (
   uniqueIdentifier: string,
   namespace: string,
@@ -135,10 +157,7 @@ const deleteProtectedAttributes = async (
       },
     );
 
-    if (!updatedProtectedAttr) {
-      return false;
-    }
-    return true;
+    return !updatedProtectedAttr ? false : true;
   } catch (error) {
     return handleDbError(
       'Failed to delete protected attributes:',
