@@ -81,7 +81,7 @@ const getProtectedAttributes = async (
  * @param {Record<string, unknown>} initialAttributes - The attributes to update.
  * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
  */
-const _createProtectedAttributes = async (
+const createProtectedAttributes = async (
   uniqueIdentifier: string,
   namespace: string,
   initialAttributes: Record<string, unknown>,
@@ -112,26 +112,24 @@ const _createProtectedAttributes = async (
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
- * @param {Record<string, unknown>} attributesUpdate - The attributes to update.
- * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
+ * @param {Record<string, unknown>} newAttributes - The attributes to update.
+ * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the attributes or null if the operation failed.
  */
-const _updateProtectedAttributes = async (
+const overrideProtectedAttributes = async (
   protectedAttributesId: string,
-  originalAttributes: Record<string, unknown>,
-  attributesUpdate: Record<string, unknown>,
+  newAttributes: Record<string, unknown>,
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
   try {
-    const mergedAttributes = { ...originalAttributes, ...attributesUpdate };
     const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
       PROTECTED,
       protectedAttributesId,
       {
-        attributes: mergedAttributes,
+        attributes: newAttributes,
       },
     );
     // return only the updated attributes (not the whole set) if successful
-    return updatedProtectedAttr?attributesUpdate:null;
+    return updatedProtectedAttr?newAttributes:null;
   } catch (error) {
     return handleDbError('Failed to update protected attributes:', 'updateProtectedAttributes', error);
   }
@@ -155,10 +153,12 @@ const setProtectedAttributes = async (
     const [doc] =
       (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     if (!doc) {
-      return await _createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
+      return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
     }
     const protectedAttr = transformProtectedDocument(doc);
-    return await _updateProtectedAttributes(protectedAttr.id, protectedAttr.attributes, attributesUpdate);
+    const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
+    const result = await overrideProtectedAttributes(protectedAttr.id, mergedAttributes);
+    return result? attributesUpdate : null;
   } catch (error) {
     return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
   }
@@ -189,10 +189,9 @@ const deleteProtectedAttributes = async (
       Object.entries(protectedAttr.attributes).filter(([key]) => !names.includes(key)),
     );
 
-    const updatedProtectedAttr: object | null = await _updateProtectedAttributes(
+    const updatedProtectedAttr: object | null = await overrideProtectedAttributes(
       protectedAttr.id,
-      {},
-      filteredAttributes,
+      filteredAttributes
     );
 
     return !updatedProtectedAttr ? false : true;
@@ -228,6 +227,6 @@ export const ProtectedManager = {
  */
 export const TestingProtectedManager = {
   ...ProtectedManager,
-  _createProtectedAttributes,
-  _updateProtectedAttributes,
+  createProtectedAttributes,
+  overrideProtectedAttributes,
 };

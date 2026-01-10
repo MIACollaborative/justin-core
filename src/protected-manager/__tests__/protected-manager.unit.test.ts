@@ -168,6 +168,7 @@ describe('ProtectedManager (unit)', () => {
       attr1: 'newValue1',
       attr3: 'value3',
     };
+
     const result = await ProtectedManager.setProtectedAttributes('user1', 'ns1', update);
 
     // assert
@@ -316,7 +317,7 @@ describe('ProtectedManager (unit)', () => {
   });
 
   // Testing internal functions
-  it('_createProtectedAttributes: create a new record, return the provided attributes the same as the parameter.', async () => {
+  it('createProtectedAttributes: create a new record, return the provided attributes the same as the parameter.', async () => {
     // arrange
     const newRecord = {
       uniqueIdentifier: 'user1',
@@ -329,7 +330,7 @@ describe('ProtectedManager (unit)', () => {
     (dm.addItemToCollection as sinon.SinonStub).resolves(newRecord);
 
     // act
-    const result = await TestingProtectedManager._createProtectedAttributes(
+    const result = await TestingProtectedManager.createProtectedAttributes(
       newRecord.uniqueIdentifier,
       newRecord.namespace,
       newRecord.attributes,
@@ -340,7 +341,7 @@ describe('ProtectedManager (unit)', () => {
     sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, { ...newRecord });
   });
 
-  it('_createProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
+  it('createProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
     // arrange
     const newRecord = {
       uniqueIdentifier: 'user1',
@@ -354,7 +355,7 @@ describe('ProtectedManager (unit)', () => {
 
     // act & assert
     await expect(
-      TestingProtectedManager._createProtectedAttributes(
+      TestingProtectedManager.createProtectedAttributes(
         newRecord.uniqueIdentifier,
         newRecord.namespace,
         newRecord.attributes,
@@ -372,7 +373,7 @@ describe('ProtectedManager (unit)', () => {
     );
   });
 
-  it('_updateProtectedAttributes: update a new record, return the provided attributes the same as the parameter.', async () => {
+  it('overrideProtectedAttributes: update a new record, return the provided attributes the same as the parameter.', async () => {
     // arrange
     const protectedDoc = {
       id: 'pa1',
@@ -400,14 +401,13 @@ describe('ProtectedManager (unit)', () => {
     (dm.updateItemByIdInCollection as sinon.SinonStub).resolves(updatedDoc);
 
     // act
-    const result = await TestingProtectedManager._updateProtectedAttributes(
+    const result = await TestingProtectedManager.overrideProtectedAttributes(
       protectedDoc.id,
-      protectedDoc.attributes,
-      attributesToUpdate,
+      updatedDoc.attributes
     );
 
     // assert
-    expect(result).toEqual(attributesToUpdate);
+    expect(result).toEqual(updatedDoc.attributes);
     sinon.assert.calledWith(
       dm.updateItemByIdInCollection as sinon.SinonStub,
       PROTECTED,
@@ -418,7 +418,7 @@ describe('ProtectedManager (unit)', () => {
     );
   });
 
-  it('_updateProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
+  it('overrideProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
     // arrange
     const newRecord = {
       uniqueIdentifier: 'user1',
@@ -432,9 +432,8 @@ describe('ProtectedManager (unit)', () => {
 
     // act & assert
     await expect(
-      TestingProtectedManager._updateProtectedAttributes(
+      TestingProtectedManager.overrideProtectedAttributes(
         newRecord.uniqueIdentifier,
-        {},
         newRecord.attributes,
       ),
     ).rejects.toThrow('fail-update');
