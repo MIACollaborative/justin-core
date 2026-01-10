@@ -1,7 +1,7 @@
 import DataManager from '../data-manager/data-manager';
 import { PROTECTED } from '../data-manager/data-manager.constants';
 import { handleDbError } from '../data-manager/data-manager.helpers';
-import { ProtectedAttributes } from './protected-manager.type';
+import { ProtectedAttributes, ProtectedAttributesDb } from './protected-manager.type';
 
 const dm = DataManager.getInstance();
 
@@ -24,10 +24,10 @@ const init = async (): Promise<void> => {
 
 /**
  * Transforms a document to use `id` instead of `_id`.
- * @param {any} doc - The raw document from the database.
+ * @param {ProtectedAttributesDb} doc - The raw document from the database.
  * @returns {ProtectedAttributes} The transformed document.
  */
-const transformProtectedDocument = (doc: any): ProtectedAttributes => {
+const transformProtectedDocument = (doc: ProtectedAttributesDb): ProtectedAttributes => {
   const { _id, ...rest } = doc;
   return { id: _id?.toString(), ...rest } as ProtectedAttributes;
 };
@@ -42,6 +42,28 @@ const transformProtectedDocument = (doc: any): ProtectedAttributes => {
 const _checkInitialization = (): void => {
   if (!dm.getInitializationStatus()) {
     throw new Error('ProtectedManager has not been initialized');
+  }
+};
+
+/**
+ * Retrieves the entire protected attributes document for a given unique identifier and namespace.
+ *
+ * @param {string} uniqueIdentifier - The unique identifier for the entity.
+ * @param {string} namespace - The namespace under which the attributes are stored.
+ * @param {string[]} names - An array of attribute names to retrieve.
+ * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to a record, or null if not found.
+ */
+const getProtectedAttributesObject = async (
+  uniqueIdentifier: string,
+  namespace: string
+): Promise<ProtectedAttributes | null> => {
+  _checkInitialization();
+  try {
+    const [doc] =
+      (await dm.findItemsInCollection<ProtectedAttributesDb>(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
+    return doc ? transformProtectedDocument(doc) : null;
+  } catch (error) {
+    return handleDbError('Failed to get protected attributes doc:', 'getProtectedAttributesObject', error);
   }
 };
 
@@ -61,10 +83,9 @@ const getProtectedAttributes = async (
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
   try {
-    const [doc] =
-      (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-    if (!doc) return null;
-    const { attributes } = transformProtectedDocument(doc);
+    const aObject = await getProtectedAttributesObject(uniqueIdentifier, namespace);
+    if (!aObject) return null;
+    const { attributes } = aObject;
     return Object.fromEntries(
       names.map((key) => [key, attributes.hasOwnProperty(key) ? attributes[key] : undefined]),
     );
@@ -150,14 +171,10 @@ const setProtectedAttributes = async (
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
   try {
-    const [doc] =
-      (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-    if (!doc) {
-      return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
-    }
-    const protectedAttr = transformProtectedDocument(doc);
-    const mergedAttributes = { ...protectedAttr.attributes, ...attributesUpdate };
-    const result = await overrideProtectedAttributes(protectedAttr.id, mergedAttributes);
+    const aObject = await getProtectedAttributesObject(uniqueIdentifier, namespace);
+    if (!aObject) return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
+    const mergedAttributes = { ...aObject.attributes, ...attributesUpdate };
+    const result = await overrideProtectedAttributes(aObject.id, mergedAttributes);
     return result? attributesUpdate : null;
   } catch (error) {
     return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
@@ -179,21 +196,16 @@ const deleteProtectedAttributes = async (
 ): Promise<boolean> => {
   _checkInitialization();
   try {
-    const [doc] =
-      (await dm.findItemsInCollection(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
-    if (!doc) return false;
-    
-    const protectedAttr = transformProtectedDocument(doc);
+    const aObject = await getProtectedAttributesObject(uniqueIdentifier, namespace);
+    if (!aObject) return false;
 
     const filteredAttributes = Object.fromEntries(
-      Object.entries(protectedAttr.attributes).filter(([key]) => !names.includes(key)),
+      Object.entries(aObject.attributes).filter(([key]) => !names.includes(key)),
     );
-
     const updatedProtectedAttr: object | null = await overrideProtectedAttributes(
-      protectedAttr.id,
+      aObject.id,
       filteredAttributes
     );
-
     return !updatedProtectedAttr ? false : true;
   } catch (error) {
     return handleDbError(
@@ -212,9 +224,14 @@ const deleteProtectedAttributes = async (
  */
 export const ProtectedManager = {
   init,
+  // main methods for managing protected attributes exposed through UserManager
   getProtectedAttributes,
   setProtectedAttributes,
   deleteProtectedAttributes,
+
+  // utility methods that can stand alone but are currently not exposed through UserManager.
+  createProtectedAttributes,
+  overrideProtectedAttributes,
 };
 
 /**

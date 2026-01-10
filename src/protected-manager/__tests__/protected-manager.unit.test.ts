@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import DataManager from '../../data-manager/data-manager';
 import * as HelpersModule from '../../data-manager/data-manager.helpers';
 import { PROTECTED } from '../../data-manager/data-manager.constants';
-import { ProtectedManager, TestingProtectedManager } from '../protected-manager';
+import { ProtectedManager } from '../protected-manager';
 
 describe('ProtectedManager (unit)', () => {
   let sb: sinon.SinonSandbox;
@@ -330,7 +330,7 @@ describe('ProtectedManager (unit)', () => {
     (dm.addItemToCollection as sinon.SinonStub).resolves(newRecord);
 
     // act
-    const result = await TestingProtectedManager.createProtectedAttributes(
+    const result = await ProtectedManager.createProtectedAttributes(
       newRecord.uniqueIdentifier,
       newRecord.namespace,
       newRecord.attributes,
@@ -355,7 +355,7 @@ describe('ProtectedManager (unit)', () => {
 
     // act & assert
     await expect(
-      TestingProtectedManager.createProtectedAttributes(
+      ProtectedManager.createProtectedAttributes(
         newRecord.uniqueIdentifier,
         newRecord.namespace,
         newRecord.attributes,
@@ -401,7 +401,7 @@ describe('ProtectedManager (unit)', () => {
     (dm.updateItemByIdInCollection as sinon.SinonStub).resolves(updatedDoc);
 
     // act
-    const result = await TestingProtectedManager.overrideProtectedAttributes(
+    const result = await ProtectedManager.overrideProtectedAttributes(
       protectedDoc.id,
       updatedDoc.attributes
     );
@@ -432,7 +432,7 @@ describe('ProtectedManager (unit)', () => {
 
     // act & assert
     await expect(
-      TestingProtectedManager.overrideProtectedAttributes(
+      ProtectedManager.overrideProtectedAttributes(
         newRecord.uniqueIdentifier,
         newRecord.attributes,
       ),
