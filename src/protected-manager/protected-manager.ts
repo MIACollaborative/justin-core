@@ -51,9 +51,9 @@ const _checkInitialization = (): void => {
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
  * @param {string[]} names - An array of attribute names to retrieve.
- * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to a record, or null if not found.
+ * @returns {Promise<ProtectedAttributes | null>} A promise that resolves to a record, or null if not found.
  */
-const getProtectedAttributesObject = async (
+const _getProtectedAttributesObject = async (
   uniqueIdentifier: string,
   namespace: string
 ): Promise<ProtectedAttributes | null> => {
@@ -63,7 +63,7 @@ const getProtectedAttributesObject = async (
       (await dm.findItemsInCollection<ProtectedAttributesDb>(PROTECTED, { uniqueIdentifier, namespace })) ?? [];
     return doc ? transformProtectedDocument(doc) : null;
   } catch (error) {
-    return handleDbError('Failed to get protected attributes doc:', 'getProtectedAttributesObject', error);
+    return handleDbError('Failed to get protected attributes object:', '_getProtectedAttributesObject', error);
   }
 };
 
@@ -83,7 +83,7 @@ const getProtectedAttributes = async (
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
   try {
-    const aObject = await getProtectedAttributesObject(uniqueIdentifier, namespace);
+    const aObject = await _getProtectedAttributesObject(uniqueIdentifier, namespace);
     if (!aObject) return null;
     const { attributes } = aObject;
     return Object.fromEntries(
@@ -171,7 +171,7 @@ const setProtectedAttributes = async (
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
   try {
-    const aObject = await getProtectedAttributesObject(uniqueIdentifier, namespace);
+    const aObject = await _getProtectedAttributesObject(uniqueIdentifier, namespace);
     if (!aObject) return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
     const mergedAttributes = { ...aObject.attributes, ...attributesUpdate };
     const result = await overrideProtectedAttributes(aObject.id, mergedAttributes);
@@ -196,7 +196,7 @@ const deleteProtectedAttributes = async (
 ): Promise<boolean> => {
   _checkInitialization();
   try {
-    const aObject = await getProtectedAttributesObject(uniqueIdentifier, namespace);
+    const aObject = await _getProtectedAttributesObject(uniqueIdentifier, namespace);
     if (!aObject) return false;
 
     const filteredAttributes = Object.fromEntries(
@@ -244,6 +244,5 @@ export const ProtectedManager = {
  */
 export const TestingProtectedManager = {
   ...ProtectedManager,
-  createProtectedAttributes,
-  overrideProtectedAttributes,
+  _getProtectedAttributesObject
 };

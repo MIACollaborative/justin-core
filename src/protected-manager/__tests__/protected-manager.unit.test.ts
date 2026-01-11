@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import DataManager from '../../data-manager/data-manager';
 import * as HelpersModule from '../../data-manager/data-manager.helpers';
 import { PROTECTED } from '../../data-manager/data-manager.constants';
-import { ProtectedManager } from '../protected-manager';
+import { ProtectedManager, TestingProtectedManager } from '../protected-manager';
 
 describe('ProtectedManager (unit)', () => {
   let sb: sinon.SinonSandbox;
@@ -444,6 +444,59 @@ describe('ProtectedManager (unit)', () => {
     sinon.assert.calledWithMatch(
       handleDbErrorStub,
       'Failed to update protected attributes:',
+      sinon.match.any,
+      sinon.match.instanceOf(Error),
+    );
+  });
+
+  it('_getProtectedAttributesObject: query an item, return null if no item found, return the protected attributes object (set).', async () => {
+    // query items
+    // arrange
+    const dbDoc = {
+      _id: 'pa1',
+      uniqueIdentifier: 'user1',
+      namespace: 'ns1',
+      attributes: {
+        attr1: 'value1',
+        attr2: 'value2',
+        attr3: 'value3',
+      },
+    };
+
+    const {_id, ...rest} = dbDoc;
+    const transformObject = {id: dbDoc._id, ...rest};
+    (dm.findItemsInCollection as sinon.SinonStub).resolves([dbDoc]);
+
+    // act
+    const result = await TestingProtectedManager._getProtectedAttributesObject('user1', 'ns1');
+
+    // assert
+    expect(result).toEqual(transformObject);
+
+    sinon.assert.calledWith(dm.findItemsInCollection as sinon.SinonStub, PROTECTED, {
+      uniqueIdentifier: 'user1',
+      namespace: 'ns1',
+    });
+
+    // if item not found, return null
+    (dm.findItemsInCollection as sinon.SinonStub).resolves([]);
+    const resultNotFound = await TestingProtectedManager._getProtectedAttributesObject('userX', 'nsX');
+    expect(resultNotFound).toBeNull();
+  });
+
+  it('_getProtectedAttributesObject: on DM error calls handleDbError (throws)', async () => {
+    (dm.findItemsInCollection as sinon.SinonStub).rejects(new Error('fail-read'));
+
+    await expect(
+      TestingProtectedManager._getProtectedAttributesObject('userX', 'nsX'),
+    ).rejects.toThrow('fail-read');
+
+    // Support both 2-arg and 3-arg styles; we only care that:
+    //  - message is "Failed to get protected attributes object:"
+    //  - an Error instance is passed somewhere after it
+    sinon.assert.calledWithMatch(
+      handleDbErrorStub,
+      'Failed to get protected attributes object:',
       sinon.match.any,
       sinon.match.instanceOf(Error),
     );
