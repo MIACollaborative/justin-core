@@ -46,11 +46,10 @@ const _checkInitialization = (): void => {
 };
 
 /**
- * Retrieves the entire protected attributes record and converts it for a given unique identifier and namespace.
+ * Retrieves the entire protected attributes record and converts it (_id to id) for a given unique identifier and namespace.
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
- * @param {string[]} names - An array of attribute names to retrieve.
  * @returns {Promise<ProtectedAttributes | null>} A promise that resolves to a record, or null if not found.
  */
 const _getProtectedAttributesObject = async (
@@ -87,7 +86,8 @@ const getProtectedAttributes = async (
     if (!aObject) return null;
     const { attributes } = aObject;
     return Object.fromEntries(
-      names.map((key) => [key, attributes.hasOwnProperty(key) ? attributes[key] : undefined]),
+      names.map((key) => [key, 
+        Object.prototype.hasOwnProperty.call(attributes, key) ? attributes[key] : undefined]),
     );
   } catch (error) {
     return handleDbError('Failed to get protected attributes:', 'getProtectedAttributes', error);
@@ -99,7 +99,7 @@ const getProtectedAttributes = async (
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
- * @param {Record<string, unknown>} initialAttributes - The attributes to update.
+ * @param {Record<string, unknown>} initialAttributes - The initial attributes to set on creation.
  * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
  */
 const createProtectedAttributes = async (
@@ -129,11 +129,10 @@ const createProtectedAttributes = async (
 };
 
 /**
- * Updates protected attributes record with a given unique identifier and namespace.
+ * Override protected attributes record with a given unique identifier and namespace.
  *
- * @param {string} uniqueIdentifier - The unique identifier for the entity.
- * @param {string} namespace - The namespace under which the attributes are stored.
- * @param {Record<string, unknown>} newAttributes - The attributes to update.
+* @param {string} protectedAttributesId - The ID of the protected attributes record to override.
+* @param {Record<string, unknown>} newAttributes - The new attributes to set (replaces all existing attributes).
  * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the attributes or null if the operation failed.
  */
 const overrideProtectedAttributes = async (
@@ -149,8 +148,11 @@ const overrideProtectedAttributes = async (
         attributes: newAttributes,
       },
     );
-    // return only the updated attributes (not the whole set) if successful
-    return updatedProtectedAttr?newAttributes:null;
+
+    if (!updatedProtectedAttr) return null;
+
+    const { attributes } = updatedProtectedAttr as { attributes: Record<string, unknown> };
+    return attributes;
   } catch (error) {
     return handleDbError('Failed to update protected attributes:', 'updateProtectedAttributes', error);
   }
@@ -162,7 +164,7 @@ const overrideProtectedAttributes = async (
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
  * @param {Record<string, unknown>} attributesUpdate - The attributes to update.
- * @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes or null if the operation failed.
+* @returns {Promise<Record<string, unknown> | null>} A promise that resolves to the updated attributes (not the full set) or null if the operation failed.
  */
 const setProtectedAttributes = async (
   uniqueIdentifier: string,
@@ -175,7 +177,11 @@ const setProtectedAttributes = async (
     if (!aObject) return await createProtectedAttributes(uniqueIdentifier, namespace, attributesUpdate);
     const mergedAttributes = { ...aObject.attributes, ...attributesUpdate };
     const result = await overrideProtectedAttributes(aObject.id, mergedAttributes);
-    return result? attributesUpdate : null;
+    // filter the result yb only the updated attributes
+    const updatedAttributes = Object.fromEntries(
+      Object.entries(result ?? {}).filter(([key]) => Object.prototype.hasOwnProperty.call(attributesUpdate, key)),
+    );
+    return result? updatedAttributes : null;
   } catch (error) {
     return handleDbError('Failed to set protected attributes:', 'setProtectedAttributes', error);
   }
@@ -187,7 +193,7 @@ const setProtectedAttributes = async (
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
  * @param {string[]} names - An array of attribute names to delete.
- * @returns {Promise<boolean>} A promise that resolves to true if deletion was successful, false otherwise.
+* @returns {Promise<boolean>} True if the attributes were deleted or did not exist, false if the record was not found or update failed.
  */
 const deleteProtectedAttributes = async (
   uniqueIdentifier: string,
