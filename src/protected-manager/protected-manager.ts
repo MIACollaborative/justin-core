@@ -46,7 +46,7 @@ const _checkInitialization = (): void => {
 };
 
 /**
- * Retrieves the entire protected attributes document for a given unique identifier and namespace.
+ * Retrieves the entire protected attributes record and converts it for a given unique identifier and namespace.
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
@@ -68,7 +68,7 @@ const _getProtectedAttributesObject = async (
 };
 
 /**
- * Retrieves protected attributes for a given unique identifier and namespace.
+ * Retrieves a list of protected attributes by names for a given unique identifier and namespace.
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
@@ -95,7 +95,7 @@ const getProtectedAttributes = async (
 };
 
 /**
- * Creates protected attributes for a given unique identifier and namespace.
+ * Creates protected attributes record with a given unique identifier and namespace.
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
@@ -129,7 +129,7 @@ const createProtectedAttributes = async (
 };
 
 /**
- * Updates protected attributes for a given unique identifier and namespace.
+ * Updates protected attributes record with a given unique identifier and namespace.
  *
  * @param {string} uniqueIdentifier - The unique identifier for the entity.
  * @param {string} namespace - The namespace under which the attributes are stored.
