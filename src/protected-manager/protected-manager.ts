@@ -141,6 +141,7 @@ const overrideProtectedAttributes = async (
 ): Promise<Record<string, unknown> | null> => {
   _checkInitialization();
   try {
+    // TODO: confirm if data manager's methods support type generics to avoid the 'as' casting
     const updatedProtectedAttr: object | null = await dm.updateItemByIdInCollection(
       PROTECTED,
       protectedAttributesId,

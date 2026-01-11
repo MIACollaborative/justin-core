@@ -56,11 +56,6 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('init: initializes DM, ensures store/indexes', async () => {
-    // arrange a couple of docs for refreshCache
-    (dm.getAllInCollection as sinon.SinonStub).resolves([
-      { _id: 'u1', uniqueIdentifier: 'a', attributes: { x: 1 } },
-    ]);
-
     await expect(ProtectedManager.init()).resolves.toBeUndefined();
     sinon.assert.calledOnce(dm.init as sinon.SinonStub);
     sinon.assert.calledWith(dm.ensureStore as sinon.SinonStub, PROTECTED);
@@ -75,7 +70,6 @@ describe('ProtectedManager (unit)', () => {
 
   it('getProtectedAttributes: query items, return null if no item found, return the requested subset of attributes (undefined if an attribute not found).', async () => {
     // query items
-    // arrange
     const dbDoc = {
       _id: 'pa1',
       uniqueIdentifier: 'user1',
@@ -88,13 +82,11 @@ describe('ProtectedManager (unit)', () => {
     };
     (dm.findItemsInCollection as sinon.SinonStub).resolves([dbDoc]);
 
-    // act
     const result = await ProtectedManager.getProtectedAttributes('user1', 'ns1', [
       'attr1',
       'attr3',
     ]);
 
-    // assert
     expect(result).toEqual({
       attr1: 'value1',
       attr3: 'value3',
@@ -143,7 +135,7 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('setProtectedAttributes: set attributes, create a new record if not found, return the requested update the same as the parameter.', async () => {
-    // arrange
+    // set attributes of an existing record
     const dbDoc = {
       _id: 'pa1',
       uniqueIdentifier: 'user1',
@@ -163,7 +155,6 @@ describe('ProtectedManager (unit)', () => {
       },
     });
 
-    // act
     const update = {
       attr1: 'newValue1',
       attr3: 'value3',
@@ -171,7 +162,6 @@ describe('ProtectedManager (unit)', () => {
 
     const result = await ProtectedManager.setProtectedAttributes('user1', 'ns1', update);
 
-    // assert
     expect(result).toEqual(update);
 
     sinon.assert.calledWith(dm.findItemsInCollection as sinon.SinonStub, PROTECTED, {
@@ -187,20 +177,20 @@ describe('ProtectedManager (unit)', () => {
     });
 
     // if item not found, create the document and return the same attributes
-    const newRecord = {
+    const newData = {
       uniqueIdentifier: `userX`,
       namespace: `nsX`,
       attributes: { ...update },
     };
     (dm.findItemsInCollection as sinon.SinonStub).resolves([]);
-    (dm.addItemToCollection as sinon.SinonStub).resolves(newRecord);
+    (dm.addItemToCollection as sinon.SinonStub).resolves(newData);
     const resultNewAttributes = await ProtectedManager.setProtectedAttributes(
-      newRecord.uniqueIdentifier,
-      newRecord.namespace,
+      newData.uniqueIdentifier,
+      newData.namespace,
       update,
     );
     expect(resultNewAttributes).toEqual(update);
-    sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, newRecord);
+    sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, newData);
   });
 
   it('setProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
@@ -227,7 +217,7 @@ describe('ProtectedManager (unit)', () => {
     );
 
     // Support both 2-arg and 3-arg styles; we only care that:
-    //  - message is "Failed to get protected attributes:"
+    //  - message is "Failed to set protected attributes:"
     //  - an Error instance is passed somewhere after it
     sinon.assert.calledWithMatch(
       handleDbErrorStub,
@@ -238,7 +228,7 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('deleteProtectedAttributes: delete attributes, return true if no item found, return true if deleted, false otherwise.', async () => {
-    // arrange
+    // delete attributes of an existing record
     const dbDoc = {
       _id: 'pa1',
       uniqueIdentifier: 'user1',
@@ -257,13 +247,11 @@ describe('ProtectedManager (unit)', () => {
       },
     });
 
-    // act
     const result = await ProtectedManager.deleteProtectedAttributes('user1', 'ns1', [
       'attr1',
       'attr3',
     ]);
 
-    // assert
     expect(result).toBe(true);
 
     sinon.assert.calledWith(dm.findItemsInCollection as sinon.SinonStub, PROTECTED, {
@@ -286,7 +274,7 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('deleteProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
-    // arrange
+    // database error on delete (update)
     const dbDoc = {
       _id: 'pa1',
       uniqueIdentifier: 'user1',
@@ -300,13 +288,12 @@ describe('ProtectedManager (unit)', () => {
     (dm.findItemsInCollection as sinon.SinonStub).resolves([dbDoc]);
     (dm.updateItemByIdInCollection as sinon.SinonStub).rejects(new Error('fail-delete'));
 
-    // act & assert
     await expect(
       ProtectedManager.deleteProtectedAttributes('user1', 'ns1', ['attr1', 'attr3']),
     ).rejects.toThrow('fail-delete');
 
     // Support both 2-arg and 3-arg styles; we only care that:
-    //  - message is "Failed to get protected attributes:"
+    //  - message is "Failed to delete protected attributes:"
     //  - an Error instance is passed somewhere after it
     sinon.assert.calledWithMatch(
       handleDbErrorStub,
@@ -316,10 +303,10 @@ describe('ProtectedManager (unit)', () => {
     );
   });
 
-  // Testing internal functions
+  // Testing other methods
   it('createProtectedAttributes: create a new record, return the provided attributes the same as the parameter.', async () => {
-    // arrange
-    const newRecord = {
+    // create a new record
+    const newData = {
       uniqueIdentifier: 'user1',
       namespace: 'ns1',
       attributes: {
@@ -327,23 +314,21 @@ describe('ProtectedManager (unit)', () => {
         attr2: 'value2',
       },
     };
-    (dm.addItemToCollection as sinon.SinonStub).resolves(newRecord);
+    (dm.addItemToCollection as sinon.SinonStub).resolves(newData);
 
-    // act
     const result = await ProtectedManager.createProtectedAttributes(
-      newRecord.uniqueIdentifier,
-      newRecord.namespace,
-      newRecord.attributes,
+      newData.uniqueIdentifier,
+      newData.namespace,
+      newData.attributes,
     );
 
-    // assert
-    expect(result).toEqual(newRecord.attributes);
-    sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, { ...newRecord });
+    expect(result).toEqual(newData.attributes);
+    sinon.assert.calledWith(dm.addItemToCollection as sinon.SinonStub, PROTECTED, { ...newData });
   });
 
   it('createProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
-    // arrange
-    const newRecord = {
+    // database error on create
+    const newData = {
       uniqueIdentifier: 'user1',
       namespace: 'ns1',
       attributes: {
@@ -353,12 +338,11 @@ describe('ProtectedManager (unit)', () => {
     };
     (dm.addItemToCollection as sinon.SinonStub).rejects(new Error('fail-create'));
 
-    // act & assert
     await expect(
       ProtectedManager.createProtectedAttributes(
-        newRecord.uniqueIdentifier,
-        newRecord.namespace,
-        newRecord.attributes,
+        newData.uniqueIdentifier,
+        newData.namespace,
+        newData.attributes,
       ),
     ).rejects.toThrow('fail-create');
 
@@ -374,7 +358,7 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('overrideProtectedAttributes: update a new record, return the provided attributes the same as the parameter.', async () => {
-    // arrange
+    // override a record
     const protectedDoc = {
       id: 'pa1',
       uniqueIdentifier: 'user1',
@@ -400,13 +384,11 @@ describe('ProtectedManager (unit)', () => {
 
     (dm.updateItemByIdInCollection as sinon.SinonStub).resolves(updatedDoc);
 
-    // act
     const result = await ProtectedManager.overrideProtectedAttributes(
       protectedDoc.id,
       updatedDoc.attributes
     );
 
-    // assert
     expect(result).toEqual(updatedDoc.attributes);
     sinon.assert.calledWith(
       dm.updateItemByIdInCollection as sinon.SinonStub,
@@ -419,8 +401,8 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('overrideProtectedAttributes: on DM error calls handleDbError (throws)', async () => {
-    // arrange
-    const newRecord = {
+    // datatbase error on update
+    const newData = {
       uniqueIdentifier: 'user1',
       namespace: 'ns1',
       attributes: {
@@ -430,11 +412,10 @@ describe('ProtectedManager (unit)', () => {
     };
     (dm.updateItemByIdInCollection as sinon.SinonStub).rejects(new Error('fail-update'));
 
-    // act & assert
     await expect(
       ProtectedManager.overrideProtectedAttributes(
-        newRecord.uniqueIdentifier,
-        newRecord.attributes,
+        newData.uniqueIdentifier,
+        newData.attributes,
       ),
     ).rejects.toThrow('fail-update');
 
@@ -449,9 +430,8 @@ describe('ProtectedManager (unit)', () => {
     );
   });
 
-  it('_getProtectedAttributesObject: query an item, return null if no item found, return the protected attributes object (set).', async () => {
-    // query items
-    // arrange
+  it('_getProtectedAttributesObject: query an item, return null if no item found, return the protected attributes object (_id to id).', async () => {
+    // query an item
     const dbDoc = {
       _id: 'pa1',
       uniqueIdentifier: 'user1',
@@ -467,10 +447,8 @@ describe('ProtectedManager (unit)', () => {
     const transformObject = {id: dbDoc._id, ...rest};
     (dm.findItemsInCollection as sinon.SinonStub).resolves([dbDoc]);
 
-    // act
     const result = await TestingProtectedManager._getProtectedAttributesObject('user1', 'ns1');
 
-    // assert
     expect(result).toEqual(transformObject);
 
     sinon.assert.calledWith(dm.findItemsInCollection as sinon.SinonStub, PROTECTED, {
@@ -485,6 +463,7 @@ describe('ProtectedManager (unit)', () => {
   });
 
   it('_getProtectedAttributesObject: on DM error calls handleDbError (throws)', async () => {
+    // database error on read
     (dm.findItemsInCollection as sinon.SinonStub).rejects(new Error('fail-read'));
 
     await expect(
