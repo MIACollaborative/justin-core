@@ -1,7 +1,7 @@
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import * as mongoDB from 'mongodb';
 import { MongoDBManager } from '../mongo-data-manager';
-import { loggerSpies } from '../../../__tests__/mocks';
+import { loggerSpies } from '../../../__tests__/testkit';
 
 describe('MongoDBManager (integration)', () => {
   let repl: MongoMemoryReplSet;
@@ -23,7 +23,6 @@ describe('MongoDBManager (integration)', () => {
     await MongoDBManager.close();
     await repl.stop();
     logs.restore();
-    jest.restoreAllMocks();
   });
 
   it('creates a collection via ensureStore', async () => {

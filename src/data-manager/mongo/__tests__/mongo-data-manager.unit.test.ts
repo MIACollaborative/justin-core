@@ -1,15 +1,15 @@
-// src/data-manager/mongo/__tests__/mongo-data-manager.unit.test.ts
-
+/* eslint-disable no-duplicate-imports */
 import { EventEmitter } from 'events';
 import * as mongoDB from 'mongodb';
 import { Readable } from 'stream';
 import sinon, { SinonSandbox, SinonStub } from 'sinon';
-
 import { CollectionChangeType } from '../../data-manager.type';
 import * as Helpers from '../../data-manager.helpers';
 import * as MongoHelpers from '../mongo.helpers';
 import { MongoDBManager, TestingMongoDBManager } from '../mongo-data-manager';
-import { loggerSpies, makeFakeMongo, FakeMongo } from '../../../__tests__/mocks';
+import { loggerSpies, makeFakeMongo } from '../../../__tests__/testkit';
+import type { FakeMongo } from '../../../__tests__/testkit';
+import { expectLog } from '../../../__tests__/helpers';
 
 describe('MongoDBManager (unit)', () => {
   let sb: SinonSandbox;
@@ -25,17 +25,13 @@ describe('MongoDBManager (unit)', () => {
   let mongoFakes: FakeMongo;
 
   beforeEach(() => {
-    jest.restoreAllMocks();
-
     sb = sinon.createSandbox();
     logs = loggerSpies();
 
     // handleDbError(message, funcName, error): never
     handleDbErrorStub = sb
       .stub(Helpers, 'handleDbError')
-      .callsFake((_msg: string, _fn: string, _err: unknown) => {
-        return null as never;
-      });
+      .callsFake((_msg: string, _fn: string, _err: unknown) => null as never);
 
     toObjectIdStub = sb.stub(MongoHelpers, 'toObjectId').callsFake(() => new mongoDB.ObjectId());
     transformIdStub = sb.stub(MongoHelpers, 'transformId').callsFake((doc: any) => doc);
@@ -73,52 +69,50 @@ describe('MongoDBManager (unit)', () => {
 
   describe('ensureStore', () => {
     it('creates collection when it does not exist', async () => {
-      mongoFakes.db.listCollections.mockReturnValue({
-        hasNext: jest.fn().mockResolvedValue(false),
-      });
+      const hasNext = sb.stub().resolves(false);
+      (mongoFakes.db.listCollections as SinonStub).returns({ hasNext } as any);
 
       await MongoDBManager.ensureStore('users');
 
-      expect(mongoFakes.db.listCollections).toHaveBeenCalledWith(
+      sinon.assert.calledWith(
+        mongoFakes.db.listCollections as SinonStub,
         { name: 'users' },
         { nameOnly: true },
       );
-      expect(mongoFakes.db.createCollection).toHaveBeenCalledWith('users');
+      sinon.assert.calledWith(mongoFakes.db.createCollection as SinonStub, 'users');
 
-      logs.expectLast('Created collection users', 'DEBUG');
+      expectLog(logs.last(), { severity: 'DEBUG', messageSubstr: 'Created collection users' });
     });
 
     it('does not create collection when it exists', async () => {
-      mongoFakes.db.listCollections.mockReturnValue({
-        hasNext: jest.fn().mockResolvedValue(true),
-      });
+      const hasNext = sb.stub().resolves(true);
+      (mongoFakes.db.listCollections as SinonStub).returns({ hasNext } as any);
 
       await MongoDBManager.ensureStore('users');
 
-      expect(mongoFakes.db.createCollection).not.toHaveBeenCalled();
+      expect((mongoFakes.db.createCollection as SinonStub).called).toBe(false);
     });
 
     it('applies validator when provided', async () => {
-      mongoFakes.db.listCollections.mockReturnValue({
-        hasNext: jest.fn().mockResolvedValue(true),
-      });
+      const hasNext = sb.stub().resolves(true);
+      (mongoFakes.db.listCollections as SinonStub).returns({ hasNext } as any);
 
       await MongoDBManager.ensureStore('users', {
         validator: { $jsonSchema: { bsonType: 'object' } },
       });
 
-      expect(mongoFakes.db.command).toHaveBeenCalledWith({
+      sinon.assert.calledWith(mongoFakes.db.command as SinonStub, {
         collMod: 'users',
         validator: { $jsonSchema: { bsonType: 'object' } },
       });
-      logs.expectLast('Applied validator to users', 'DEBUG');
+
+      expectLog(logs.last(), { severity: 'DEBUG', messageSubstr: 'Applied validator to users' });
     });
 
     it('logs a warning when collMod fails', async () => {
-      mongoFakes.db.listCollections.mockReturnValue({
-        hasNext: jest.fn().mockResolvedValue(true),
-      });
-      mongoFakes.db.command.mockRejectedValueOnce(new Error('nope'));
+      const hasNext = sb.stub().resolves(true);
+      (mongoFakes.db.listCollections as SinonStub).returns({ hasNext } as any);
+      (mongoFakes.db.command as SinonStub).rejects(new Error('nope'));
 
       await MongoDBManager.ensureStore('users', {
         validator: { x: 1 },
@@ -132,13 +126,12 @@ describe('MongoDBManager (unit)', () => {
   describe('ensureIndexes', () => {
     it('returns early when no indexes provided', async () => {
       await MongoDBManager.ensureIndexes('users', []);
-      expect(mongoFakes.db.collection).not.toHaveBeenCalled();
+      expect((mongoFakes.db.collection as SinonStub).called).toBe(false);
     });
 
     it('creates indexes that do not already exist', async () => {
-      mongoFakes.collection.listIndexes.mockReturnValue({
-        toArray: jest.fn().mockResolvedValue([{ name: 'existing', key: { existing: 1 } }]),
-      });
+      const toArray = sb.stub().resolves([{ name: 'existing', key: { existing: 1 } }]);
+      (mongoFakes.collection.listIndexes as SinonStub).returns({ toArray } as any);
 
       normalizeIndexKeyStub.callsFake((key: any) => {
         if (typeof key === 'string') return `${key}:1`;
@@ -158,16 +151,18 @@ describe('MongoDBManager (unit)', () => {
         },
       ]);
 
-      expect(mongoFakes.db.collection).toHaveBeenCalledWith('users');
-      expect(mongoFakes.collection.createIndexes).toHaveBeenCalledTimes(1);
-      const callArg = mongoFakes.collection.createIndexes.mock.calls[0][0];
+      sinon.assert.calledWith(mongoFakes.db.collection as SinonStub, 'users');
+      sinon.assert.calledOnce(mongoFakes.collection.createIndexes as SinonStub);
+
+      const callArg = (mongoFakes.collection.createIndexes as SinonStub).getCall(0).args[0];
       expect(callArg).toHaveLength(1);
       expect(callArg[0]).toMatchObject({
         key: { newField: 1 },
         name: 'newIndex',
         unique: true,
       });
-      logs.expectLast('Created 1 index(es) on users', 'DEBUG');
+
+      expectLog(logs.last(), { severity: 'DEBUG', messageSubstr: 'Created 1 index(es) on users' });
     });
   });
 
@@ -178,30 +173,31 @@ describe('MongoDBManager (unit)', () => {
       const result = await MongoDBManager.findItemByIdInCollection('users', 'bad-id');
 
       expect(result).toBeNull();
-      expect(mongoFakes.collection.findOne).not.toHaveBeenCalled();
+      expect((mongoFakes.collection.findOne as SinonStub).called).toBe(false);
     });
 
     it('returns transformed doc when found', async () => {
       const fakeMongoDoc = { _id: 'a', name: 'test' };
-      mongoFakes.collection.findOne.mockResolvedValue(fakeMongoDoc);
+      (mongoFakes.collection.findOne as SinonStub).resolves(fakeMongoDoc);
       transformIdStub.returns({ id: 'a', name: 'test' });
 
       const result = await MongoDBManager.findItemByIdInCollection('users', 'good-id');
 
-      expect(mongoFakes.collection.findOne).toHaveBeenCalledWith({
-        _id: expect.any(mongoDB.ObjectId),
+      sinon.assert.calledWith(mongoFakes.collection.findOne as SinonStub, {
+        _id: sinon.match.instanceOf(mongoDB.ObjectId),
       });
       expect(transformIdStub.calledWith(fakeMongoDoc)).toBe(true);
       expect(result).toEqual({ id: 'a', name: 'test' });
     });
 
     it('delegates to handleDbError on failure', async () => {
-      mongoFakes.collection.findOne.mockRejectedValueOnce(new Error('boom'));
+      (mongoFakes.collection.findOne as SinonStub).rejects(new Error('boom'));
 
       const result = await MongoDBManager.findItemByIdInCollection('users', 'good-id');
 
       expect(handleDbErrorStub.called).toBe(true);
       const [msg, fnName, err] = handleDbErrorStub.getCall(0).args;
+
       expect(msg).toBe('Error finding item with id good-id in users');
       expect(fnName).toBe('findItemByIdInCollection');
       expect(err).toBeInstanceOf(Error);
@@ -211,23 +207,21 @@ describe('MongoDBManager (unit)', () => {
 
   describe('findItemsInCollection', () => {
     it('returns transformed list', async () => {
-      mongoFakes.collection.find.mockReturnValue({
-        toArray: jest.fn().mockResolvedValue([{ _id: '1' }, { _id: '2' }]),
-      });
+      const toArray = sb.stub().resolves([{ _id: '1' }, { _id: '2' }]);
+      (mongoFakes.collection.find as SinonStub).returns({ toArray } as any);
+
       transformIdStub.onFirstCall().returns({ id: '1' }).onSecondCall().returns({ id: '2' });
 
       const result = await MongoDBManager.findItemsInCollection('users', {
         active: true,
       });
 
-      expect(mongoFakes.collection.find).toHaveBeenCalledWith({ active: true });
+      sinon.assert.calledWith(mongoFakes.collection.find as SinonStub, { active: true });
       expect(result).toEqual([{ id: '1' }, { id: '2' }]);
     });
 
     it('delegates to handleDbError on failure', async () => {
-      mongoFakes.collection.find.mockImplementation(() => {
-        throw new Error('query failed');
-      });
+      (mongoFakes.collection.find as SinonStub).throws(new Error('query failed'));
 
       const result = await MongoDBManager.findItemsInCollection('users', {});
 
@@ -238,22 +232,20 @@ describe('MongoDBManager (unit)', () => {
 
   describe('addItemToCollection', () => {
     it('inserts and returns inserted id', async () => {
-      mongoFakes.collection.insertOne.mockResolvedValue({
-        insertedId: 'abc123',
-      });
+      (mongoFakes.collection.insertOne as SinonStub).resolves({ insertedId: 'abc123' } as any);
       transformIdStub.returns({ id: 'abc123', name: 'x' });
 
       const result = await MongoDBManager.addItemToCollection('users', {
         name: 'x',
       });
 
-      expect(mongoFakes.collection.insertOne).toHaveBeenCalledWith({ name: 'x' });
+      sinon.assert.calledWith(mongoFakes.collection.insertOne as SinonStub, { name: 'x' });
       expect(transformIdStub.called).toBe(false);
       expect(result).toBe('abc123');
     });
 
     it('delegates to handleDbError on failure', async () => {
-      mongoFakes.collection.insertOne.mockRejectedValueOnce(new Error('insert bad'));
+      (mongoFakes.collection.insertOne as SinonStub).rejects(new Error('insert bad'));
 
       const result = await MongoDBManager.addItemToCollection('users', {
         name: 'x',
@@ -277,32 +269,35 @@ describe('MongoDBManager (unit)', () => {
       const result = await MongoDBManager.updateItemInCollection('users', 'bad-id', { name: 'x' });
 
       expect(result).toBeNull();
-      expect(mongoFakes.collection.findOneAndUpdate).not.toHaveBeenCalled();
-      expect(mongoFakes.collection.findOne).not.toHaveBeenCalled();
+      expect((mongoFakes.collection.findOneAndUpdate as SinonStub).called).toBe(false);
+      expect((mongoFakes.collection.findOne as SinonStub).called).toBe(false);
     });
 
     it('updates and returns transformed doc', async () => {
       const fakeUpdated = { _id: '1', name: 'updated' };
 
       toObjectIdStub.returns(new mongoDB.ObjectId('651111111111111111111111'));
-      mongoFakes.collection.updateOne.mockResolvedValue({
+      (mongoFakes.collection.updateOne as SinonStub).resolves({
         matchedCount: 1,
         modifiedCount: 1,
-      });
-      mongoFakes.collection.findOne.mockResolvedValue(fakeUpdated);
+      } as any);
+      (mongoFakes.collection.findOne as SinonStub).resolves(fakeUpdated);
       transformIdStub.returns({ id: '1', name: 'updated' });
 
       const result = await MongoDBManager.updateItemInCollection('users', 'good-id', {
         name: 'updated',
       });
 
-      expect(mongoFakes.collection.updateOne).toHaveBeenCalledWith(
-        { _id: expect.any(mongoDB.ObjectId) },
+      sinon.assert.calledWith(
+        mongoFakes.collection.updateOne as SinonStub,
+        { _id: sinon.match.instanceOf(mongoDB.ObjectId) },
         { $set: { name: 'updated' } },
       );
-      expect(mongoFakes.collection.findOne).toHaveBeenCalledWith({
-        _id: expect.any(mongoDB.ObjectId),
+
+      sinon.assert.calledWith(mongoFakes.collection.findOne as SinonStub, {
+        _id: sinon.match.instanceOf(mongoDB.ObjectId),
       });
+
       expect(transformIdStub.calledWith(fakeUpdated)).toBe(true);
       expect(result).toEqual({ id: '1', name: 'updated' });
     });
@@ -310,9 +305,9 @@ describe('MongoDBManager (unit)', () => {
 
   describe('getAllInCollection', () => {
     it('returns transformed docs', async () => {
-      mongoFakes.collection.find.mockReturnValue({
-        toArray: jest.fn().mockResolvedValue([{ _id: '1' }]),
-      });
+      const toArray = sb.stub().resolves([{ _id: '1' }]);
+      (mongoFakes.collection.find as SinonStub).returns({ toArray } as any);
+
       transformIdStub.returns({ id: '1' });
 
       const result = await MongoDBManager.getAllInCollection('users');
@@ -328,11 +323,11 @@ describe('MongoDBManager (unit)', () => {
       const result = await MongoDBManager.removeItemFromCollection('users', 'bad-id');
 
       expect(result).toBe(false);
-      expect(mongoFakes.collection.deleteOne).not.toHaveBeenCalled();
+      expect((mongoFakes.collection.deleteOne as SinonStub).called).toBe(false);
     });
 
     it('returns true when delete is acknowledged', async () => {
-      mongoFakes.collection.deleteOne.mockResolvedValue({ acknowledged: true });
+      (mongoFakes.collection.deleteOne as SinonStub).resolves({ acknowledged: true } as any);
 
       const result = await MongoDBManager.removeItemFromCollection('users', 'good-id');
 
@@ -342,18 +337,18 @@ describe('MongoDBManager (unit)', () => {
 
   describe('clearCollection', () => {
     it('deletes all and returns acknowledged', async () => {
-      mongoFakes.collection.deleteMany.mockResolvedValue({ acknowledged: true });
+      (mongoFakes.collection.deleteMany as SinonStub).resolves({ acknowledged: true } as any);
 
       const result = await MongoDBManager.clearCollection('users');
 
-      expect(mongoFakes.collection.deleteMany).toHaveBeenCalledWith({});
+      sinon.assert.calledWith(mongoFakes.collection.deleteMany as SinonStub, {});
       expect(result).toBe(true);
     });
   });
 
   describe('isCollectionEmpty', () => {
     it('returns true when count is 0', async () => {
-      mongoFakes.collection.countDocuments.mockResolvedValue(0);
+      (mongoFakes.collection.countDocuments as SinonStub).resolves(0);
 
       const result = await MongoDBManager.isCollectionEmpty('users');
 
@@ -361,7 +356,7 @@ describe('MongoDBManager (unit)', () => {
     });
 
     it('returns false when count is > 0', async () => {
-      mongoFakes.collection.countDocuments.mockResolvedValue(1);
+      (mongoFakes.collection.countDocuments as SinonStub).resolves(1);
 
       const result = await MongoDBManager.isCollectionEmpty('users');
 
@@ -372,12 +367,9 @@ describe('MongoDBManager (unit)', () => {
   describe('getCollectionChangeReadable', () => {
     it('creates a readable that pushes normalized docs on change (DELETE)', () => {
       const emitter = new EventEmitter();
-      mongoFakes.collection.watch.mockReturnValue(emitter);
+      (mongoFakes.collection.watch as SinonStub).returns(emitter as any);
 
-      const readable = MongoDBManager.getCollectionChangeReadable(
-        'users',
-        CollectionChangeType.DELETE,
-      );
+      const readable = MongoDBManager.getCollectionChangeReadable('users', CollectionChangeType.DELETE);
 
       emitter.emit('change', {
         documentKey: { _id: new mongoDB.ObjectId('64b5fcf45a9930c381d2f111') },
@@ -391,13 +383,10 @@ describe('MongoDBManager (unit)', () => {
 
     it('creates a readable that pushes transformed docs on change (INSERT)', () => {
       const emitter = new EventEmitter();
-      mongoFakes.collection.watch.mockReturnValue(emitter);
+      (mongoFakes.collection.watch as SinonStub).returns(emitter as any);
       transformIdStub.returns({ id: '123', name: 'foo' });
 
-      const readable = MongoDBManager.getCollectionChangeReadable(
-        'users',
-        CollectionChangeType.INSERT,
-      );
+      const readable = MongoDBManager.getCollectionChangeReadable('users', CollectionChangeType.INSERT);
 
       emitter.emit('change', {
         fullDocument: { _id: '123', name: 'foo' },
@@ -410,15 +399,12 @@ describe('MongoDBManager (unit)', () => {
 
     it('destroys readable on error and logs (handled)', (done) => {
       const emitter = new EventEmitter();
-      mongoFakes.collection.watch.mockReturnValue(emitter);
+      (mongoFakes.collection.watch as SinonStub).returns(emitter as any);
 
-      const readable = MongoDBManager.getCollectionChangeReadable(
-        'users',
-        CollectionChangeType.INSERT,
-      );
+      const readable = MongoDBManager.getCollectionChangeReadable('users', CollectionChangeType.INSERT);
 
-      readable.on('error', (err) => {
-        logs.expectLast('Change stream error', 'ERROR');
+      readable.on('error', () => {
+        expectLog(logs.last(), { severity: 'ERROR', messageSubstr: 'Change stream error' });
 
         const ctx = logs.last()?.ctx as any;
         expect(ctx).toBeDefined();
@@ -438,7 +424,7 @@ describe('MongoDBManager (unit)', () => {
     it('closes client and resets state', async () => {
       await MongoDBManager.close();
 
-      expect(mongoFakes.client.close).toHaveBeenCalled();
+      expect((mongoFakes.client.close as SinonStub).called).toBe(true);
     });
   });
 });

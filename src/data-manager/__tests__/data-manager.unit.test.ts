@@ -1,24 +1,27 @@
 import { Readable } from 'stream';
+import sinon, { SinonSandbox } from 'sinon';
 import DataManager from '../data-manager';
 import { DBType, USERS } from '../data-manager.constants';
 import { CollectionChangeType } from '../data-manager.type';
 import { resetSingleton } from '../../__tests__/helpers';
-import { makeDataManagerSandbox } from '../../__tests__/mocks';
+import { makeDataManagerSandbox } from '../../__tests__/testkit';
 
 describe('DataManager (unit)', () => {
-  let dmSandbox = makeDataManagerSandbox();
+  let sb: SinonSandbox;
+  let dmSandbox: ReturnType<typeof makeDataManagerSandbox>;
 
   beforeEach(() => {
-    dmSandbox.restore();
-    dmSandbox = makeDataManagerSandbox();
+    sb = sinon.createSandbox();
 
+    // reset singleton first, then build a fresh sandbox (which will stub singleton deps)
     resetSingleton(DataManager);
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+
+    dmSandbox = makeDataManagerSandbox();
   });
 
   afterEach(() => {
     dmSandbox.restore();
+    sb.restore();
   });
 
   it('returns a singleton instance', () => {
@@ -34,6 +37,7 @@ describe('DataManager (unit)', () => {
     expect(dmSandbox.mongo.init.calledOnce).toBe(true);
     expect(dm.getInitializationStatus()).toBe(true);
 
+    // calling again should no-op (still only one adapter init call)
     await expect(dm.init(DBType.MONGO)).resolves.toBeUndefined();
     expect(dmSandbox.mongo.init.calledOnce).toBe(true);
   });
@@ -44,10 +48,12 @@ describe('DataManager (unit)', () => {
     await expect(dm.init('POSTGRES' as unknown as DBType)).rejects.toBeInstanceOf(Error);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to initialize DataManager');
     expect(fnName).toBe('init');
     expect(err).toBeInstanceOf(Error);
+
     expect(dmSandbox.mongo.init.notCalled).toBe(true);
   });
 
@@ -55,9 +61,7 @@ describe('DataManager (unit)', () => {
     const dm = DataManager.getInstance();
 
     await expect(dm.ensureStore('things')).rejects.toThrow('DataManager has not been initialized');
-    await expect(dm.ensureIndexes('things', [])).rejects.toThrow(
-      'DataManager has not been initialized',
-    );
+    await expect(dm.ensureIndexes('things', [])).rejects.toThrow('DataManager has not been initialized');
   });
 
   it('ensures store and indexes after init', async () => {
@@ -65,9 +69,7 @@ describe('DataManager (unit)', () => {
     await dm.init(DBType.MONGO);
 
     await expect(dm.ensureStore('things', { validator: { ok: true } })).resolves.toBeUndefined();
-    expect(dmSandbox.mongo.ensureStore.calledWith('things', { validator: { ok: true } })).toBe(
-      true,
-    );
+    expect(dmSandbox.mongo.ensureStore.calledWith('things', { validator: { ok: true } })).toBe(true);
 
     const indexes = [{ name: 'i1', key: { a: 1 }, unique: true }];
     await expect(dm.ensureIndexes('things', indexes)).resolves.toBeUndefined();
@@ -79,7 +81,8 @@ describe('DataManager (unit)', () => {
     await dm.init(DBType.MONGO);
 
     await expect(dm.close()).resolves.toBeUndefined();
-    expect(dmSandbox.clm.clearChangeListeners).toHaveBeenCalledTimes(1);
+
+    sinon.assert.calledOnce(dmSandbox.clm.clearChangeListeners);
     expect(dmSandbox.mongo.close.calledOnce).toBe(true);
     expect(dm.getInitializationStatus()).toBe(false);
   });
@@ -93,15 +96,18 @@ describe('DataManager (unit)', () => {
     const dm = DataManager.getInstance();
     await dm.init(DBType.MONGO);
 
-    const onUserAdded = jest.fn();
+    const onUserAdded = sb.stub();
     dm.on('userAdded', onUserAdded);
 
     dmSandbox.mongo.addItemToCollection.resolves('new-id-1');
 
     const res = await dm.addItemToCollection(USERS, { name: 'Ada' });
+
     expect(res).toEqual({ id: 'new-id-1', name: 'Ada' });
     expect(dmSandbox.mongo.addItemToCollection.calledWith(USERS, { name: 'Ada' })).toBe(true);
-    expect(onUserAdded).toHaveBeenCalledWith({ id: 'new-id-1', name: 'Ada' });
+
+    sinon.assert.calledOnce(onUserAdded);
+    sinon.assert.calledWith(onUserAdded, { id: 'new-id-1', name: 'Ada' });
   });
 
   it('addItemToCollection bubbles errors via handleDbError', async () => {
@@ -114,6 +120,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.addItemToCollection('things', { x: 1 })).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to add item to collection: things');
     expect(fnName).toBe('addItemToCollection');
@@ -129,22 +136,22 @@ describe('DataManager (unit)', () => {
       name: 'Ada Lovelace',
     });
 
-    const onUserUpdated = jest.fn();
+    const onUserUpdated = sb.stub();
     dm.on('userUpdated', onUserUpdated);
 
     const out = await dm.updateItemByIdInCollection(USERS, 'u1', {
       name: 'Ada Lovelace',
     });
+
     expect(out).toEqual({ id: 'u1', name: 'Ada Lovelace' });
     expect(
       dmSandbox.mongo.updateItemInCollection.calledWith(USERS, 'u1', {
         name: 'Ada Lovelace',
       }),
     ).toBe(true);
-    expect(onUserUpdated).toHaveBeenCalledWith({
-      id: 'u1',
-      name: 'Ada Lovelace',
-    });
+
+    sinon.assert.calledOnce(onUserUpdated);
+    sinon.assert.calledWith(onUserUpdated, { id: 'u1', name: 'Ada Lovelace' });
   });
 
   it('updateItemByIdInCollection bubbles errors via handleDbError', async () => {
@@ -157,6 +164,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.updateItemByIdInCollection('things', 't1', { x: 2 })).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to update item in collection: things');
     expect(fnName).toBe('updateItemByIdInCollection');
@@ -169,13 +177,16 @@ describe('DataManager (unit)', () => {
 
     dmSandbox.mongo.removeItemFromCollection.resolves(true);
 
-    const onDeleted = jest.fn();
+    const onDeleted = sb.stub();
     dm.on('userDeleted', onDeleted);
 
     const ok = await dm.removeItemFromCollection(USERS, 'u9');
+
     expect(ok).toBe(true);
     expect(dmSandbox.mongo.removeItemFromCollection.calledWith(USERS, 'u9')).toBe(true);
-    expect(onDeleted).toHaveBeenCalledWith('u9');
+
+    sinon.assert.calledOnce(onDeleted);
+    sinon.assert.calledWith(onDeleted, 'u9');
   });
 
   it('removeItemFromCollection does not emit when success=false', async () => {
@@ -184,12 +195,13 @@ describe('DataManager (unit)', () => {
 
     dmSandbox.mongo.removeItemFromCollection.resolves(false);
 
-    const onDeleted = jest.fn();
+    const onDeleted = sb.stub();
     dm.on('userDeleted', onDeleted);
 
     const ok = await dm.removeItemFromCollection(USERS, 'u9');
+
     expect(ok).toBe(false);
-    expect(onDeleted).not.toHaveBeenCalled();
+    sinon.assert.notCalled(onDeleted);
   });
 
   it('removeItemFromCollection bubbles errors via handleDbError', async () => {
@@ -202,6 +214,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.removeItemFromCollection('things', 't1')).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to remove item from collection: things');
     expect(fnName).toBe('removeItemFromCollection');
@@ -222,6 +235,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.getAllInCollection('things')).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to retrieve items from collection: things');
     expect(fnName).toBe('getAllInCollection');
@@ -241,6 +255,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.clearCollection('things')).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to clear collection: things');
     expect(fnName).toBe('clearCollection');
@@ -260,6 +275,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.isCollectionEmpty('things')).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to check if collection is empty: things');
     expect(fnName).toBe('isCollectionEmpty');
@@ -271,9 +287,10 @@ describe('DataManager (unit)', () => {
     await dm.init(DBType.MONGO);
 
     dmSandbox.mongo.findItemByIdInCollection.resolves({ id: 't1', v: 1 });
-    await expect(
-      dm.findItemByIdInCollection<{ id: string; v: number }>('things', 't1'),
-    ).resolves.toEqual({ id: 't1', v: 1 });
+    await expect(dm.findItemByIdInCollection<{ id: string; v: number }>('things', 't1')).resolves.toEqual({
+      id: 't1',
+      v: 1,
+    });
 
     const boom = new Error('fail-findById');
     dmSandbox.mongo.findItemByIdInCollection.rejects(boom);
@@ -281,6 +298,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.findItemByIdInCollection('things', 't1')).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to find item by ID in collection: things');
     expect(fnName).toBe('findItemByIdInCollection');
@@ -291,7 +309,7 @@ describe('DataManager (unit)', () => {
     const dm = DataManager.getInstance();
     await dm.init(DBType.MONGO);
 
-    // @ts-expect-error
+    // @ts-expect-error intentional bad input
     await expect(dm.findItemsInCollection('things', null)).resolves.toBeNull();
     await expect(dm.findItemsInCollection('', { a: 1 })).resolves.toBeNull();
 
@@ -306,6 +324,7 @@ describe('DataManager (unit)', () => {
     await expect(dm.findItemsInCollection('things', { a: 1 })).rejects.toBe(boom);
 
     expect(dmSandbox.handleDbErrorSpy.calledOnce).toBe(true);
+
     const [msg, fnName, err] = dmSandbox.handleDbErrorSpy.getCall(0).args;
     expect(msg).toBe('Failed to find items by criteria: [object Object] in collection: things');
     expect(fnName).toBe('findItemsInCollection');
@@ -325,6 +344,7 @@ describe('DataManager (unit)', () => {
     dmSandbox.mongo.getCollectionChangeReadable.returns(fakeStream);
 
     const out = dm.getChangeStream('things', CollectionChangeType.INSERT);
+
     expect(out).toBe(fakeStream);
     expect(
       dmSandbox.mongo.getCollectionChangeReadable.calledWith('things', CollectionChangeType.INSERT),

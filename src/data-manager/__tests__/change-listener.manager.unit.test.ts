@@ -1,23 +1,29 @@
+import sinon, { SinonSandbox } from 'sinon';
 import { ChangeListenerManager } from '../change-listener.manager';
 import { CollectionChangeType } from '../data-manager.type';
 import { USERS } from '../data-manager.constants';
-import { mockDataManager, loggerSpies } from '../../__tests__/mocks';
+import { resetSingleton, expectLog } from '../../__tests__/helpers';
+import { mockDataManager, loggerSpies } from '../../__tests__/testkit';
 
 describe('ChangeListenerManager (unit)', () => {
+  let sb: SinonSandbox;
   let manager: ChangeListenerManager;
 
   beforeEach(() => {
-    (ChangeListenerManager as any).killInstance?.();
-    manager = ChangeListenerManager.getInstance();
+    sb = sinon.createSandbox();
 
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    resetSingleton(ChangeListenerManager);
+    manager = ChangeListenerManager.getInstance();
+  });
+
+  afterEach(() => {
+    sb.restore();
   });
 
   it('registers a listener and marks it as present', () => {
     const dm = mockDataManager();
 
-    const cb = jest.fn();
+    const cb = sb.stub();
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb);
 
     expect(manager.hasChangeListener(USERS, CollectionChangeType.INSERT)).toBe(true);
@@ -26,7 +32,8 @@ describe('ChangeListenerManager (unit)', () => {
     const stream = dm.getStream(USERS, CollectionChangeType.INSERT);
     stream.emit('data', payload);
 
-    expect(cb).toHaveBeenCalledWith(payload);
+    sinon.assert.calledOnce(cb);
+    sinon.assert.calledWith(cb, payload);
 
     dm.restore();
   });
@@ -35,17 +42,17 @@ describe('ChangeListenerManager (unit)', () => {
     const dm = mockDataManager();
     const logs = loggerSpies();
 
-    const cb = jest.fn();
+    const cb = sb.stub();
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb);
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb);
 
-    logs.expectLast('already registered', 'WARNING');
+    expectLog(logs.last(), { severity: 'WARNING', messageSubstr: 'already registered' });
 
     const payload = { id: 'u2' };
     const stream = dm.getStream(USERS, CollectionChangeType.INSERT);
     stream.emit('data', payload);
 
-    expect(cb).toHaveBeenCalledTimes(1);
+    sinon.assert.calledOnce(cb);
 
     logs.restore();
     dm.restore();
@@ -54,7 +61,7 @@ describe('ChangeListenerManager (unit)', () => {
   it('removes a listener and stops receiving events', () => {
     const dm = mockDataManager();
 
-    const cb = jest.fn();
+    const cb = sb.stub();
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb);
 
     expect(manager.hasChangeListener(USERS, CollectionChangeType.INSERT)).toBe(true);
@@ -64,7 +71,8 @@ describe('ChangeListenerManager (unit)', () => {
 
     const stream = dm.getStream(USERS, CollectionChangeType.INSERT);
     stream.emit('data', { id: 'u3' });
-    expect(cb).not.toHaveBeenCalled();
+
+    sinon.assert.notCalled(cb);
 
     dm.restore();
   });
@@ -72,8 +80,8 @@ describe('ChangeListenerManager (unit)', () => {
   it('clears all listeners and destroys streams', () => {
     const dm = mockDataManager();
 
-    const cb1 = jest.fn();
-    const cb2 = jest.fn();
+    const cb1 = sb.stub();
+    const cb2 = sb.stub();
 
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb1);
     manager.addChangeListener(USERS, CollectionChangeType.UPDATE, cb2);
@@ -88,8 +96,9 @@ describe('ChangeListenerManager (unit)', () => {
 
     s1.emit('data', { id: 'nope-1' });
     s2.emit('data', { id: 'nope-2' });
-    expect(cb1).not.toHaveBeenCalled();
-    expect(cb2).not.toHaveBeenCalled();
+
+    sinon.assert.notCalled(cb1);
+    sinon.assert.notCalled(cb2);
 
     dm.restore();
   });
@@ -97,7 +106,7 @@ describe('ChangeListenerManager (unit)', () => {
   it('emits the manager-level event alongside the callback', () => {
     const dm = mockDataManager();
 
-    const cb = jest.fn();
+    const cb = sb.stub();
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb);
 
     const emitted: any[] = [];
@@ -108,7 +117,8 @@ describe('ChangeListenerManager (unit)', () => {
     const stream = dm.getStream(USERS, CollectionChangeType.INSERT);
     stream.emit('data', payload);
 
-    expect(cb).toHaveBeenCalledWith(payload);
+    sinon.assert.calledOnce(cb);
+    sinon.assert.calledWith(cb, payload);
     expect(emitted).toEqual([payload]);
 
     dm.restore();
@@ -118,15 +128,15 @@ describe('ChangeListenerManager (unit)', () => {
     const dm = mockDataManager();
     const logs = loggerSpies();
 
-    const cb = jest.fn();
+    const cb = sb.stub();
     manager.addChangeListener(USERS, CollectionChangeType.INSERT, cb);
 
     const boom = new Error('stream-bad');
     const stream = dm.getStream(USERS, CollectionChangeType.INSERT);
     stream.emit('error', boom);
 
-    logs.expectLast('Change stream error', 'ERROR');
-    expect(cb).not.toHaveBeenCalled();
+    expectLog(logs.last(), { severity: 'ERROR', messageSubstr: 'Change stream error' });
+    sinon.assert.notCalled(cb);
 
     logs.restore();
     dm.restore();
@@ -138,7 +148,8 @@ describe('ChangeListenerManager (unit)', () => {
 
     manager.removeChangeListener(USERS, CollectionChangeType.DELETE);
 
-    logs.expectLast('No change listener registered', 'WARNING');
+    expectLog(logs.last(), { severity: 'WARNING', messageSubstr: 'No change listener registered' });
+
     logs.restore();
   });
 });

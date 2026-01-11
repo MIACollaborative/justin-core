@@ -6,9 +6,7 @@
  * - Use real infrastructure pieces (MongoMemoryReplSet + MongoDBManager + DataManager + UserManager).
  * - Stub ONLY the logger plumbing (via loggerSpies) so we can assert log behavior.
  *
- * This file is intentionally:
- * - Low on mocking (no jest.mock at the top).
- * - Focused on "happy path" workflows rather than every edge case.
+ * This file is intentionally focused on "happy path" workflows rather than every edge case.
  */
 
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -23,34 +21,26 @@ import { loggerSpies } from '../mocks';
 describe('@just-in/core system / sanity tests', () => {
   let repl: MongoMemoryReplSet;
   let uri: string;
-
-  // Real DataManager singleton
   let dm: DataManager;
-
   let logs: ReturnType<typeof loggerSpies>;
+  let sb: sinon.SinonSandbox;
 
   beforeAll(async () => {
-    // 1) Capture all logging through the real logger plumbing
+    sb = sinon.createSandbox();
     logs = loggerSpies();
-
-    // 2) Spin up an in-memory Mongo replicaset so change streams, etc. work
     repl = await MongoMemoryReplSet.create({
       replSet: { count: 1 },
     });
     uri = repl.getUri();
 
-    // 3) Wire DataManager → MongoMemoryReplSet by overriding MongoDBManager.init
     const realInit = MongoDBManager.init.bind(MongoDBManager);
-    jest.spyOn(MongoDBManager, 'init').mockImplementation((conn?: string, dbName?: string) => {
+    sb.stub(MongoDBManager, 'init').callsFake((conn?: string, dbName?: string) => {
       return realInit(uri, 'core-system-test');
     });
 
-    // 4) Initialize DataManager + UserManager "for real"
     dm = DataManager.getInstance();
-
     await dm.init(DBType.MONGO);
     await dm.ensureStore(USERS);
-
     await UserManager.init();
   });
 
@@ -61,13 +51,10 @@ describe('@just-in/core system / sanity tests', () => {
       await dm.close();
       await repl.stop();
     } catch {
-      // best-effort; we don't want shutdown failures to hide test results
     }
 
-    // Restore logger plumbing and any sinon stubs
     logs.restore();
-    sinon.restore();
-    jest.restoreAllMocks();
+    sb.restore();
   });
 
   it('performs a basic user lifecycle end-to-end via public APIs', async () => {
@@ -81,6 +68,7 @@ describe('@just-in/core system / sanity tests', () => {
       uniqueIdentifier: 'system-u1',
       attributes: { mood: 'ok', count: 1 },
     });
+
     const createdId = created!.id as string;
     expect(typeof createdId).toBe('string');
 
@@ -138,7 +126,7 @@ describe('@just-in/core system / sanity tests', () => {
     expect(stillThere).toBeUndefined();
 
     // --- Logging sanity check --------------------------------------------------
-    // We don't assert every log, just that at least one "Added user" style info log fired.
+    // We don't assert every log, just that at least one INFO log fired.
     const infoLogs = logs.captured.filter((c) => c.entry.severity === 'INFO');
     expect(infoLogs.length).toBeGreaterThan(0);
   });

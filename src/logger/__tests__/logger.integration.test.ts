@@ -16,9 +16,6 @@ describe('logger integration', () => {
   let defaultEmitStub: SinonStub;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
-
     sb = sinon.createSandbox();
 
     normalizeExtraArgStub = sb
@@ -37,24 +34,22 @@ describe('logger integration', () => {
 
   afterEach(() => {
     sb.restore();
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
   });
 
   it('emits with entry {severity,message} and flattened context (global + instance + extras)', () => {
-    const instanceEmit = jest.fn();
+    const instanceEmit = sinon.spy();
 
     const logger = createLogger({
-      emitFn: instanceEmit,
+      emitFn: instanceEmit as any,
       context: { service: 'users' },
     });
 
     logger.info('user created', { userId: 'u-1' });
 
     expect(normalizeExtraArgStub.calledWith({ userId: 'u-1' })).toBe(true);
-    expect(instanceEmit).toHaveBeenCalledTimes(1);
+    expect(instanceEmit.calledOnce).toBe(true);
 
-    const [entry, ctx] = instanceEmit.mock.calls[0];
+    const [entry, ctx] = instanceEmit.getCall(0).args;
 
     expect(entry).toEqual({
       severity: 'INFO',
@@ -68,14 +63,15 @@ describe('logger integration', () => {
   });
 
   it('falls back to global emit when instance emit is not provided', () => {
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger();
     logger.warn('pay attention');
 
-    expect(globalEmit).toHaveBeenCalledTimes(1);
-    const [entry, ctx] = globalEmit.mock.calls[0];
+    expect(globalEmit.calledOnce).toBe(true);
+    const [entry, ctx] = globalEmit.getCall(0).args;
+
     expect(entry).toEqual({
       severity: 'WARNING',
       message: 'pay attention',
@@ -106,8 +102,8 @@ describe('logger integration', () => {
   it('respects global min log level when instance does not override', () => {
     getGlobalMinLogLevelStub.returns('WARNING');
 
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger();
 
@@ -116,45 +112,45 @@ describe('logger integration', () => {
     logger.warn('yes');
     logger.error('also yes');
 
-    expect(globalEmit).toHaveBeenCalledTimes(2);
-    expect(globalEmit.mock.calls[0][0].severity).toBe('WARNING');
-    expect(globalEmit.mock.calls[1][0].severity).toBe('ERROR');
+    expect(globalEmit.callCount).toBe(2);
+    expect(globalEmit.getCall(0).args[0].severity).toBe('WARNING');
+    expect(globalEmit.getCall(1).args[0].severity).toBe('ERROR');
   });
 
   it('instance emitLevel overrides global min log level', () => {
     getGlobalMinLogLevelStub.returns('WARNING');
 
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger({ emitLevel: 'DEBUG' });
 
     logger.debug('should log');
-    expect(globalEmit).toHaveBeenCalledTimes(1);
-    expect(globalEmit.mock.calls[0][0].message).toBe('should log');
+    expect(globalEmit.calledOnce).toBe(true);
+    expect(globalEmit.getCall(0).args[0].message).toBe('should log');
   });
 
   it('setLevel changes the threshold at runtime', () => {
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger(); // global INFO
 
     logger.info('1'); // logs
     logger.debug('2'); // filtered (INFO)
-    expect(globalEmit).toHaveBeenCalledTimes(1);
+    expect(globalEmit.callCount).toBe(1);
 
     logger.setLevel('ERROR'); // now only ERROR+
 
     logger.warn('3'); // filtered
     logger.error('4'); // logged
-    expect(globalEmit).toHaveBeenCalledTimes(2);
-    expect(globalEmit.mock.calls[1][0].message).toBe('4');
+    expect(globalEmit.callCount).toBe(2);
+    expect(globalEmit.getCall(1).args[0].message).toBe('4');
   });
 
   it('setContext merges additional instance context', () => {
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger({ context: { service: 'svc' } });
 
@@ -162,7 +158,7 @@ describe('logger integration', () => {
     logger.setContext({ requestId: 'req-123' });
     logger.info('after');
 
-    const [, ctx2] = globalEmit.mock.calls[1];
+    const [, ctx2] = globalEmit.getCall(1).args;
     expect(ctx2).toEqual({
       app: 'demo',
       service: 'svc',
@@ -171,49 +167,49 @@ describe('logger integration', () => {
   });
 
   it('uppercases severity passed to emit', () => {
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger();
     logger.emit('info' as any, 'lowercase');
 
-    expect(globalEmit).toHaveBeenCalledTimes(1);
-    const [entry] = globalEmit.mock.calls[0];
-    expect(entry.severity).toBe('INFO');
+    expect(globalEmit.calledOnce).toBe(true);
+    const [entry] = globalEmit.getCall(0).args;
+    expect((entry as any).severity).toBe('INFO');
   });
 
   it('calls instance callback first, otherwise global callback', () => {
-    const globalCb = jest.fn();
-    getGlobalLogCallbackStub.returns(globalCb);
+    const globalCb = sinon.spy();
+    getGlobalLogCallbackStub.returns(globalCb as any);
 
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
-    const instanceCb = jest.fn();
-    const logger = createLogger({ cb: instanceCb });
+    const instanceCb = sinon.spy();
+    const logger = createLogger({ cb: instanceCb as any });
 
     logger.info('hello');
 
-    expect(instanceCb).toHaveBeenCalledTimes(1);
-    expect(instanceCb.mock.calls[0][0]).toEqual({
+    expect(instanceCb.calledOnce).toBe(true);
+    expect(instanceCb.getCall(0).args[0]).toEqual({
       severity: 'INFO',
       message: 'hello',
     });
-    expect(globalCb).not.toHaveBeenCalled();
+    expect(globalCb.called).toBe(false);
   });
 
   it('falls back to global callback when no instance callback is provided', () => {
-    const globalCb = jest.fn();
-    getGlobalLogCallbackStub.returns(globalCb);
+    const globalCb = sinon.spy();
+    getGlobalLogCallbackStub.returns(globalCb as any);
 
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger();
     logger.info('hi');
 
-    expect(globalCb).toHaveBeenCalledTimes(1);
-    expect(globalCb.mock.calls[0][0]).toEqual({
+    expect(globalCb.calledOnce).toBe(true);
+    expect(globalCb.getCall(0).args[0]).toEqual({
       severity: 'INFO',
       message: 'hi',
     });
@@ -228,8 +224,8 @@ describe('logger integration', () => {
     });
     getGlobalMinLogLevelStub.returns('INFO');
 
-    const globalEmit = jest.fn();
-    getGlobalEmitFnStub.returns(globalEmit);
+    const globalEmit = sinon.spy();
+    getGlobalEmitFnStub.returns(globalEmit as any);
 
     const logger = createLogger();
 
@@ -237,8 +233,8 @@ describe('logger integration', () => {
     logger.info('ok');
     logger.error('also ok');
 
-    expect(globalEmit).toHaveBeenCalledTimes(2);
-    expect(globalEmit.mock.calls[0][0].message).toBe('ok');
-    expect(globalEmit.mock.calls[1][0].message).toBe('also ok');
+    expect(globalEmit.callCount).toBe(2);
+    expect(globalEmit.getCall(0).args[0].message).toBe('ok');
+    expect(globalEmit.getCall(1).args[0].message).toBe('also ok');
   });
 });

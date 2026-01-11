@@ -1,18 +1,22 @@
 import * as mongoDB from 'mongodb';
+import sinon, { SinonSandbox } from 'sinon';
 import { NO_ID } from '../../data-manager.constants';
 import { toObjectId, transformId, asIndexKey, normalizeIndexKey } from '../mongo.helpers';
-import { loggerSpies } from '../../../__tests__/mocks';
+import { loggerSpies } from '../../../__tests__/testkit';
+import { expectLog } from '../../../__tests__/helpers';
 
-describe('mongo.utils', () => {
+describe('mongo.helpers (unit)', () => {
+  let sb: SinonSandbox;
   let logs: ReturnType<typeof loggerSpies>;
 
   beforeEach(() => {
-    jest.restoreAllMocks();
+    sb = sinon.createSandbox();
     logs = loggerSpies();
   });
 
   afterEach(() => {
     logs.restore();
+    sb.restore();
   });
 
   describe('toObjectId', () => {
@@ -34,10 +38,15 @@ describe('mongo.utils', () => {
       expect(r2).toBeNull();
 
       expect(logs.captured.length).toBe(2);
-      const messages = logs.captured.map((c) => c.entry.message);
+
+      // Don’t assume ordering; assert content.
+      const messages = logs.captured.map((c) => String(c.entry.message));
       expect(messages).toContain('Invalid ObjectId format: null');
       expect(messages).toContain('Invalid ObjectId format: undefined');
-      logs.captured.forEach((c) => expect(c.entry.severity).toBe('ERROR'));
+
+      logs.captured.forEach((c) => {
+        expectLog(c, { severity: 'ERROR' });
+      });
     });
 
     it('returns null and logs when given a non-string', () => {
@@ -45,14 +54,22 @@ describe('mongo.utils', () => {
       const result = toObjectId(123);
 
       expect(result).toBeNull();
-      logs.expectLast('Invalid ObjectId format: 123', 'ERROR');
+
+      expectLog(logs.last(), {
+        severity: 'ERROR',
+        messageSubstr: 'Invalid ObjectId format: 123',
+      });
     });
 
     it('returns null and logs when string cannot be parsed as ObjectId', () => {
       const result = toObjectId('not-a-valid-object-id');
 
       expect(result).toBeNull();
-      logs.expectLast('Invalid ObjectId format: not-a-valid-object-id', 'ERROR');
+
+      expectLog(logs.last(), {
+        severity: 'ERROR',
+        messageSubstr: 'Invalid ObjectId format: not-a-valid-object-id',
+      });
     });
   });
 

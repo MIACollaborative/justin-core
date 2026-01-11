@@ -1,7 +1,8 @@
+import sinon from 'sinon';
 import { ChangeListenerManager } from '../change-listener.manager';
 import { CollectionChangeType } from '../../data-manager/data-manager.type';
 import { push, resetSingleton } from '../../__tests__/helpers';
-import { mockDataManager, loggerSpies } from '../../__tests__/mocks';
+import { mockDataManager, loggerSpies } from '../../__tests__/testkit';
 
 describe('ChangeListenerManager (integration)', () => {
   let manager: ChangeListenerManager;
@@ -15,7 +16,7 @@ describe('ChangeListenerManager (integration)', () => {
     const dm = mockDataManager();
     const logs = loggerSpies();
 
-    const userCb = jest.fn();
+    const userCb = sinon.spy();
     manager.addChangeListener('users', CollectionChangeType.INSERT, userCb);
 
     const stream = dm.getStream('users', CollectionChangeType.INSERT);
@@ -23,7 +24,8 @@ describe('ChangeListenerManager (integration)', () => {
 
     push(stream, payload);
 
-    expect(userCb).toHaveBeenCalledWith(payload);
+    expect(userCb.calledOnce).toBe(true);
+    expect(userCb.calledWith(payload)).toBe(true);
 
     const lastLog = logs.last();
     expect(lastLog?.entry.severity).toBe('DEBUG');
@@ -35,8 +37,9 @@ describe('ChangeListenerManager (integration)', () => {
 
   it('can manage multiple listeners at once', () => {
     const dm = mockDataManager();
-    const userCb = jest.fn();
-    const taskCb = jest.fn();
+
+    const userCb = sinon.spy();
+    const taskCb = sinon.spy();
 
     manager.addChangeListener('users', CollectionChangeType.INSERT, userCb);
     manager.addChangeListener('tasks', CollectionChangeType.UPDATE, taskCb);
@@ -44,8 +47,8 @@ describe('ChangeListenerManager (integration)', () => {
     push(dm.getStream('users', CollectionChangeType.INSERT), { id: 'u2' });
     push(dm.getStream('tasks', CollectionChangeType.UPDATE), { id: 't9' });
 
-    expect(userCb).toHaveBeenCalledTimes(1);
-    expect(taskCb).toHaveBeenCalledTimes(1);
+    expect(userCb.calledOnce).toBe(true);
+    expect(taskCb.calledOnce).toBe(true);
 
     dm.restore();
   });

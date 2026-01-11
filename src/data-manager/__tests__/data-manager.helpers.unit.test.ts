@@ -1,5 +1,6 @@
 import { handleDbError } from '../data-manager.helpers';
-import { loggerSpies } from '../../__tests__/mocks';
+import { loggerSpies } from '../../__tests__/testkit';
+import { expectLog } from '../../__tests__/helpers';
 
 describe('DataManager Helpers', () => {
   describe('handleDbError (unit)', () => {
@@ -10,7 +11,7 @@ describe('DataManager Helpers', () => {
     });
 
     afterEach(() => {
-      logs?.restore();
+      logs.restore();
     });
 
     it('logs and rethrows the same Error instance', () => {
@@ -18,8 +19,7 @@ describe('DataManager Helpers', () => {
 
       expect(() => handleDbError('db context', 'testFn', original)).toThrow(original);
 
-      // logger helper already checks severity + message
-      logs.expectLast('db context', 'ERROR');
+      expectLog(logs.last(), { severity: 'ERROR', messageSubstr: 'db context' });
 
       // normalizeExtraArg turns Error into { name, message, stack }
       expect(logs.last()?.ctx).toMatchObject({
@@ -34,7 +34,8 @@ describe('DataManager Helpers', () => {
     it('logs and throws a new Error when given a string', () => {
       expect(() => handleDbError('failed to write', 'saveItem', 'oops')).toThrow('failed to write');
 
-      logs.expectLast('failed to write', 'ERROR');
+      expectLog(logs.last(), { severity: 'ERROR', messageSubstr: 'failed to write' });
+
       expect(logs.last()?.ctx).toMatchObject({
         function: 'saveItem',
         // string stays a string in the composite extras case
@@ -49,7 +50,8 @@ describe('DataManager Helpers', () => {
         'insert failed',
       );
 
-      logs.expectLast('insert failed', 'ERROR');
+      expectLog(logs.last(), { severity: 'ERROR', messageSubstr: 'insert failed' });
+
       expect(logs.last()?.ctx).toMatchObject({
         function: 'insertItem',
         // non-Error objects are passed through as-is
