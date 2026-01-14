@@ -12,10 +12,7 @@ export enum CollectionChangeType {
 }
 
 export type CollectionChangeListener = {
-  (document: {
-    fullDocument: object;
-    updateDescription?: object;
-  }): Promise<void>;
+  (document: { fullDocument: object; updateDescription?: object }): Promise<void>;
 };
 
 export type CollectionChangeNotifier = {

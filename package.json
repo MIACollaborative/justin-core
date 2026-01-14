@@ -1,6 +1,6 @@
 {
   "name": "@just-in/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A TypeScript-first framework for building adaptive digital health interventions.",
   "license": "BSD-3-Clause",
   "author": "MIACollaborative",
@@ -28,6 +28,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.cjs"
     }
   },
   "publishConfig": {
@@ -40,37 +45,42 @@
     "docs": "typedoc",
     "version-docs": "cd docs && yarn docusaurus docs:version $(node -p \"require('../package.json').version\")",
     "start": "node dist/index.js",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
     "test:unit": "yarn build && jest --config=jest.unit.config.js -i --verbose --passWithNoTests --runInBand --detectOpenHandles",
     "test:integration": "yarn build && jest --config=jest.integration.config.js --verbose --passWithNoTests --runInBand --detectOpenHandles",
+    "test:system": "yarn build && jest --config=jest.system.config.js --verbose --passWithNoTests --runInBand --detectOpenHandles",
     "test": "yarn test:unit && yarn test:integration",
     "test:coverage": "yarn test:unit && yarn test:integration --coverage"
   },
   "dependencies": {
+    "@docusaurus/preset-classic": "^3.9.1",
     "mongodb": "^6.10.0",
     "mongodb-memory-server": "^10.1.4",
     "uuid": "^11.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.13.0",
+    "@docusaurus/types": "^3.9.1",
+    "@eslint/js": "^9.39.1",
     "@types/jest": "^29.5.14",
     "@types/mongodb-memory-server": "^2.3.0",
     "@types/node": "^22.9.0",
     "@types/sinon": "^17.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.11.0",
-    "@typescript-eslint/parser": "^8.11.0",
-    "eslint": "^9.13.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "@typescript-eslint/parser": "^8.48.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-unused-imports": "^4.3.0",
     "globals": "^15.11.0",
     "jest": "^29.7.0",
-    "prettier": "^3.3.3",
+    "prettier": "^3.6.2",
     "sinon": "^19.0.2",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typedoc": "^0.28.7",
     "typedoc-plugin-markdown": "^4.7.0",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.11.0"
+    "typescript": "^5.6.3"
   }
 }

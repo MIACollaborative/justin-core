@@ -1,4 +1,10 @@
-import { Log } from '../logger/logger-manager';
+import { createLogger } from '../logger';
+
+const Log = createLogger({
+  context: {
+    source: 'data-manager-helpers',
+  },
+});
 
 /**
  * Logs and throws a database-related error.
@@ -9,12 +15,15 @@ import { Log } from '../logger/logger-manager';
  * in a new `Error` object with the provided message.
  *
  * @param message - A custom error message describing the context of the error.
+ * @param funcName - name of the calling function the error occured in.
  * @param error - The error to log and throw; if not an instance of `Error`, it will be wrapped.
  *
  * @throws {Error} Throws the provided error if it is an `Error` instance,
  * or wraps and throws a new `Error` with the specified message if it is not.
  */
-export const handleDbError = (message: string, error: unknown): never => {
-  Log.error(message, error);
+const handleDbError = (message: string, funcName: string, error: unknown): never => {
+  Log.error(message, { function: funcName, error });
   throw error instanceof Error ? error : new Error(message);
 };
+
+export { handleDbError };

@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.tmp
+*.log
+
+# lockfiles (optional)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

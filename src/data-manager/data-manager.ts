@@ -2,12 +2,16 @@ import { MongoDBManager } from './mongo/mongo-data-manager';
 import { EventEmitter } from 'events';
 import { ChangeListenerManager } from './change-listener.manager';
 import { CollectionChangeType } from './data-manager.type';
-import { DBType } from './data-manager.constants';
+import { DBType, USERS } from './data-manager.constants';
 import { handleDbError } from './data-manager.helpers';
 import { Readable } from 'stream';
-import { Log } from '../logger/logger-manager';
-import { USERS } from './data-manager.constants';
+import { createLogger } from '../logger/logger';
 
+const Log = createLogger({
+  context: {
+    source: 'data-manager',
+  },
+});
 /**
  * Manages database operations and collection change listeners.
  */
@@ -46,12 +50,10 @@ class DataManager extends EventEmitter {
 
   /**
    * Initializes the DataManager with the specified database type.
-   * Sets up listeners for collection changes.
    * @param {DBType} dbType - The type of database to initialize. Defaults to MongoDB.
    * @returns {Promise<void>} Resolves when initialization is complete.
    */
   public async init(dbType: DBType = DBType.MONGO): Promise<void> {
-    Log.dev('Entering DM.init, isInitialized:', this.isInitialized);
     try {
       if (this.getInitializationStatus() && dbType === DBType.MONGO) return;
       if (dbType !== DBType.MONGO) {
@@ -59,26 +61,37 @@ class DataManager extends EventEmitter {
       }
       await this.db.init();
       this.isInitialized = true;
-      // TODO: figure out why we're doing this here
-      this.changeListenerManager.addChangeListener(
-        'EVENTS_QUEUE',
-        CollectionChangeType.INSERT,
-        this.handleEventsQueueInsert.bind(this)
-      );
-      Log.dev('DataManager initialized successfully');
     } catch (error) {
-      handleDbError('Failed to initialize DataManager', error);
+      handleDbError('Failed to initialize DataManager', 'init', error);
     }
   }
 
   /**
-   * Handles `insert` changes in the EVENTS_QUEUE collection.
-   * Emits an `eventAdded` signal to notify external systems.
-   * @param {any} data - Data from the change stream.
-   * @private
+   * Ensures a store exists and applies adapter-supported options (idempotent).
+   * @param {string} storeName - The collection/table name.
+   * @param {object} [options] - Optional storage options (adapter-specific).
    */
-  private async handleEventsQueueInsert(data: any): Promise<void> {
-    this.emit('eventAdded', data);
+  public async ensureStore(storeName: string, options?: { validator?: unknown }): Promise<void> {
+    this.checkInitialization();
+    await this.db.ensureStore(storeName, options as any);
+  }
+
+  /**
+   * Ensures indexes exist on a store (idempotent by name and key).
+   * @param {string} storeName - The collection/table name.
+   * @param {Array<{name?: string; key: unknown; unique?: boolean; partialFilterExpression?: unknown}>} indexes
+   */
+  public async ensureIndexes(
+    storeName: string,
+    indexes: Array<{
+      name?: string;
+      key: unknown;
+      unique?: boolean;
+      partialFilterExpression?: unknown;
+    }>,
+  ): Promise<void> {
+    this.checkInitialization();
+    await this.db.ensureIndexes(storeName, indexes as any);
   }
 
   /**
@@ -94,20 +107,18 @@ class DataManager extends EventEmitter {
    * @returns {Promise<void>} Resolves when closed.
    */
   public async close(): Promise<void> {
-    Log.dev('Initiating DataManager.close');
     try {
       this.checkInitialization();
       this.changeListenerManager.clearChangeListeners();
       await this.db.close();
       this.isInitialized = false;
-      Log.dev('DataManager closed and uninitialized');
+      Log.debug('DataManager closed and uninitialized');
     } catch (error) {
-      handleDbError('Failed to close DataManager', error);
+      handleDbError('Failed to close DataManager', 'close', error);
     }
   }
 
   public checkInitialization(): void {
-    Log.dev('Checking DataManager initialization status:', this.isInitialized);
     if (!this.isInitialized) {
       throw new Error('DataManager has not been initialized');
     }
@@ -120,10 +131,7 @@ class DataManager extends EventEmitter {
    * @param {object} item - The item to add to the collection.
    * @returns {Promise<object | null>} Resolves with the added item, or `null` if an error occurs.
    */
-  public async addItemToCollection(
-    collectionName: string,
-    item: object
-  ): Promise<object | null> {
+  public async addItemToCollection(collectionName: string, item: object): Promise<object | null> {
     try {
       this.checkInitialization();
       const id = await this.db.addItemToCollection(collectionName, item);
@@ -131,15 +139,14 @@ class DataManager extends EventEmitter {
 
       if (collectionName === USERS) {
         this.emit('userAdded', newItem);
-      } else if (collectionName === 'EVENTS_QUEUE') {
-        this.emit('eventAdded', newItem);
       }
 
       return newItem;
     } catch (error) {
       return handleDbError(
         `Failed to add item to collection: ${collectionName}`,
-        error
+        'addItemToCollection',
+        error,
       );
     }
   }
@@ -154,15 +161,11 @@ class DataManager extends EventEmitter {
   public async updateItemByIdInCollection(
     collectionName: string,
     id: string,
-    updateObject: object
+    updateObject: object,
   ): Promise<object | null> {
     try {
       this.checkInitialization();
-      const updatedItem = await this.db.updateItemInCollection(
-        collectionName,
-        id,
-        updateObject
-      );
+      const updatedItem = await this.db.updateItemInCollection(collectionName, id, updateObject);
 
       if (collectionName === USERS) {
         this.emit('userUpdated', { id, ...updateObject });
@@ -171,7 +174,8 @@ class DataManager extends EventEmitter {
     } catch (error) {
       return handleDbError(
         `Failed to update item in collection: ${collectionName}`,
-        error
+        'updateItemByIdInCollection',
+        error,
       );
     }
   }
@@ -182,10 +186,7 @@ class DataManager extends EventEmitter {
    * @param {string} id - The ID of the item to remove.
    * @returns {Promise<boolean>} Resolves with `true` if removed, `false` on error.
    */
-  public async removeItemFromCollection(
-    collectionName: string,
-    id: string
-  ): Promise<boolean> {
+  public async removeItemFromCollection(collectionName: string, id: string): Promise<boolean> {
     try {
       this.checkInitialization();
       const result = await this.db.removeItemFromCollection(collectionName, id);
@@ -198,7 +199,8 @@ class DataManager extends EventEmitter {
       return (
         handleDbError(
           `Failed to remove item from collection: ${collectionName}`,
-          error
+          'removeItemFromCollection',
+          error,
         ) ?? false
       );
     }
@@ -209,16 +211,15 @@ class DataManager extends EventEmitter {
    * @param {string} collectionName - The name of the collection.
    * @returns {Promise<T[] | null>} Resolves with items or `null` on error.
    */
-  public async getAllInCollection<T>(
-    collectionName: string
-  ): Promise<T[] | null> {
+  public async getAllInCollection<T>(collectionName: string): Promise<T[] | null> {
     try {
       this.checkInitialization();
-      return this.db.getAllInCollection(collectionName) as Promise<T[] | null>;
+      return (await this.db.getAllInCollection(collectionName)) as T[] | null;
     } catch (error) {
       return handleDbError(
         `Failed to retrieve items from collection: ${collectionName}`,
-        error
+        'getAllInCollection',
+        error,
       );
     }
   }
@@ -233,7 +234,7 @@ class DataManager extends EventEmitter {
       this.checkInitialization();
       await this.db.clearCollection(collectionName);
     } catch (error) {
-      handleDbError(`Failed to clear collection: ${collectionName}`, error);
+      handleDbError(`Failed to clear collection: ${collectionName}`, 'clearCollection', error);
     }
   }
 
@@ -250,7 +251,8 @@ class DataManager extends EventEmitter {
       return (
         handleDbError(
           `Failed to check if collection is empty: ${collectionName}`,
-          error
+          'isCollectionEmpty',
+          error,
         ) ?? false
       );
     }
@@ -263,10 +265,7 @@ class DataManager extends EventEmitter {
    * @param {string} id - The ID of the item to find.
    * @returns {Promise<T | null>} Resolves with the found item of type `T` or `null` if not found or on error.
    */
-  public async findItemByIdInCollection<T>(
-    collectionName: string,
-    id: string
-  ): Promise<T | null> {
+  public async findItemByIdInCollection<T>(collectionName: string, id: string): Promise<T | null> {
     try {
       this.checkInitialization();
       const item = await this.db.findItemByIdInCollection(collectionName, id);
@@ -274,12 +273,13 @@ class DataManager extends EventEmitter {
     } catch (error) {
       return handleDbError(
         `Failed to find item by ID in collection: ${collectionName}`,
-        error
+        'findItemByIdInCollection',
+        error,
       ) as null;
     }
   }
 
-    /**
+  /**
    * Finds items by criteria in a specified collection.
    * @template T - The expected type of the item in the collection.
    * @param {string} collectionName - The name of the collection.
@@ -289,24 +289,21 @@ class DataManager extends EventEmitter {
    */
   public async findItemsInCollection<T>(
     collectionName: string,
-    criteria: Record<string, any>
+    criteria: Record<string, any>,
   ): Promise<T[] | null> {
-
     if (!criteria || !collectionName) {
       return null; // Return null if criteria is null
     }
-    
+
     try {
       this.checkInitialization();
-      const itemList = await this.db.findItemsInCollection(
-        collectionName,
-        criteria
-      );
+      const itemList = await this.db.findItemsInCollection(collectionName, criteria);
       return itemList as T[] | null;
     } catch (error) {
       return handleDbError(
         `Failed to find items by criteria: ${criteria} in collection: ${collectionName}`,
-        error
+        'findItemsInCollection',
+        error,
       ) as null;
     }
   }
@@ -318,10 +315,7 @@ class DataManager extends EventEmitter {
    * @param {CollectionChangeType} changeType - The type of change to monitor.
    * @returns {Readable} A readable stream of change events.
    */
-  public getChangeStream(
-    collectionName: string,
-    changeType: CollectionChangeType
-  ): Readable {
+  public getChangeStream(collectionName: string, changeType: CollectionChangeType): Readable {
     this.checkInitialization();
     return this.db.getCollectionChangeReadable(collectionName, changeType);
   }

@@ -1,19 +1,27 @@
-// Core Entry
-import { JustIn } from './JustInWrapper';
-export default JustIn;
+import DataManager from './data-manager/data-manager';
 
-// Serverless
-export { JustInLite } from './JustInLite';
+export default DataManager;
 
-// Utilities
-export { Log } from './logger/logger-manager';
+export { ChangeListenerManager } from './data-manager/change-listener.manager';
 
-// Types
+export { USERS, DBType, NO_ID } from './data-manager/data-manager.constants';
+export { CollectionChangeType } from './data-manager/data-manager.type';
+
+/**
+ * UserManager
+ */
+export { UserManager } from './user-manager/user-manager';
+export type { JUser, NewUserRecord } from './user-manager/user.type';
+
+/**
+ * Logging
+ */
+export { createLogger, configureLogger } from './logger';
 export type {
-  StepReturnResult,
-  RecordResult,
-  DecisionRuleRegistration,
-} from './handlers/handler.type';
-
-export type { JUser } from './user-manager/user.type';
-export type { JEvent } from './event/event.type';
+  Logger,
+  LoggerEntry,
+  BaseSeverity,
+  LoggerCallback,
+  EmitFn,
+  LoggerConfig,
+} from './logger';

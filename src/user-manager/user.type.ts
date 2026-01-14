@@ -5,6 +5,6 @@ export type JUser = {
 };
 
 export type NewUserRecord = {
-  uniqueIdentifier: string,
-  initialAttributes: Record<string, any>
-}
+  uniqueIdentifier: string;
+  initialAttributes: Record<string, any>;
+};
