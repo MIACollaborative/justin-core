@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 import { makeCoreManagersSandbox, type CoreManagersSandbox } from '../../__tests__/testkit';
 import DataManager from '../../data-manager/data-manager';
-import { USERS } from '../../data-manager/data-manager.constants';
+import { PROTECTED, USERS } from '../../data-manager/data-manager.constants';
 import { CollectionChangeType } from '../../data-manager/data-manager.type';
 import { UserManager, TestingUserManager } from '../user-manager';
 
@@ -29,9 +29,10 @@ describe('UserManager (unit)', () => {
 
     await expect(UserManager.init()).resolves.toBeUndefined();
 
-    sinon.assert.calledOnce(dm.init as sinon.SinonStub);
-    sinon.assert.calledWith(dm.ensureStore as sinon.SinonStub, USERS);
-    sinon.assert.calledWith(dm.ensureIndexes as sinon.SinonStub, USERS, [
+    // UserManager and ProtectedManager both init DM
+    sinon.assert.calledTwice(dm.init as sinon.SinonStub);
+    sinon.assert.calledWith((dm.ensureStore as sinon.SinonStub).getCall(0), USERS);
+    sinon.assert.calledWith((dm.ensureIndexes as sinon.SinonStub).getCall(0), USERS, [
       { name: 'uniq_user_identifier', key: { uniqueIdentifier: 1 }, unique: true },
     ]);
 
